@@ -8,32 +8,32 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;import com.outoftheboxrobo
 public class godSwerve extends LinearOpMode {
 
     //Initialize all of our hardware
-    private AnalogInput BLE = null, BRE = null, FLE = null, FRE = null;
+    private AnalogInput mod1E = null, mod2E = null, mod3E = null;
 
-    private CRServo BLT = null, BRT = null, FLT = null, FRT = null;
+    private DcMotorEx mod1m2 = null, mod2m2 = null, mod3m2 = null;
 
-    private DcMotorEx BLD = null, BRD = null, FLD = null, FRD = null;
+    private DcMotorEx mod1m1 = null, mod2m1 = null, mod3m1 = null;
 
     List<LynxModule> allHubs = null;
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
 
-    //Define reference points
-    public static double BLTreference = 0, BRTreference=0,FLTreference=0,FRTreference=0;
-    public static double BLTreference1 = 0, BRTreference1=0,FLTreference1=0,FRTreference1=0;
+    //Define reference variables for modules' heading
+    public static double mod1reference=0,mod2reference=0,mod3reference=0;
+    public static double mod1reference1=0,mod2reference1=0,mod3reference1=0;
 
     //Timers for the PID loops
-    ElapsedTime BLTtimer =  new ElapsedTime(); ElapsedTime FRTtimer =  new ElapsedTime(); ElapsedTime FLTtimer =  new ElapsedTime(); ElapsedTime BRTtimer =  new ElapsedTime();
+    ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
 
-    //Define values for wheel positions
-    double BLP = 0, BRP = 0, FLP = 0, FRP = 0;
+    //Define module position variables
+    double mod1P = 0, mod2P = 0, mod3P = 0;
 
-    //Variables for power of wheels
-    double BLDpower,BRDpower,FLDpower,FRDpower;
+    //Define variables for power of wheels
+    double mod1power = 0,mod2power = 0,mod3power = 0;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double BLPC = -100, FRPC = -5, BRPC = 87, FLPC = 190;
+    public static double mod3PC = -5, mod1PC = 87, mod2PC = 190;
 
     //IMU
     BNO055IMU IMU;
@@ -43,6 +43,7 @@ public class godSwerve extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
 
         //Calibrate the IMU
+        //CHANGE TO ODO HEADING!
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
@@ -53,27 +54,22 @@ public class godSwerve extends LinearOpMode {
         IMU.initialize(parameters);
         IMU.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
-        angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double headingfix = angles.firstAngle;
-
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         //Link all of our hardware to our hardwaremap
-        BLE = hardwareMap.get(AnalogInput.class, "BLE");
-        BRE = hardwareMap.get(AnalogInput.class, "BRE");
-        FLE = hardwareMap.get(AnalogInput.class, "FLE");
-        FRE = hardwareMap.get(AnalogInput.class, "FRE");
+        //E = encoder, m1 = motor 1, m2 = motor 2
+        mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
+        mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
+        mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
 
-        BLD = hardwareMap.get(DcMotorEx.class, "BLD");
-        BRD = hardwareMap.get(DcMotorEx.class, "BRD");
-        FLD = hardwareMap.get(DcMotorEx.class, "FLD");
-        FRD = hardwareMap.get(DcMotorEx.class, "FRD");
+        mod1m1 = hardwareMap.get(DcMotorEx.class, "mod1m1");
+        mod2m1 = hardwareMap.get(DcMotorEx.class, "mod2m1");
+        mod3m1 = hardwareMap.get(DcMotorEx.class, "mod3m1");
 
-        BLT = hardwareMap.get(CRServo.class, "BLT");
-        BRT = hardwareMap.get(CRServo.class, "BRT");
-        FLT = hardwareMap.get(CRServo.class, "FLT");
-        FRT = hardwareMap.get(CRServo.class, "FRT");
+        mod1m2 = hardwareMap.get(DcMotorEx.class, "mod1m2");
+        mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
+        mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
         //Bulk sensor reads
         allHubs = hardwareMap.getAll(LynxModule.class);
@@ -84,16 +80,14 @@ public class godSwerve extends LinearOpMode {
         //Create objects for the classes we use for swerve
         swerveMaths swavemath = new swerveMaths();
 
-        controlLoopMath BLTPID = new controlLoopMath(0.2,0.0001,0,0,BLTtimer);
-        controlLoopMath BRTPID = new controlLoopMath(0.2,0.0001,0,0,BRTtimer);
-        controlLoopMath FLTPID = new controlLoopMath(0.2,0.0001,0,0,FLTtimer);
-        controlLoopMath FRTPID = new controlLoopMath(0.2,0.0001,0,0,FRTtimer);
+        controlLoopMath mod1PID = new controlLoopMath(0.2,0.0001,0,0,mod1timer);
+        controlLoopMath mod2PID = new controlLoopMath(0.2,0.0001,0,0,mod2timer);
+        controlLoopMath mod3PID = new controlLoopMath(0.2,0.0001,0,0,mod3timer);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
-        BLTreference = 0; BRTreference=0;FLTreference=0;FRTreference=0;
 
         PhotonCore.enable();
 
@@ -105,11 +99,10 @@ public class godSwerve extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            //Turn our MA3 absolute encoder signals from volts to degrees
-            BLP = BLE.getVoltage() * -74.16;
-            BRP = BRE.getVoltage() * -74.16;
-            FLP = FLE.getVoltage() * -74.16;
-            FRP = FRE.getVoltage() * -74.16;
+            //Turn our MA3 absolute encoder signals mod3om volts to degrees
+            mod1P = mod1E.getVoltage() * -74.16;
+            mod2P = mod2E.getVoltage() * -74.16;
+            mod3P = mod3E.getVoltage() * -74.16;
 
             //Update heading of robot
             angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -118,108 +111,88 @@ public class godSwerve extends LinearOpMode {
             telemetry.addData("IMU",heading);
 
             //Anglewrap our positions and references for each wheel
-            BLP=mathsOperations.angleWrap(BLP);
-            BRP=mathsOperations.angleWrap(BRP);
-            FLP=mathsOperations.angleWrap(FLP);
-            FRP=mathsOperations.angleWrap(FRP);
+            mod1P = mathsOperations.angleWrap(mod1P);
+            mod2P = mathsOperations.angleWrap(mod2P);
+            mod3P = mathsOperations.angleWrap(mod3P);
 
-            BLTreference=mathsOperations.angleWrap(BLTreference);
-            BRTreference=mathsOperations.angleWrap(BRTreference);
-            FLTreference=mathsOperations.angleWrap(FLTreference);
-            FRTreference=mathsOperations.angleWrap(FRTreference);
-
-            //put our outputs into an array
+            mod1reference = mathsOperations.angleWrap(mod1reference);
+            mod2reference = mathsOperations.angleWrap(mod2reference);
+            mod3reference = mathsOperations.angleWrap(mod3reference);
 
             //Retrieve the angles and powers for all of our wheels from the swerve kinematics
             double[] output = swavemath.Math(gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
-            BRDpower=output[0];
-            BLDpower=output[1];
-            FRDpower=output[2];
-            FLDpower=output[3];
+            mod1power=output[0];
+            mod3power=output[2];
+            mod2power=output[1];
 
-            while (gamepad1.left_stick_y!=0||gamepad1.left_stick_x!=0||gamepad1.right_stick_x!=0&&opModeIsActive()){
-                BRTreference1=output[4];
-                BLTreference1=output[5];
-                FRTreference1=output[6];
-                FLTreference1=output[7];
-                BRTreference=BRTreference1;
-                BLTreference=BLTreference1;
-                FRTreference=FRTreference1;
-                FLTreference=FLTreference1;
-                telemetry.addData("in","yes");
-                break;
+            if (gamepad1.left_stick_y!=0||gamepad1.left_stick_x!=0||gamepad1.right_stick_x!=0){
+
+                mod1reference1=output[3];
+                mod3reference1=output[5];
+                mod2reference1=output[4];
+
             }
-            while(gamepad1.left_stick_y==0&gamepad1.left_stick_x==0&gamepad1.right_stick_x==0&&opModeIsActive()){
+            mod1reference=mod1reference1;
+            mod3reference=mod3reference1;
+            mod2reference=mod2reference1;
 
-                BRTreference=BRTreference1;
-                BLTreference=BLTreference1;
-                FRTreference=FRTreference1;
-                FLTreference=FLTreference1;
-
-                telemetry.addData("in","na");
-                break;
-            }
-
-            BLTreference=mathsOperations.angleWrap(BLTreference);
-            BRTreference=mathsOperations.angleWrap(BRTreference);
-            FLTreference=mathsOperations.angleWrap(FLTreference);
-            FRTreference=mathsOperations.angleWrap(FRTreference);
+            mod1reference = mathsOperations.angleWrap(mod1reference);
+            mod2reference = mathsOperations.angleWrap(mod2reference);
+            mod3reference = mathsOperations.angleWrap(mod3reference);
 
             //Subtract our tuning values to account for any encoder drift
-            FRTreference -= FRPC;
-            FLTreference -= FLPC;
-            BRTreference -= BRPC;
-            BLTreference -= BLPC;
+            mod3reference -= mod3PC;
+            mod2reference -= mod2PC;
+            mod1reference -= mod1PC;
 
-            BLTreference=mathsOperations.angleWrap(BLTreference);
-            BRTreference=mathsOperations.angleWrap(BRTreference);
-            FLTreference=mathsOperations.angleWrap(FLTreference);
-            FRTreference=mathsOperations.angleWrap(FRTreference);
+            mod1reference = mathsOperations.angleWrap(mod1reference);
+            mod2reference = mathsOperations.angleWrap(mod2reference);
+            mod3reference = mathsOperations.angleWrap(mod3reference);
 
             //Run our powers, references, and positions through efficient turning code for each wheel and get the new values
-            double[] BLTvalues= mathsOperations.efficientTurn(BLTreference,BLP,BLDpower);
-            BLTreference=BLTvalues[0];
-            BLDpower=BLTvalues[1];
+            double[] mod1efvalues = mathsOperations.efficientTurn(mod1reference,mod1P,mod1power);
+            mod1reference=mod1efvalues[0];
+            mod1power=mod1efvalues[1];
 
-            double[] BRTvalues = mathsOperations.efficientTurn(BRTreference,BRP,BRDpower);
-            BRTreference=BRTvalues[0];
-            BRDpower=BRTvalues[1];
+            double[] mod2efvalues = mathsOperations.efficientTurn(mod2reference,mod2P,mod2power);
+            mod2reference=mod2efvalues[0];
+            mod2power=mod2efvalues[1];
 
-            double[] FLTvalues = mathsOperations.efficientTurn(FLTreference,FLP,FLDpower);
-            FLTreference=FLTvalues[0];
-            FLDpower=FLTvalues[1];
+            double[] mod3efvalues = mathsOperations.efficientTurn(mod3reference,mod3P,mod3power);
+            mod3reference=mod3efvalues[0];
+            mod3power=mod3efvalues[1];
 
-            double[] FRTvalues = mathsOperations.efficientTurn(FRTreference,FRP,FRDpower);
-            FRTreference=FRTvalues[0];
-            FRDpower=FRTvalues[1];
+            double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(mod1reference,mod1P),mod1power);
+            double mod1m1power = mod1values[0];
+            double mod1m2power = mod1values[1];
+            double[] mod2values = mathsOperations.diffyConvert(mod2PID.PIDout(mod2reference,mod2P),mod2power);
+            double mod2m1power = mod2values[0];
+            double mod2m2power = mod2values[1];
+            double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(mod3reference,mod3P),mod3power);
+            double mod3m1power = mod3values[0];
+            double mod3m2power = mod3values[1];
 
             //Use our controlLoopMath class to find the power needed to go into our CRservo to achieve our desired target
-            BLT.setPower(BLTPID.PIDout(BLTreference,BLP));
-            BLD.setPower(BLDpower);
+            mod1m1.setPower(mod1m1power);
+            mod1m2.setPower(mod1m2power);
 
-            BRT.setPower(BRTPID.PIDout(BRTreference,BRP));
-            BRD.setPower(BRDpower);
+            mod2m1.setPower(mod2m1power);
+            mod2m2.setPower(mod2m2power);
 
-            FLT.setPower(FLTPID.PIDout(FLTreference,FLP));
-            FLD.setPower(FLDpower);
+            mod3m1.setPower(mod3m1power);
+            mod3m2.setPower(mod3m2power);
 
-            FRT.setPower(FRTPID.PIDout(FRTreference,FRP));
-            FRD.setPower(FRDpower);
+            telemetry.addData("mod1reference",mod1reference);
+            telemetry.addData("mod2reference",mod2reference);
+            telemetry.addData("mod3reference",mod3reference);
 
-            telemetry.addData("BLTreference",BLTreference);
-            telemetry.addData("BRTreference",BRTreference);
-            telemetry.addData("FLTreference",FLTreference);
-            telemetry.addData("FRTreference",FRTreference);
+            telemetry.addData("mod1P",mod1P);
+            telemetry.addData("mod2P",mod2P);
+            telemetry.addData("mod3P",mod3P);
 
-            telemetry.addData("BLP",BLP);
-            telemetry.addData("BRP",BRP);
-            telemetry.addData("FLP",FLP);
-            telemetry.addData("FRP",FRP);
-
-            telemetry.addData("FRDpower",FRDpower);
-            telemetry.addData("FLDpower",FLDpower);
-            telemetry.addData("BRDpower",BRDpower);
-            telemetry.addData("BLDpower",BLDpower);
+            telemetry.addData("mod3power",mod3power);
+            telemetry.addData("mod2power",mod2power);
+            telemetry.addData("mod1power",mod1power);
             telemetry.update();
 
         }

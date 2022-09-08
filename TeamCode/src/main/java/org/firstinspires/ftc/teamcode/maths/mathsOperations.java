@@ -31,8 +31,8 @@ public class mathsOperations {
         return new double[]{reference,power};
     }
     public static double[] diffyConvert(double rotate, double translate){
-        double top = (rotate + translate) / 2.0;
-        double bottom = (rotate - translate) / 2.0;
-        return new double[]{top,bottom};
+        double m1 = (rotate + translate) / 2.0;
+        double m2 = (rotate - translate) / 2.0;
+        return new double[]{m1,m2};
     }
 }
