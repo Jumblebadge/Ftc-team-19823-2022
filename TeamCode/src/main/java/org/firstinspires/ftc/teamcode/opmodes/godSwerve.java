@@ -91,6 +91,14 @@ public class godSwerve extends LinearOpMode {
 
         PhotonCore.enable();
 
+        //the wraparound detection variables
+        boolean mod1wrapped = false;
+        double mod1lastpos = 0;
+        boolean mod2wrapped = false;
+        double mod2lastpos = 0;
+        boolean mod3wrapped = false;
+        double mod3lastpos = 0;
+
         waitForStart();
         while (opModeIsActive()) {
 
@@ -99,10 +107,32 @@ public class godSwerve extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            //Turn our MA3 absolute encoder signals mod3om volts to degrees
-            mod1P = mod1E.getVoltage() * -74.16;
-            mod2P = mod2E.getVoltage() * -74.16;
-            mod3P = mod3E.getVoltage() * -74.16;
+            //Turn our MA3 absolute encoder signals from volts to degrees
+            //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
+            double mod1P1 = mod1E.getVoltage() * -74.16;
+            double mod2P1 = mod2E.getVoltage() * -74.16;
+            double mod3P1 = mod3E.getVoltage() * -74.16;
+
+            double mod1positiondelta = mod1P1 - mod1lastpos;
+            mod1lastpos = mod1P1;
+
+            mod1wrapped = ((mod1positiondelta > 180) != mod1wrapped);
+            mod1wrapped = ((mod1positiondelta <-180) != mod1wrapped);
+            mod1P = (mod1wrapped == true ? 180 + mod1P1/2 : mod1P1/2);
+
+            double mod2positiondelta = mod2P1 - mod2lastpos;
+            mod2lastpos = mod2P1;
+
+            mod2wrapped = ((mod2positiondelta > 180) != mod2wrapped);
+            mod2wrapped = ((mod2positiondelta <-180) != mod2wrapped);
+            mod2P = (mod2wrapped == true ? 180 + mod2P1/2 : mod2P1/2);
+
+            double mod3positiondelta = mod3P1 - mod3lastpos;
+            mod3lastpos = mod3P1;
+
+            mod3wrapped = ((mod3positiondelta > 180) != mod3wrapped);
+            mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
+            mod3P = (mod3wrapped == true ? 180 + mod3P1/2 : mod3P1/2);
 
             //Update heading of robot
             angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);

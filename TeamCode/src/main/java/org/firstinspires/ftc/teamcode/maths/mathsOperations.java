@@ -31,8 +31,13 @@ public class mathsOperations {
         return new double[]{reference,power};
     }
     public static double[] diffyConvert(double rotate, double translate){
-        double m1 = (rotate + translate) / 2.0;
-        double m2 = (rotate - translate) / 2.0;
+        double m1 = rotate + translate;
+        double m2 = rotate - translate;
+        double maxi = Math.max(Math.abs(m1),Math.abs(m2));
+        if(maxi > 1){
+            m1 /= Math.abs(maxi);
+            m2 /= Math.abs(maxi);
+        }
         return new double[]{m1,m2};
     }
 }
