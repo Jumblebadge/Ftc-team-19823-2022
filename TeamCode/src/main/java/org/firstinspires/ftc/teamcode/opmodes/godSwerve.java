@@ -108,11 +108,11 @@ public class godSwerve extends LinearOpMode {
             }
 
             //Turn our MA3 absolute encoder signals from volts to degrees
-            //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
             double mod1P1 = mod1E.getVoltage() * -74.16;
             double mod2P1 = mod2E.getVoltage() * -74.16;
             double mod3P1 = mod3E.getVoltage() * -74.16;
 
+            //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
             double mod1positiondelta = mod1P1 - mod1lastpos;
             mod1lastpos = mod1P1;
 

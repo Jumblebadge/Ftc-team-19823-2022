@@ -23,6 +23,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 
 
@@ -34,49 +35,59 @@ public class testing extends LinearOpMode {
     FtcDashboard dashboard;
     private DcMotorEx m1 = null, m2 = null;
 
+    private AnalogInput mod1E = null;
+
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        //INE = hardwareMap.get(DcMotorEx.class,"INE");
-
-        //DROP = hardwareMap.get(Servo.class, "DROP");
-
         m1 = hardwareMap.get(DcMotorEx.class, "m1");
         m2 = hardwareMap.get(DcMotorEx.class,"m2");
+
+        mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         dashboard = FtcDashboard.getInstance();
 
-        waitForStart();
+        ElapsedTime mod1timer =  new ElapsedTime();
+        boolean mod1wrapped = false;
+        double mod1lastpos = 0;
+        double mod1P = 0;
+        double reference = 0;
+        controlLoopMath mod1PID = new controlLoopMath(0.2,0.0001,0,0,mod1timer);
 
+        waitForStart();
         while (opModeIsActive()) {
 
-            boolean simple = true;
+            double mod1P1 = mod1E.getVoltage() * 74.16;
+
+            double mod1positiondelta = mod1P1 - mod1lastpos;
+            mod1lastpos = mod1P1;
+
+            mod1wrapped = ((mod1positiondelta > 180) != mod1wrapped);
+            mod1wrapped = ((mod1positiondelta <-180) != mod1wrapped);
+            mod1P = (mod1wrapped == true ? 180 + mod1P1/2 : mod1P1/2);
+
+            boolean simple = false;
 
             if(simple) {
-                m1.setPower(gamepad1.left_stick_y);
-                m2.setPower(gamepad1.right_stick_y);
-            }
-            else{
                 double[] values = mathsOperations.diffyConvert(gamepad1.right_stick_x,gamepad1.left_stick_y);
                 m1.setPower(values[0]);
                 m2.setPower(values[1]);
             }
+            else {
+                reference += gamepad1.left_stick_x;
 
-            String color = "#0f2259";
-            String color1 = "#b28c00";
-            telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
-            telemetry.addData("", String.format("<span style=\"color:%s\">%s</span>",color1,"\n" +
-                    "▬▬▬▬▬▬▬▬▬▬") + String.format("<span style=\"color:%s\">%s</span>",color,"" +"▬▬▬▬▬▬▬▬▬▬\n") +
-                    String.format("<span style=\"color:%s\">%s</span>",color,"" +"░░░░░██╗██████╗░") + String.format("<span style=\"color:%s\">%s</span>",color1,"" +"|-----------------------------|\n") +
-                    String.format("<span style=\"color:%s\">%s</span>",color,"" +"░░░░░██║██╔══██╗") + String.format("<span style=\"color:%s\">%s</span>",color1,"" +"|-----------------------------|\n") +
-                    String.format("<span style=\"color:%s\">%s</span>",color,"" +"░░░░░██║██████╦╝") + String.format("<span style=\"color:%s\">%s</span>",color1,"" +"|------Jolly Blue--------|\n") +
-                    String.format("<span style=\"color:%s\">%s</span>",color,"" +"██╗░░██║██╔══██╗") + String.format("<span style=\"color:%s\">%s</span>",color1,"" +"|------①⑨⑧②③-----|\n") +
-                    String.format("<span style=\"color:%s\">%s</span>",color,"" +"╚█████╔╝██████╦╝") + String.format("<span style=\"color:%s\">%s</span>",color1,"" +"|--------Taylor------------|\n") +
-                    String.format("<span style=\"color:%s\">%s</span>",color,"" +"░╚════╝░╚═════╝░") + String.format("<span style=\"color:%s\">%s</span>",color1,"" +"|--------Connor----------|\n") +
-                    String.format("<span style=\"color:%s\">%s</span>",color1,"" +"▬▬▬▬▬▬▬▬▬▬") + String.format("<span style=\"color:%s\">%s</span>",color,""+"▬▬▬▬▬▬▬▬▬▬\n"));
-            telemetry.addData("TEST", String.format("<span style=\"color:%s\">%s</span>",color,gamepad1.right_stick_y));
+                double[] values = mathsOperations.diffyConvert(mod1PID.PIDout(reference,mod1P),gamepad1.right_stick_y);
+                m1.setPower(values[0]);
+                m2.setPower(values[1]);
+            }
+
+            telemetry.addData("delta",mod1positiondelta);
+            telemetry.addData("iswrapped?",mod1wrapped);
+            telemetry.addData("mod1before",mod1P1);
+            telemetry.addData("mod1after",mod1P);
+            telemetry.addData("reference",reference);
             telemetry.update();
 
         }
