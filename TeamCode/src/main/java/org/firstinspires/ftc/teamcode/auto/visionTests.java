@@ -52,9 +52,8 @@ public class visionTests extends LinearOpMode {
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
 
             @Override
-            public void onOpened()
-            {
-                webcam.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT);
+            public void onOpened() {
+                webcam.startStreaming(848, 480, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override

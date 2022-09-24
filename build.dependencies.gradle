@@ -23,6 +23,6 @@ dependencies {
     implementation 'org.firstinspires.ftc:gameAssets-PowerPlay:1.0.0'
     implementation 'com.acmerobotics.dashboard:dashboard:0.4.5'
     implementation 'org.openftc:easyopencv:1.5.2'
-    implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:v2.0.0-Alpha'
+    implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:v2.0.1'
     implementation 'org.openftc:apriltag:1.1.0'
 }
