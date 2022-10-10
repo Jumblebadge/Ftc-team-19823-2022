@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 //Import EVERYTHING we need
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;import com.outoftheboxrobotics.photoncore.PhotonCore;import com.acmerobotics.dashboard.config.Config;import com.qualcomm.robotcore.hardware.AnalogInput;import com.acmerobotics.dashboard.FtcDashboard;import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;import com.qualcomm.hardware.bosch.BNO055IMU;import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;import org.firstinspires.ftc.robotcore.external.navigation.Orientation;import org.firstinspires.ftc.teamcode.maths.controlLoopMath;import org.firstinspires.ftc.teamcode.maths.mathsOperations;import org.firstinspires.ftc.robotcore.external.navigation.Position;import org.firstinspires.ftc.teamcode.maths.swerveMaths;import java.util.List;import org.firstinspires.ftc.robotcore.external.navigation.Velocity;import com.qualcomm.hardware.lynx.LynxModule;
 
 @Config
@@ -34,7 +35,7 @@ public class godSwerve extends LinearOpMode {
     double mod1power = 0,mod2power = 0,mod3power = 0;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -5, mod1PC = 87, mod2PC = 190;
+    public static double mod3PC = 20, mod1PC = 160, mod2PC = -15;
 
     //IMU
     BNO055IMU IMU;
@@ -72,6 +73,9 @@ public class godSwerve extends LinearOpMode {
         mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
         mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
+        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
+
         //Bulk sensor reads
         allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -81,9 +85,9 @@ public class godSwerve extends LinearOpMode {
         //Create objects for the classes we use for swerve
         swerveMaths swavemath = new swerveMaths();
 
-        controlLoopMath mod1PID = new controlLoopMath(0.2,0.0001,0,0,mod1timer);
-        controlLoopMath mod2PID = new controlLoopMath(0.2,0.0001,0,0,mod2timer);
-        controlLoopMath mod3PID = new controlLoopMath(0.2,0.0001,0,0,mod3timer);
+        controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
+        controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
+        controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -113,6 +117,10 @@ public class godSwerve extends LinearOpMode {
             double mod2P1 = mod2E.getVoltage() * -74.16;
             double mod3P1 = mod3E.getVoltage() * -74.16;
 
+            telemetry.addData("mod1Pb",mod1P1);
+            telemetry.addData("mod2Pb",mod2P1);
+            telemetry.addData("mod3Pb",mod3P1);
+
             //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
             double mod1positiondelta = mod1P1 - mod1lastpos;
             mod1lastpos = mod1P1;
@@ -135,20 +143,15 @@ public class godSwerve extends LinearOpMode {
             mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
             mod3P = (mod3wrapped == true ? 180 + mod3P1/2 : mod3P1/2);
 
+            telemetry.addData("mod1P",mod1P);
+            telemetry.addData("mod2P",mod2P);
+            telemetry.addData("mod3P",mod3P);
+
             //Update heading of robot
             angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             double heading = angles.firstAngle*-1;
 
             telemetry.addData("IMU",heading);
-
-            //Anglewrap our positions and references for each wheel
-            mod1P = mathsOperations.angleWrap(mod1P);
-            mod2P = mathsOperations.angleWrap(mod2P);
-            mod3P = mathsOperations.angleWrap(mod3P);
-
-            mod1reference = mathsOperations.angleWrap(mod1reference);
-            mod2reference = mathsOperations.angleWrap(mod2reference);
-            mod3reference = mathsOperations.angleWrap(mod3reference);
 
             //Retrieve the angles and powers for all of our wheels from the swerve kinematics
             double[] output = swavemath.Math(gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
@@ -157,24 +160,24 @@ public class godSwerve extends LinearOpMode {
             mod2power=output[1];
 
             if (gamepad1.left_stick_y!=0||gamepad1.left_stick_x!=0||gamepad1.right_stick_x!=0){
-
-                mod1reference1=output[3];
-                mod3reference1=output[5];
-                mod2reference1=output[4];
-
+                mod1reference1=-output[3];
+                mod3reference1=-output[5];
+                mod2reference1=-output[4];
             }
+
             mod1reference=mod1reference1;
             mod3reference=mod3reference1;
             mod2reference=mod2reference1;
 
-            mod1reference = mathsOperations.angleWrap(mod1reference);
-            mod2reference = mathsOperations.angleWrap(mod2reference);
-            mod3reference = mathsOperations.angleWrap(mod3reference);
-
             //Subtract our tuning values to account for any encoder drift
-            mod3reference -= mod3PC;
-            mod2reference -= mod2PC;
-            mod1reference -= mod1PC;
+            mod3P -= mod3PC;
+            mod2P -= mod2PC;
+            mod1P -= mod1PC;
+
+            //Anglewrap all the angles so that the module turns both ways
+            mod1P = mathsOperations.angleWrap(mod1P);
+            mod2P = mathsOperations.angleWrap(mod2P);
+            mod3P = mathsOperations.angleWrap(mod3P);
 
             mod1reference = mathsOperations.angleWrap(mod1reference);
             mod2reference = mathsOperations.angleWrap(mod2reference);
@@ -192,6 +195,11 @@ public class godSwerve extends LinearOpMode {
             double[] mod3efvalues = mathsOperations.efficientTurn(mod3reference,mod3P,mod3power);
             mod3reference=mod3efvalues[0];
             mod3power=mod3efvalues[1];
+
+            //Anglewrap all the angles so that the module turns both ways
+            //mod1reference = mathsOperations.angleWrap(mod1reference);
+            //mod2reference = mathsOperations.angleWrap(mod2reference);
+            //mod3reference = mathsOperations.angleWrap(mod3reference);
 
             double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(mod1reference,mod1P),mod1power);
             double mod1m1power = mod1values[0];
@@ -221,11 +229,12 @@ public class godSwerve extends LinearOpMode {
             telemetry.addData("mod2P",mod2P);
             telemetry.addData("mod3P",mod3P);
 
-            telemetry.addData("mod3power",mod3power);
-            telemetry.addData("mod2power",mod2power);
-            telemetry.addData("mod1power",mod1power);
-            telemetry.update();
+            telemetry.addData("mod1iswrpaed",mod1wrapped);
+            telemetry.addData("mod2iswrpaed",mod2wrapped);
+            telemetry.addData("mod3iswrpaed",mod3wrapped);
 
+            //telemetry.addData("",)
+            telemetry.update();
         }
     }
 }

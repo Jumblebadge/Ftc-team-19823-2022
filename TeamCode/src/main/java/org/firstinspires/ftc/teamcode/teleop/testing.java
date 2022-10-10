@@ -4,6 +4,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -13,6 +15,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 
@@ -23,11 +30,12 @@ public class testing extends LinearOpMode {
 
 
     FtcDashboard dashboard;
+
     private DcMotorEx m1 = null, m2 = null;
 
     private AnalogInput mod1E = null;
 
-    public static double Kp,Kd,Ki,Kf,reference;
+    public static double Kp = 0.1,Kd = 0.0001,Ki = 0.0007,Kf,reference;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -38,8 +46,6 @@ public class testing extends LinearOpMode {
         m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
-
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         dashboard = FtcDashboard.getInstance();
 
@@ -57,7 +63,7 @@ public class testing extends LinearOpMode {
 
             double mod1P1 = mod1E.getVoltage() * -74.16;
 
-            controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
+            controlLoopMath mod1PID = new controlLoopMath(Kp,Kd,Ki,Kf,mod1timer);
 
             double mod1positiondelta = mod1P1 - mod1lastpos;
             mod1lastpos = mod1P1;
@@ -69,7 +75,9 @@ public class testing extends LinearOpMode {
             mod1P = mathsOperations.angleWrap(mod1P);
 
             double[] values;
-            reference += gamepad1.right_stick_x;
+            double atan = Math.atan2(-gamepad1.left_stick_x,-gamepad1.left_stick_y);
+            atan *= 57.295779513082320876;
+            reference = atan;
 
             if(gamepad1.a) {
                 values = mathsOperations.diffyConvert(gamepad1.right_stick_x,gamepad1.left_stick_y);

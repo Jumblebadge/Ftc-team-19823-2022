@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.maths;
 
+import android.util.Log;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 public class swerveMaths {
 
     //where swerve math will be done
@@ -7,9 +11,11 @@ public class swerveMaths {
 
         forward*=-1;
 
+
         //rotate vectors by imu heading for field centric (if toggled on)
         double strafe1 = 0;
         double forward1 = 0;
+
         if(fieldcentrictoggle == true) {
             strafe1 = Math.cos(Math.toRadians(imu)) * strafe - Math.sin(Math.toRadians(imu)) * forward;
             forward1 = Math.sin(Math.toRadians(imu)) * strafe + Math.cos(Math.toRadians(imu)) * forward;
