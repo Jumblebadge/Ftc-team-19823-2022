@@ -18,11 +18,8 @@ public class controlLoopMath {
         this.Kf=Kf;
     }
     //PID loop
-    public double PIDout(double reference, double state) {
-        //calculate error and normalize it
-        double error = AngleUnit.normalizeDegrees(reference - state);
+    public double PIDout(double error) {
         if (Math.abs(error) > 0) {
-            error = AngleUnit.normalizeDegrees(reference - state);
             //calculate the integral and derivative values
             double derivative = (error - lastError) / elapsedtime.seconds();
             integralSum = integralSum + (error * elapsedtime.seconds());

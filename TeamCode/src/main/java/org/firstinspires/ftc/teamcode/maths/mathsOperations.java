@@ -40,4 +40,13 @@ public class mathsOperations {
         }
         return new double[]{m1,m2};
     }
+    public static double modWrap(double state, double wrap, double last, double ratio){
+        double delta = state - last;
+
+        if (delta > 180) wrap+=1;
+        if (delta < -180) wrap +=1;
+        if (wrap > ratio-1) wrap = 0;
+        if (wrap == 0) return state;
+        return 360/wrap+1 + state/ratio;
+    }
 }
