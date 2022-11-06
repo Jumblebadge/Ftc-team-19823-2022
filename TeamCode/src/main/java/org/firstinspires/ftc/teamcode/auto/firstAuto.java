@@ -1,16 +1,62 @@
-package org.firstinspires.ftc.teamcode.teleop;
+package org.firstinspires.ftc.teamcode.auto;
 
-//Import EVERYTHING we need
-import com.acmerobotics.roadrunner.profile.MotionProfile;
-import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
-import com.acmerobotics.roadrunner.profile.MotionState;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;import com.outoftheboxrobotics.photoncore.PhotonCore;import com.acmerobotics.dashboard.config.Config;import com.qualcomm.robotcore.hardware.AnalogInput;import com.acmerobotics.dashboard.FtcDashboard;import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;import com.qualcomm.hardware.bosch.BNO055IMU;import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.outoftheboxrobotics.photoncore.PhotonCore;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.ElapsedTime;import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;import org.firstinspires.ftc.robotcore.external.navigation.Orientation;import org.firstinspires.ftc.teamcode.maths.controlLoopMath;import org.firstinspires.ftc.teamcode.maths.mathsOperations;import org.firstinspires.ftc.robotcore.external.navigation.Position;import org.firstinspires.ftc.teamcode.maths.swerveMaths;import java.util.List;import org.firstinspires.ftc.robotcore.external.navigation.Velocity;import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
+import org.firstinspires.ftc.teamcode.maths.mathsOperations;
+import org.firstinspires.ftc.teamcode.maths.swerveMaths;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvWebcam;
+import org.firstinspires.ftc.teamcode.pipelines.greyPipe;
+import org.firstinspires.ftc.teamcode.pipelines.aprilTagDetectPipe;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Config
-@TeleOp(name="godSwerve", group="Linear Opmode")
-public class godSwerve extends LinearOpMode {
+@Autonomous(name="firstAuto", group="Linear Opmode")
+public class firstAuto extends LinearOpMode {
+
+    OpenCvWebcam webcam;
+
+    int side1 = 1;
+    int side2 = 2;
+    int side3 = 3;
+
+    double fx = 578.272;
+    double fy = 578.272;
+    double cx = 402.145;
+    double cy = 221.506;
+    double tagsize = 0.166;
+
+    aprilTagDetectPipe pipeline = new aprilTagDetectPipe(tagsize,fx,fy,cx,cy);
+
+    AprilTagDetection detectedTag = null;
+
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
@@ -21,8 +67,6 @@ public class godSwerve extends LinearOpMode {
 
     //Timers for the PID loops
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
-    ElapsedTime hztimer = new ElapsedTime();
-    ElapsedTime RliftPROtime = new ElapsedTime(); ElapsedTime LliftPROtime = new ElapsedTime(); ElapsedTime LliftPIDtime = new ElapsedTime(); ElapsedTime RliftPIDtime = new ElapsedTime();
 
     //Define module position variables
     double mod1P = 0, mod2P = 0, mod3P = 0;
@@ -31,14 +75,38 @@ public class godSwerve extends LinearOpMode {
     double mod1power = 0,mod2power = 0,mod3power = 0;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = 0, mod1PC = 12, mod2PC = -20;
+    public static double mod3PC = -92, mod1PC = 0, mod2PC = -10;
 
     //IMU
     BNO055IMU IMU;
     Orientation angles;
 
+
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
+
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
+        webcam.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+
+        webcam.setPipeline(pipeline);
+
+        webcam.setMillisecondsPermissionTimeout(2500); // Timeout for obtaining permission is configurable. Set before opening.
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(848, 480, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+            }
+        });
+
+        telemetry.addLine("Waiting for start");
+        FtcDashboard.getInstance().startCameraStream(webcam, 60);
 
         //Calibrate the IMU
         //CHANGE TO ODO HEADING!
@@ -69,14 +137,8 @@ public class godSwerve extends LinearOpMode {
         DcMotorEx mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
         DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
-        DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
-        DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
-
-        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        //mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -87,11 +149,9 @@ public class godSwerve extends LinearOpMode {
         //Create objects for the classes we use for swerve and PIDS
         swerveMaths swavemath = new swerveMaths();
 
-        controlLoopMath mod1PID = new controlLoopMath(0.15,0.0001,0.0007,0,mod1timer);
+        controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
         controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
         controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
-        controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
-        controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -104,15 +164,80 @@ public class godSwerve extends LinearOpMode {
         //Wraparound detection variables
         boolean mod1wrapped = false, mod2wrapped = false, mod3wrapped = false;
         double mod1lastpos = 0, mod2lastpos = 0, mod3lastpos = 0;
-        double LliftLastTarget = 0, RliftLastTarget = 0;
 
-        MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1);
-        MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1);
 
-        waitForStart();
+        while (!isStarted() && !isStopRequested()) {
+
+            ArrayList<AprilTagDetection> detecteds = pipeline.getLatestDetections();
+
+            if(detecteds.size() != 0) {
+                boolean tagFound = false;
+
+                for(AprilTagDetection tag : detecteds) {
+                    if(tag.id == side1 || tag.id == side2 || tag.id == side3) {
+                        detectedTag = tag;
+                        tagFound = true;
+                        break;
+                    }
+                }
+
+                if(tagFound) {
+                    telemetry.addLine("can see tag \n");
+                    tagToTelemetry(detectedTag);
+                }
+                else
+                {
+                    telemetry.addLine("cant see tag");
+
+                    if(detectedTag == null)
+                    {
+                        telemetry.addLine("never seen tag");
+                    }
+                    else
+                    {
+                        telemetry.addLine("\nlast seen tag");
+                        tagToTelemetry(detectedTag);
+                    }
+                }
+
+            }
+            else
+            {
+                telemetry.addLine("cant see tag");
+
+                if(detectedTag == null)
+                {
+                    telemetry.addLine("never seen tag");
+                }
+                else
+                {
+                    telemetry.addLine("\nlast seen tag");
+                    tagToTelemetry(detectedTag);
+                }
+
+            }
+
+            telemetry.update();
+            sleep(20);
+        }
+
+
+        webcam.closeCameraDevice();
+        //auto starting
+
+        if(detectedTag != null)
+        {
+            telemetry.addLine("tag:\n");
+            tagToTelemetry(detectedTag);
+        }
+        else
+        {
+            telemetry.addLine("never seen tag");
+        }
+        telemetry.update();
+
         while (opModeIsActive()) {
 
-            hztimer.reset();
 
             //Clear the cache for better loop times (bulk sensor reads)
             for (LynxModule hub : allHubs) {
@@ -120,13 +245,9 @@ public class godSwerve extends LinearOpMode {
             }
 
             //Turn our MA3 absolute encoder signals from volts to degrees
-            double mod1P1 = mod1E.getVoltage() * -74.16;
+            double mod1P1 = mod1E.getVoltage() * 74.16;
             double mod2P1 = mod2E.getVoltage() * 74.16;
-            double mod3P1 = mod3E.getVoltage() * -74.16;
-
-            telemetry.addData("mod1Pb",mod1P1);
-            telemetry.addData("mod2Pb",mod2P1);
-            telemetry.addData("mod3Pb",mod3P1);
+            double mod3P1 = mod3E.getVoltage() * 74.16;
 
             //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
             //mod1P = mathsOperations.modWrap(mod1P1,mod1wrapped,mod1lastpos,2);
@@ -182,6 +303,16 @@ public class godSwerve extends LinearOpMode {
             mod3reference=mod3reference1;
             mod2reference=mod2reference1;
 
+            if(detectedTag == null || detectedTag.id == side1) {
+                //go to default position after auton code
+            }
+            else if(detectedTag.id == side2){
+
+            }
+            else if(detectedTag.id == side3){
+
+            }
+
             //Subtract our tuning values to account for any encoder drift
             mod3P -= mod3PC;
             mod2P -= mod2PC;
@@ -220,44 +351,12 @@ public class godSwerve extends LinearOpMode {
             mod3m1.setPower(mod3values[0]);
             mod3m2.setPower(mod3values[1]);
 
-            double LliftTarget = 0;
-            double RliftTarget = 0;
-
-            if (LliftLastTarget != LliftTarget) {
-                LliftLastTarget = LliftTarget;
-                LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftLeft.getCurrentPosition(), 0, 0), new MotionState(LliftTarget, 0, 0), 2900, 2900);
-                LliftPROtime.reset();
-            }
-            else{ LliftLastTarget = LliftTarget; }
-
-            MotionState LliftState = LliftProfile.get(LliftPROtime.seconds());
-            liftLeft.setPower(LliftPID.PIDout(LliftState.getX()-liftLeft.getCurrentPosition()));
-
-
-            if (RliftLastTarget != RliftTarget) {
-                RliftLastTarget = RliftTarget;
-                RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftRight.getCurrentPosition(), 0, 0), new MotionState(RliftTarget, 0, 0), 2900, 2900);
-                RliftPROtime.reset();
-            }
-            else{ RliftLastTarget = RliftTarget; }
-
-            MotionState RliftState = RliftProfile.get(RliftPROtime.seconds());
-            liftRight.setPower(RliftPID.PIDout(RliftState.getX()-liftRight.getCurrentPosition()));
-
-            telemetry.addData("mod1reference",mod1reference);
-            telemetry.addData("mod2reference",mod2reference);
-            telemetry.addData("mod3reference",mod3reference);
-
-            telemetry.addData("mod1P",mod1P);
-            telemetry.addData("mod2P",mod2P);
-            telemetry.addData("mod3P",mod3P);
-
-            telemetry.addData("mod1iswrpaed",mod1wrapped);
-            telemetry.addData("mod2iswrpaed",mod2wrapped);
-            telemetry.addData("mod3iswrpaed",mod3wrapped);
-
-            telemetry.addLine(String.valueOf(1/hztimer.milliseconds()));
             telemetry.update();
+
         }
     }
+    void tagToTelemetry(AprilTagDetection detection) {
+        telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
+    }
 }
+

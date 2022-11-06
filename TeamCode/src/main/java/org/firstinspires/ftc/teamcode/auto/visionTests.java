@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 
 
 @Config
-@TeleOp(name="visionTests", group="Linear Opmode")
+@Autonomous(name="visionTests", group="Linear Opmode")
 public class visionTests extends LinearOpMode {
 
     OpenCvWebcam webcam;
@@ -135,7 +136,7 @@ public class visionTests extends LinearOpMode {
         telemetry.update();
 
         //auton code
-        if(detectedTag == null /*|| detectedTag.id == default*/) {
+        if(detectedTag == null || detectedTag.id == side1) {
            //go to default position after auton code
         }
         else if(detectedTag.id == side2){

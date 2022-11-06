@@ -30,6 +30,7 @@ public class mathsOperations {
 
         return new double[]{reference,power};
     }
+    //converts 2 values into values that could go into a differential mechanism
     public static double[] diffyConvert(double rotate, double translate){
         double m1 = rotate + translate;
         double m2 = rotate - translate;
@@ -40,6 +41,8 @@ public class mathsOperations {
         }
         return new double[]{m1,m2};
     }
+    //math for detecting when an absolute encoder has wrapped around
+    //TODO FIX MODWRAP
     public static double modWrap(double state, double wrap, double last, double ratio){
         double delta = state - last;
 

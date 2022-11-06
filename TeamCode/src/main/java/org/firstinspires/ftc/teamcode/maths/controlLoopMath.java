@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode.maths;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
 public class controlLoopMath {
 
     private double integralSum,out,lastError;

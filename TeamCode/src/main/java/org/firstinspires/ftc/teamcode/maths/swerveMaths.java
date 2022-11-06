@@ -1,28 +1,20 @@
 package org.firstinspires.ftc.teamcode.maths;
 
-import android.util.Log;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 public class swerveMaths {
 
     //where swerve math will be done
     public double[] Math(double forward, double strafe, double rotate, double imu, boolean fieldcentrictoggle){
 
         forward*=-1;
-
+        double[] strafeforward;
 
         //rotate vectors by imu heading for field centric (if toggled on)
-        double strafe1 = 0;
-        double forward1 = 0;
+        double strafe1 = strafe;
+        double forward1 = forward;
 
-        if(fieldcentrictoggle == true) {
+        if(fieldcentrictoggle) {
             strafe1 = Math.cos(Math.toRadians(imu)) * strafe - Math.sin(Math.toRadians(imu)) * forward;
             forward1 = Math.sin(Math.toRadians(imu)) * strafe + Math.cos(Math.toRadians(imu)) * forward;
-        }
-        else{
-            strafe1 = strafe;
-            forward1 = forward;
         }
 
         //the joystick values (after rotated) converted into vectors (split in x and y) that are wheel specific, displacement vectors per wheel also
