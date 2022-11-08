@@ -16,8 +16,8 @@ public class godSwerve extends LinearOpMode {
     FtcDashboard dashboard;
 
     //Define reference variables for modules' heading
-    public static double mod1reference=0,mod2reference=0,mod3reference=0;
-    public static double mod1reference1=0,mod2reference1=0,mod3reference1=0;
+    double mod1reference=0,mod2reference=0,mod3reference=0;
+    double mod1reference1=0,mod2reference1=0,mod3reference1=0;
 
     //Timers for the PID loops
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
@@ -32,6 +32,12 @@ public class godSwerve extends LinearOpMode {
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = 0, mod1PC = 12, mod2PC = -20;
+
+    public static double LliftTarget = 1;
+    public static double RliftTarget = 1;
+    public static double liftTarget = 0;
+
+    public static double Kp = 0, Ki = 0, Kd = 0, Kf = 0;
 
     //IMU
     BNO055IMU IMU;
@@ -90,8 +96,8 @@ public class godSwerve extends LinearOpMode {
         controlLoopMath mod1PID = new controlLoopMath(0.15,0.0001,0.0007,0,mod1timer);
         controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
         controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
-        controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
-        controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
+        controlLoopMath LliftPID = new controlLoopMath(0.1,0,0,0,LliftPIDtime);
+        controlLoopMath RliftPID = new controlLoopMath(0.1,0,0,0,RliftPIDtime);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -124,10 +130,6 @@ public class godSwerve extends LinearOpMode {
             double mod2P1 = mod2E.getVoltage() * 74.16;
             double mod3P1 = mod3E.getVoltage() * -74.16;
 
-            telemetry.addData("mod1Pb",mod1P1);
-            telemetry.addData("mod2Pb",mod2P1);
-            telemetry.addData("mod3Pb",mod3P1);
-
             //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
             //mod1P = mathsOperations.modWrap(mod1P1,mod1wrapped,mod1lastpos,2);
             //mod1lastpos = mod1P1;
@@ -136,7 +138,7 @@ public class godSwerve extends LinearOpMode {
 
             mod1wrapped = ((mod1positiondelta > 180) != mod1wrapped);
             mod1wrapped = ((mod1positiondelta <-180) != mod1wrapped);
-            mod1P = (mod1wrapped == true ? 180 + mod1P1/2 : mod1P1/2);
+            mod1P = (mod1wrapped ? 180 + mod1P1/2 : mod1P1/2);
 
             //mod2P = mathsOperations.modWrap(mod2P1,mod2wrapped,mod2lastpos,2);
             //mod2lastpos = mod2P1;
@@ -145,7 +147,7 @@ public class godSwerve extends LinearOpMode {
 
             mod2wrapped = ((mod2positiondelta > 180) != mod2wrapped);
             mod2wrapped = ((mod2positiondelta <-180) != mod2wrapped);
-            mod2P = (mod2wrapped == true ? 180 + mod2P1/2 : mod2P1/2);
+            mod2P = (mod2wrapped ? 180 + mod2P1/2 : mod2P1/2);
 
             //mod3P = mathsOperations.modWrap(mod3P1,mod3wrapped,mod3lastpos,2);
             //mod3lastpos = mod3P1;
@@ -154,11 +156,7 @@ public class godSwerve extends LinearOpMode {
 
             mod3wrapped = ((mod3positiondelta > 180) != mod3wrapped);
             mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
-            mod3P = (mod3wrapped == true ? 180 + mod3P1/2 : mod3P1/2);
-
-            telemetry.addData("mod1P",mod1P);
-            telemetry.addData("mod2P",mod2P);
-            telemetry.addData("mod3P",mod3P);
+            mod3P = (mod3wrapped ? 180 + mod3P1/2 : mod3P1/2);
 
             //Update heading of robot
             angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -220,8 +218,28 @@ public class godSwerve extends LinearOpMode {
             mod3m1.setPower(mod3values[0]);
             mod3m2.setPower(mod3values[1]);
 
-            double LliftTarget = 0;
-            double RliftTarget = 0;
+            /*
+            if (gamepad2.a) {
+                liftTarget = 200;
+            }
+            else if (gamepad2.b) {
+                liftTarget = 500;
+            }
+            else if (gamepad2.x) {
+                liftTarget = 700;
+            }
+            else if (gamepad2.y) {
+                liftTarget = 1000;
+            }
+            else {
+                liftTarget = 0;
+            }
+            //LliftTarget = liftTarget;
+            //RliftTarget = -liftTarget;
+             */
+
+            LliftTarget = liftTarget;
+            RliftTarget = -liftTarget;
 
             if (LliftLastTarget != LliftTarget) {
                 LliftLastTarget = LliftTarget;
@@ -244,19 +262,14 @@ public class godSwerve extends LinearOpMode {
             MotionState RliftState = RliftProfile.get(RliftPROtime.seconds());
             liftRight.setPower(RliftPID.PIDout(RliftState.getX()-liftRight.getCurrentPosition()));
 
-            telemetry.addData("mod1reference",mod1reference);
-            telemetry.addData("mod2reference",mod2reference);
-            telemetry.addData("mod3reference",mod3reference);
+            telemetry.addData("Lliftpos",liftLeft.getCurrentPosition());
+            telemetry.addData("Rliftpos",liftRight.getCurrentPosition());
+            telemetry.addData("Lliftmotion",LliftState.getX());
+            telemetry.addData("Rliftmotion",RliftState.getX());
+            telemetry.addData("Llifttarget",LliftTarget);
+            telemetry.addData("Rlifttarget",RliftTarget);
 
-            telemetry.addData("mod1P",mod1P);
-            telemetry.addData("mod2P",mod2P);
-            telemetry.addData("mod3P",mod3P);
-
-            telemetry.addData("mod1iswrpaed",mod1wrapped);
-            telemetry.addData("mod2iswrpaed",mod2wrapped);
-            telemetry.addData("mod3iswrpaed",mod3wrapped);
-
-            telemetry.addLine(String.valueOf(1/hztimer.milliseconds()));
+            telemetry.addLine(String.valueOf(1/hztimer.seconds()));
             telemetry.update();
         }
     }
