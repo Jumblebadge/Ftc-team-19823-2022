@@ -93,11 +93,11 @@ public class godSwerve extends LinearOpMode {
         //Create objects for the classes we use for swerve and PIDS
         swerveMaths swavemath = new swerveMaths();
 
-        controlLoopMath mod1PID = new controlLoopMath(0.15,0.0001,0.0007,0,mod1timer);
+        controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
         controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
         controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
-        controlLoopMath LliftPID = new controlLoopMath(0.1,0,0,0,LliftPIDtime);
-        controlLoopMath RliftPID = new controlLoopMath(0.1,0,0,0,RliftPIDtime);
+        controlLoopMath LliftPID = new controlLoopMath(0.1,0.00005,0,0,LliftPIDtime);
+        controlLoopMath RliftPID = new controlLoopMath(0.1,0.00005,0,0,RliftPIDtime);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -167,18 +167,18 @@ public class godSwerve extends LinearOpMode {
             //Retrieve the angles and powers for all of our wheels from the swerve kinematics
             double[] output = swavemath.Math(gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
             mod1power=output[0];
-            mod3power=output[2];
-            mod2power=output[1];
+            mod3power=output[1];
+            mod2power=output[2];
 
             if (gamepad1.left_stick_y!=0||gamepad1.left_stick_x!=0||gamepad1.right_stick_x!=0){
                 mod1reference1=output[3];
-                mod3reference1=output[5];
-                mod2reference1=output[4];
+                mod3reference1=output[4];
+                mod2reference1=output[5];
             }
 
             mod1reference=mod1reference1;
             mod3reference=mod3reference1;
-            mod2reference=mod2reference1;
+            mod2reference=-mod2reference1;
 
             //Subtract our tuning values to account for any encoder drift
             mod3P -= mod3PC;
@@ -210,7 +210,7 @@ public class godSwerve extends LinearOpMode {
             //change coax values into diffy values, from pid and power
             double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
             mod1m1.setPower(mod1values[0]);
-            mod1m2.setPower(mod1efvalues[1]);
+            mod1m2.setPower(mod1values[1]);
             double[] mod2values = mathsOperations.diffyConvert(mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
             mod2m1.setPower(mod2values[0]);
             mod2m2.setPower(mod2values[1]);
@@ -262,12 +262,20 @@ public class godSwerve extends LinearOpMode {
             MotionState RliftState = RliftProfile.get(RliftPROtime.seconds());
             liftRight.setPower(RliftPID.PIDout(RliftState.getX()-liftRight.getCurrentPosition()));
 
-            telemetry.addData("Lliftpos",liftLeft.getCurrentPosition());
-            telemetry.addData("Rliftpos",liftRight.getCurrentPosition());
-            telemetry.addData("Lliftmotion",LliftState.getX());
-            telemetry.addData("Rliftmotion",RliftState.getX());
-            telemetry.addData("Llifttarget",LliftTarget);
-            telemetry.addData("Rlifttarget",RliftTarget);
+            telemetry.addData("mod1reference",mod1reference);
+            telemetry.addData("mod2reference",mod2reference);
+            telemetry.addData("mod3reference",mod3reference);
+
+            telemetry.addData("mod1P",mod1P);
+            telemetry.addData("mod2P",mod2P);
+            telemetry.addData("mod3P",mod3P);
+
+            telemetry.addData("mod3power",mod3power);
+            telemetry.addData("mod2power",mod2power);
+            telemetry.addData("mod1power",mod1power);
+
+            telemetry.addData("x",gamepad1.left_stick_x);
+            telemetry.addData("y",gamepad1.left_stick_y);
 
             telemetry.addLine(String.valueOf(1/hztimer.seconds()));
             telemetry.update();
