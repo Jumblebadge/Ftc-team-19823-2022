@@ -19,6 +19,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -38,47 +39,32 @@ public class testing extends LinearOpMode {
 
     FtcDashboard dashboard;
 
-    public static double target = 1;
+    public static double Ltarget = 0;
+    public static double Rtarget = 0;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        DcMotorEx lift = hardwareMap.get(DcMotorEx.class, "lift");
+        AnalogInput mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
+        AnalogInput mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
+        AnalogInput mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
+
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
         dashboard = FtcDashboard.getInstance();
 
-        ElapsedTime liftime = new ElapsedTime();
-        ElapsedTime protime = new ElapsedTime();
-
         PhotonCore.enable();
-
-        double lastTarget = 0;
-        MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1);
 
         waitForStart();
         while (opModeIsActive()) {
 
-            controlLoopMath liftPID = new controlLoopMath(0.2,0,0,0,liftime);
-            if (lastTarget != target) {
-                lastTarget = target;
-                profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(lift.getCurrentPosition(), 0, 0), new MotionState(target, 0, 0), 2900, 2900);
-                protime.reset();
-            }
-            else{ lastTarget = target; }
+            double mod1P1 = mod1E.getVoltage() * 74.16;
+            double mod2P1 = mod2E.getVoltage() * 74.16;
+            double mod3P1 = mod3E.getVoltage() * 74.16;
 
-            MotionState state = profile.get(protime.seconds());
-            double target1 = state.getX();
-            double PIDOUT = liftPID.PIDout(target1-lift.getCurrentPosition());
-            lift.setPower(PIDOUT);
-            //if (Math.abs(target-lift.getCurrentPosition())<10) protime.reset();
-
-            telemetry.addData("lift posisiton", lift.getCurrentPosition());
-            telemetry.addData("lift target", target);
-            telemetry.addData("motiontarget",target1);
-            telemetry.addData("lasttarget",lastTarget);
-            telemetry.addData("power out",PIDOUT);
+            telemetry.addData("mod1p",mod1P1);
+            telemetry.addData("mod2p",mod2P1);
+            telemetry.addData("mod3p",mod3P1);
             telemetry.update();
         }
 

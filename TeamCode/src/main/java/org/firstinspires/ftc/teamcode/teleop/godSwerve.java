@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;import com.outoftheboxrobotics.photoncore.PhotonCore;import com.acmerobotics.dashboard.config.Config;import com.qualcomm.robotcore.hardware.AnalogInput;import com.acmerobotics.dashboard.FtcDashboard;import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;import com.qualcomm.hardware.bosch.BNO055IMU;import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;import org.firstinspires.ftc.robotcore.external.navigation.Orientation;import org.firstinspires.ftc.teamcode.maths.controlLoopMath;import org.firstinspires.ftc.teamcode.maths.mathsOperations;import org.firstinspires.ftc.robotcore.external.navigation.Position;import org.firstinspires.ftc.teamcode.maths.swerveMaths;import java.util.List;import org.firstinspires.ftc.robotcore.external.navigation.Velocity;import com.qualcomm.hardware.lynx.LynxModule;
 
 @Config
@@ -16,8 +17,10 @@ public class godSwerve extends LinearOpMode {
     FtcDashboard dashboard;
 
     //Define reference variables for modules' heading
-    double mod1reference=0,mod2reference=0,mod3reference=0;
-    double mod1reference1=0,mod2reference1=0,mod3reference1=0;
+    double mod2reference=0,mod3reference=0;
+    double mod1reference1 = 0, mod2reference1=0,mod3reference1=0;
+
+    public static double mod1reference=0;
 
     //Timers for the PID loops
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
@@ -31,7 +34,7 @@ public class godSwerve extends LinearOpMode {
     double mod1power = 0,mod2power = 0,mod3power = 0;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = 0, mod1PC = 12, mod2PC = -20;
+    public static double mod3PC = -70, mod1PC = -9, mod2PC = -55;
 
     public static double LliftTarget = 1;
     public static double RliftTarget = 1;
@@ -78,11 +81,15 @@ public class godSwerve extends LinearOpMode {
         DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
         DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
 
+        //Servo clawrotL = hardwareMap.get(Servo.class,"clawrotL");
+        //Servo clawrotR = hardwareMap.get(Servo.class,"clawrotR");
+
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        //mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        //liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        //liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -118,6 +125,7 @@ public class godSwerve extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
+
             hztimer.reset();
 
             //Clear the cache for better loop times (bulk sensor reads)
@@ -126,9 +134,9 @@ public class godSwerve extends LinearOpMode {
             }
 
             //Turn our MA3 absolute encoder signals from volts to degrees
-            double mod1P1 = mod1E.getVoltage() * -74.16;
+            double mod1P1 = mod1E.getVoltage() * 74.16;
             double mod2P1 = mod2E.getVoltage() * 74.16;
-            double mod3P1 = mod3E.getVoltage() * -74.16;
+            double mod3P1 = mod3E.getVoltage() * 74.16;
 
             //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
             //mod1P = mathsOperations.modWrap(mod1P1,mod1wrapped,mod1lastpos,2);
@@ -166,14 +174,14 @@ public class godSwerve extends LinearOpMode {
 
             //Retrieve the angles and powers for all of our wheels from the swerve kinematics
             double[] output = swavemath.Math(gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
-            mod1power=output[0];
+            mod1power=-output[0];
             mod3power=output[1];
             mod2power=output[2];
 
             if (gamepad1.left_stick_y!=0||gamepad1.left_stick_x!=0||gamepad1.right_stick_x!=0){
                 mod1reference1=output[3];
-                mod3reference1=output[4];
-                mod2reference1=output[5];
+                mod3reference1=output[5];
+                mod2reference1=-output[4];
             }
 
             mod1reference=mod1reference1;
@@ -218,28 +226,42 @@ public class godSwerve extends LinearOpMode {
             mod3m1.setPower(mod3values[0]);
             mod3m2.setPower(mod3values[1]);
 
-            /*
-            if (gamepad2.a) {
+
+            if (gamepad1.a) {
                 liftTarget = 200;
             }
-            else if (gamepad2.b) {
+            else if (gamepad1.b) {
                 liftTarget = 500;
             }
-            else if (gamepad2.x) {
+            else if (gamepad1.x) {
                 liftTarget = 700;
             }
-            else if (gamepad2.y) {
+            else if (gamepad1.y) {
                 liftTarget = 1000;
             }
             else {
                 liftTarget = 0;
             }
-            //LliftTarget = liftTarget;
-            //RliftTarget = -liftTarget;
-             */
-
             LliftTarget = liftTarget;
             RliftTarget = -liftTarget;
+
+            /*
+            double clawRotTarget = 0.5;
+            if (gamepad1.dpad_up) {
+                clawRotTarget = 1;
+            }
+            else if (gamepad1.dpad_down) {
+                clawRotTarget = 0;
+            }
+            else if (gamepad1.dpad_left) {
+                clawRotTarget = 0.25;
+            }
+            else if (gamepad1.dpad_right) {
+                clawRotTarget = 0.75;
+            }
+            clawrotL.setPosition(clawRotTarget);
+            clawrotR.setPosition(1-clawRotTarget);
+             */
 
             if (LliftLastTarget != LliftTarget) {
                 LliftLastTarget = LliftTarget;
@@ -273,9 +295,6 @@ public class godSwerve extends LinearOpMode {
             telemetry.addData("mod3power",mod3power);
             telemetry.addData("mod2power",mod2power);
             telemetry.addData("mod1power",mod1power);
-
-            telemetry.addData("x",gamepad1.left_stick_x);
-            telemetry.addData("y",gamepad1.left_stick_y);
 
             telemetry.addLine(String.valueOf(1/hztimer.seconds()));
             telemetry.update();
