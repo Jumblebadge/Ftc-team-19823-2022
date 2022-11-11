@@ -25,6 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 import org.firstinspires.ftc.teamcode.maths.swerveMaths;
+import org.firstinspires.ftc.teamcode.subs.drive;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -68,14 +69,7 @@ public class firstAuto extends LinearOpMode {
     //Timers for the PID loops
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
 
-    //Define module position variables
-    double mod1P = 0, mod2P = 0, mod3P = 0;
-
-    //Define variables for power of wheels
-    double mod1power = 0,mod2power = 0,mod3power = 0;
-
-    //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -92, mod1PC = 0, mod2PC = -10;
+    ElapsedTime autotime = new ElapsedTime();
 
     //IMU
     BNO055IMU IMU;
@@ -138,7 +132,7 @@ public class firstAuto extends LinearOpMode {
         DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        //mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -153,6 +147,8 @@ public class firstAuto extends LinearOpMode {
         controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
         controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
 
+        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,mod1PID,mod2PID,mod3PID,swavemath,allHubs);
+
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -160,11 +156,6 @@ public class firstAuto extends LinearOpMode {
 
         //Fast loop go brrr
         PhotonCore.enable();
-
-        //Wraparound detection variables
-        boolean mod1wrapped = false, mod2wrapped = false, mod3wrapped = false;
-        double mod1lastpos = 0, mod2lastpos = 0, mod3lastpos = 0;
-
 
         while (!isStarted() && !isStopRequested()) {
 
@@ -225,6 +216,42 @@ public class firstAuto extends LinearOpMode {
         webcam.closeCameraDevice();
         //auto starting
 
+        if(detectedTag == null || detectedTag.id == side2) {
+            autotime.reset();
+            while (autotime.seconds()<1&&opModeIsActive()){
+                drivein.driveOut(0,-0.3,0);
+            }
+            while(autotime.seconds()<5&&opModeIsActive()){
+                drivein.driveOut(0.01,0.01,0);
+            }
+        }
+
+        else if(detectedTag.id == side1){
+            autotime.reset();
+            while(autotime.seconds()<1&&opModeIsActive()){
+                drivein.driveOut(0.3,0,0);
+            }
+            while (autotime.seconds()<3&&autotime.seconds()>2&&opModeIsActive()){
+                drivein.driveOut(0,-0.3,0);
+            }
+            while(autotime.seconds()<5&&opModeIsActive()){
+                drivein.driveOut(0.01,0.01,0);
+            }
+        }
+        else if(detectedTag.id == side3){
+            autotime.reset();
+            while(autotime.seconds()<1&&opModeIsActive()){
+                drivein.driveOut(-0.3,0,0);
+            }
+            while (autotime.seconds()<3&&autotime.seconds()>2&&opModeIsActive()){
+                drivein.driveOut(0,-0.3,0);
+            }
+            while(autotime.seconds()<5&&opModeIsActive()){
+                drivein.driveOut(0.01,0.01,0);
+            }
+
+        }
+
         if(detectedTag != null)
         {
             telemetry.addLine("tag:\n");
@@ -236,124 +263,6 @@ public class firstAuto extends LinearOpMode {
         }
         telemetry.update();
 
-        while (opModeIsActive()) {
-
-
-            //Clear the cache for better loop times (bulk sensor reads)
-            for (LynxModule hub : allHubs) {
-                hub.clearBulkCache();
-            }
-
-            //Turn our MA3 absolute encoder signals from volts to degrees
-            double mod1P1 = mod1E.getVoltage() * 74.16;
-            double mod2P1 = mod2E.getVoltage() * 74.16;
-            double mod3P1 = mod3E.getVoltage() * 74.16;
-
-            //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
-            //mod1P = mathsOperations.modWrap(mod1P1,mod1wrapped,mod1lastpos,2);
-            //mod1lastpos = mod1P1;
-            double mod1positiondelta = mod1P1 - mod1lastpos;
-            mod1lastpos = mod1P1;
-
-            mod1wrapped = ((mod1positiondelta > 180) != mod1wrapped);
-            mod1wrapped = ((mod1positiondelta <-180) != mod1wrapped);
-            mod1P = (mod1wrapped == true ? 180 + mod1P1/2 : mod1P1/2);
-
-            //mod2P = mathsOperations.modWrap(mod2P1,mod2wrapped,mod2lastpos,2);
-            //mod2lastpos = mod2P1;
-            double mod2positiondelta = mod2P1 - mod2lastpos;
-            mod2lastpos = mod2P1;
-
-            mod2wrapped = ((mod2positiondelta > 180) != mod2wrapped);
-            mod2wrapped = ((mod2positiondelta <-180) != mod2wrapped);
-            mod2P = (mod2wrapped == true ? 180 + mod2P1/2 : mod2P1/2);
-
-            //mod3P = mathsOperations.modWrap(mod3P1,mod3wrapped,mod3lastpos,2);
-            //mod3lastpos = mod3P1;
-            double mod3positiondelta = mod3P1 - mod3lastpos;
-            mod3lastpos = mod3P1;
-
-            mod3wrapped = ((mod3positiondelta > 180) != mod3wrapped);
-            mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
-            mod3P = (mod3wrapped == true ? 180 + mod3P1/2 : mod3P1/2);
-
-            telemetry.addData("mod1P",mod1P);
-            telemetry.addData("mod2P",mod2P);
-            telemetry.addData("mod3P",mod3P);
-
-            //Update heading of robot
-            angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            double heading = angles.firstAngle*-1;
-
-            telemetry.addData("IMU",heading);
-
-            //Retrieve the angles and powers for all of our wheels from the swerve kinematics
-            double[] output = swavemath.Math(gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
-            mod1power=output[0];
-            mod3power=output[2];
-            mod2power=output[1];
-
-            if (gamepad1.left_stick_y!=0||gamepad1.left_stick_x!=0||gamepad1.right_stick_x!=0){
-                mod1reference1=output[3];
-                mod3reference1=output[5];
-                mod2reference1=output[4];
-            }
-
-            mod1reference=mod1reference1;
-            mod3reference=mod3reference1;
-            mod2reference=mod2reference1;
-
-            if(detectedTag == null || detectedTag.id == side1) {
-                //go to default position after auton code
-            }
-            else if(detectedTag.id == side2){
-
-            }
-            else if(detectedTag.id == side3){
-
-            }
-
-            //Subtract our tuning values to account for any encoder drift
-            mod3P -= mod3PC;
-            mod2P -= mod2PC;
-            mod1P -= mod1PC;
-
-            //Anglewrap all the angles so that the module turns both ways
-            mod1P = mathsOperations.angleWrap(mod1P);
-            mod2P = mathsOperations.angleWrap(mod2P);
-            mod3P = mathsOperations.angleWrap(mod3P);
-
-            mod1reference = mathsOperations.angleWrap(mod1reference);
-            mod2reference = mathsOperations.angleWrap(mod2reference);
-            mod3reference = mathsOperations.angleWrap(mod3reference);
-
-            //Make sure that a module never turns more than 90 degrees
-            double[] mod1efvalues = mathsOperations.efficientTurn(mod1reference,mod1P,mod1power);
-            mod1reference=mod1efvalues[0];
-            mod1power=mod1efvalues[1];
-
-            double[] mod2efvalues = mathsOperations.efficientTurn(mod2reference,mod2P,mod2power);
-            mod2reference=mod2efvalues[0];
-            mod2power=mod2efvalues[1];
-
-            double[] mod3efvalues = mathsOperations.efficientTurn(mod3reference,mod3P,mod3power);
-            mod3reference=mod3efvalues[0];
-            mod3power=mod3efvalues[1];
-
-            //change coax values into diffy values, from pid and power
-            double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
-            mod1m1.setPower(mod1values[0]);
-            mod1m2.setPower(mod1efvalues[1]);
-            double[] mod2values = mathsOperations.diffyConvert(mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
-            mod2m1.setPower(mod2values[0]);
-            mod2m2.setPower(mod2values[1]);
-            double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power);
-            mod3m1.setPower(mod3values[0]);
-            mod3m2.setPower(mod3values[1]);
-
-            telemetry.update();
-
-        }
     }
     void tagToTelemetry(AprilTagDetection detection) {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));

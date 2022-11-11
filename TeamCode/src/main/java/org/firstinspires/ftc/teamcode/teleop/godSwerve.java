@@ -40,7 +40,7 @@ public class godSwerve extends LinearOpMode {
     public static double RliftTarget = 1;
     public static double liftTarget = 0;
 
-    public static double Kp = 0, Ki = 0, Kd = 0, Kf = 0;
+    public static double Kp1 = 0, Ki1 = 0, Kd1 = 0, Kp2 = 0, Kd2 = 0, Ki2 = 0, Kp3 = 0, Kd3 = 0, Ki3 = 0;
 
     //IMU
     BNO055IMU IMU;
@@ -100,11 +100,8 @@ public class godSwerve extends LinearOpMode {
         //Create objects for the classes we use for swerve and PIDS
         swerveMaths swavemath = new swerveMaths();
 
-        controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
-        controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
-        controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
-        controlLoopMath LliftPID = new controlLoopMath(0.1,0.00005,0,0,LliftPIDtime);
-        controlLoopMath RliftPID = new controlLoopMath(0.1,0.00005,0,0,RliftPIDtime);
+        controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
+        controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -125,6 +122,9 @@ public class godSwerve extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
+            controlLoopMath mod1PID = new controlLoopMath(Kp1,Kd1,Ki1,0,mod1timer);
+            controlLoopMath mod2PID = new controlLoopMath(Kp2,Kd2,Ki2,0,mod2timer);
+            controlLoopMath mod3PID = new controlLoopMath(Kp3,Kd3,Ki3,0,mod3timer);
 
             hztimer.reset();
 
@@ -173,7 +173,7 @@ public class godSwerve extends LinearOpMode {
             telemetry.addData("IMU",heading);
 
             //Retrieve the angles and powers for all of our wheels from the swerve kinematics
-            double[] output = swavemath.Math(gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
+            double[] output = swavemath.Math(-gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
             mod1power=-output[0];
             mod3power=output[1];
             mod2power=output[2];
@@ -265,7 +265,7 @@ public class godSwerve extends LinearOpMode {
 
             if (LliftLastTarget != LliftTarget) {
                 LliftLastTarget = LliftTarget;
-                LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftLeft.getCurrentPosition(), 0, 0), new MotionState(LliftTarget, 0, 0), 2900, 2900);
+                LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftLeft.getCurrentPosition(), 0, 0), new MotionState(LliftTarget, 0, 0), 7000, 5000,50000);
                 LliftPROtime.reset();
             }
             else{ LliftLastTarget = LliftTarget; }
@@ -276,7 +276,7 @@ public class godSwerve extends LinearOpMode {
 
             if (RliftLastTarget != RliftTarget) {
                 RliftLastTarget = RliftTarget;
-                RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftRight.getCurrentPosition(), 0, 0), new MotionState(RliftTarget, 0, 0), 2900, 2900);
+                RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftRight.getCurrentPosition(), 0, 0), new MotionState(RliftTarget, 0, 0), 7000, 5000,50000);
                 RliftPROtime.reset();
             }
             else{ RliftLastTarget = RliftTarget; }
