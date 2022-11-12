@@ -36,9 +36,7 @@ public class godSwerve extends LinearOpMode {
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = -70, mod1PC = -9, mod2PC = -55;
 
-    public static double LliftTarget = 1;
-    public static double RliftTarget = 1;
-    public static double liftTarget = 0;
+    double RliftTarget = 1, LliftTarget = 1, clawRotTarget = 0.9, liftTarget = 0;
 
     public static double Kp1 = 0, Ki1 = 0, Kd1 = 0, Kp2 = 0, Kd2 = 0, Ki2 = 0, Kp3 = 0, Kd3 = 0, Ki3 = 0;
 
@@ -81,8 +79,9 @@ public class godSwerve extends LinearOpMode {
         DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
         DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
 
-        //Servo clawrotL = hardwareMap.get(Servo.class,"clawrotL");
-        //Servo clawrotR = hardwareMap.get(Servo.class,"clawrotR");
+        Servo clawrotL = hardwareMap.get(Servo.class,"clawrotL");
+        Servo clawrotR = hardwareMap.get(Servo.class,"clawrotR");
+        Servo claw = hardwareMap.get(Servo.class,"claw");
 
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -100,6 +99,9 @@ public class godSwerve extends LinearOpMode {
         //Create objects for the classes we use for swerve and PIDS
         swerveMaths swavemath = new swerveMaths();
 
+        controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0009,0,mod1timer);
+        controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0009,0,mod2timer);
+        controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0009,0,mod3timer);
         controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
         controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
 
@@ -121,10 +123,6 @@ public class godSwerve extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-
-            controlLoopMath mod1PID = new controlLoopMath(Kp1,Kd1,Ki1,0,mod1timer);
-            controlLoopMath mod2PID = new controlLoopMath(Kp2,Kd2,Ki2,0,mod2timer);
-            controlLoopMath mod3PID = new controlLoopMath(Kp3,Kd3,Ki3,0,mod3timer);
 
             hztimer.reset();
 
@@ -226,7 +224,6 @@ public class godSwerve extends LinearOpMode {
             mod3m1.setPower(mod3values[0]);
             mod3m2.setPower(mod3values[1]);
 
-
             if (gamepad1.a) {
                 liftTarget = 200;
             }
@@ -239,29 +236,27 @@ public class godSwerve extends LinearOpMode {
             else if (gamepad1.y) {
                 liftTarget = 1000;
             }
-            else {
-                liftTarget = 0;
-            }
             LliftTarget = liftTarget;
             RliftTarget = -liftTarget;
 
-            /*
-            double clawRotTarget = 0.5;
             if (gamepad1.dpad_up) {
-                clawRotTarget = 1;
+                clawRotTarget = 0.9;
             }
             else if (gamepad1.dpad_down) {
-                clawRotTarget = 0;
-            }
-            else if (gamepad1.dpad_left) {
-                clawRotTarget = 0.25;
+                clawRotTarget = 0.55;
             }
             else if (gamepad1.dpad_right) {
                 clawRotTarget = 0.75;
             }
+            else if (gamepad1.dpad_left) {
+                claw.setPosition(0.4);
+            }
+            else {
+                claw.setPosition(1);
+            }
             clawrotL.setPosition(clawRotTarget);
             clawrotR.setPosition(1-clawRotTarget);
-             */
+
 
             if (LliftLastTarget != LliftTarget) {
                 LliftLastTarget = LliftTarget;

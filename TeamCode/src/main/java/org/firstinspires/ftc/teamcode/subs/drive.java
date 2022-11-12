@@ -131,16 +131,16 @@ public class drive {
 
         //Make sure that a module never turns more than 90 degrees
         double[] mod1efvalues = mathsOperations.efficientTurn(mod1reference,mod1P,mod1power);
-        mod1reference=mod1efvalues[0];
-        mod1power=mod1efvalues[1];
+        //mod1reference=mod1efvalues[0];
+        //mod1power=mod1efvalues[1];
 
         double[] mod2efvalues = mathsOperations.efficientTurn(mod2reference,mod2P,mod2power);
-        mod2reference=mod2efvalues[0];
-        mod2power=mod2efvalues[1];
+        //mod2reference=mod2efvalues[0];
+        //mod2power=mod2efvalues[1];
 
         double[] mod3efvalues = mathsOperations.efficientTurn(mod3reference,mod3P,mod3power);
-        mod3reference=mod3efvalues[0];
-        mod3power=mod3efvalues[1];
+        //mod3reference=mod3efvalues[0];
+        //mod3power=mod3efvalues[1];
 
         //change coax values into diffy values, from pid and power
         double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);

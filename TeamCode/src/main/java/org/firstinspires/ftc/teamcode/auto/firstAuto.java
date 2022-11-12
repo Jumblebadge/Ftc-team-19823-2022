@@ -62,10 +62,6 @@ public class firstAuto extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
 
-    //Define reference variables for modules' heading
-    public static double mod1reference=0,mod2reference=0,mod3reference=0;
-    public static double mod1reference1=0,mod2reference1=0,mod3reference1=0;
-
     //Timers for the PID loops
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
 
@@ -73,8 +69,6 @@ public class firstAuto extends LinearOpMode {
 
     //IMU
     BNO055IMU IMU;
-    Orientation angles;
-
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -91,7 +85,7 @@ public class firstAuto extends LinearOpMode {
 
             @Override
             public void onOpened() {
-                webcam.startStreaming(848, 480, OpenCvCameraRotation.UPRIGHT);
+                webcam.startStreaming(1920, 1080, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -218,7 +212,7 @@ public class firstAuto extends LinearOpMode {
 
         if(detectedTag == null || detectedTag.id == side2) {
             autotime.reset();
-            while (autotime.seconds()<1&&opModeIsActive()){
+            while (autotime.seconds()<2.5&&opModeIsActive()){
                 drivein.driveOut(0,-0.3,0);
             }
             while(autotime.seconds()<5&&opModeIsActive()){
@@ -228,25 +222,25 @@ public class firstAuto extends LinearOpMode {
 
         else if(detectedTag.id == side1){
             autotime.reset();
-            while(autotime.seconds()<1&&opModeIsActive()){
-                drivein.driveOut(0.3,0,0);
-            }
-            while (autotime.seconds()<3&&autotime.seconds()>2&&opModeIsActive()){
+            while(autotime.seconds()<2.7&&opModeIsActive()){
                 drivein.driveOut(0,-0.3,0);
             }
-            while(autotime.seconds()<5&&opModeIsActive()){
+            while (autotime.seconds()<4.5&&autotime.seconds()>2.7&&opModeIsActive()){
+                drivein.driveOut(0.3,0,0);
+            }
+            while(autotime.seconds()<6&&opModeIsActive()){
                 drivein.driveOut(0.01,0.01,0);
             }
         }
         else if(detectedTag.id == side3){
             autotime.reset();
-            while(autotime.seconds()<1&&opModeIsActive()){
-                drivein.driveOut(-0.3,0,0);
-            }
-            while (autotime.seconds()<3&&autotime.seconds()>2&&opModeIsActive()){
+            while(autotime.seconds()<2.5&&opModeIsActive()){
                 drivein.driveOut(0,-0.3,0);
             }
-            while(autotime.seconds()<5&&opModeIsActive()){
+            while (autotime.seconds()<4.5&&autotime.seconds()>2.5&&opModeIsActive()){
+                drivein.driveOut(-0.3,0,0);
+            }
+            while(autotime.seconds()<6&&opModeIsActive()){
                 drivein.driveOut(0.01,0.01,0);
             }
 
