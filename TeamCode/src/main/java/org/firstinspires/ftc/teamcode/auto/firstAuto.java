@@ -167,7 +167,7 @@ public class firstAuto extends LinearOpMode {
                 }
 
                 if(tagFound) {
-                    telemetry.addLine("can see tag \n");
+                    telemetry.addLine("cann see tag \n");
                     tagToTelemetry(detectedTag);
                 }
                 else
