@@ -36,7 +36,7 @@ public class godSwerve extends LinearOpMode {
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = -70, mod1PC = -9, mod2PC = -55;
 
-    double RliftTarget = 1, LliftTarget = 1, clawRotTarget = 0.9, liftTarget = 0;
+    double RliftTarget = 1, LliftTarget = 1, clawRotTarget = 0.5, liftTarget = 0;
 
     public static double Kp1 = 0, Ki1 = 0, Kd1 = 0, Kp2 = 0, Kd2 = 0, Ki2 = 0, Kp3 = 0, Kd3 = 0, Ki3 = 0;
 
@@ -225,25 +225,25 @@ public class godSwerve extends LinearOpMode {
             mod3m2.setPower(mod3values[1]);
 
             if (gamepad1.a) {
-                liftTarget = 200;
+                liftTarget = 0;
             }
             else if (gamepad1.b) {
-                liftTarget = 500;
+                liftTarget = 350;
             }
             else if (gamepad1.x) {
                 liftTarget = 700;
             }
             else if (gamepad1.y) {
-                liftTarget = 1000;
+                liftTarget = 1200;
             }
             LliftTarget = liftTarget;
             RliftTarget = -liftTarget;
 
             if (gamepad1.dpad_up) {
-                clawRotTarget = 0.9;
+                clawRotTarget = 0.5;
             }
             else if (gamepad1.dpad_down) {
-                clawRotTarget = 0.55;
+                clawRotTarget = 1;
             }
             else if (gamepad1.dpad_right) {
                 clawRotTarget = 0.75;
@@ -252,7 +252,7 @@ public class godSwerve extends LinearOpMode {
                 claw.setPosition(0.4);
             }
             else {
-                claw.setPosition(1);
+                claw.setPosition(0.9);
             }
             clawrotL.setPosition(clawRotTarget);
             clawrotR.setPosition(1-clawRotTarget);
