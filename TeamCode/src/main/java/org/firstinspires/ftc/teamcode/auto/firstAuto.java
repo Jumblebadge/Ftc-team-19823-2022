@@ -192,7 +192,7 @@ public class firstAuto extends LinearOpMode {
 
                 if(detectedTag == null)
                 {
-                    telemetry.addLine("never seen tag");
+                    telemetry.addLine("neverr seen tag");
                 }
                 else
                 {
