@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -25,8 +26,10 @@ public class drive {
     final private swerveMaths swavemath;
     final private List<LynxModule> allHubs;
     final private Telemetry telemetry;
+    final private VoltageSensor vSensor;
+    final private boolean eff;
 
-    public drive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, controlLoopMath mod1PID, controlLoopMath mod2PID, controlLoopMath mod3PID, swerveMaths swavemath, List<LynxModule> allHubs){
+    public drive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, controlLoopMath mod1PID, controlLoopMath mod2PID, controlLoopMath mod3PID, swerveMaths swavemath, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
         this.mod1m1 = mod1m1;
         this.mod1m2 = mod1m2;
         this.mod2m1 = mod2m1;
@@ -43,6 +46,8 @@ public class drive {
         this.swavemath = swavemath;
         this.allHubs = allHubs;
         this.telemetry = telemetry;
+        this.vSensor = vSensor;
+        this.eff = eff;
     }
 
     boolean mod1wrapped = false, mod2wrapped = false, mod3wrapped = false;
@@ -55,6 +60,11 @@ public class drive {
     double mod3reference1 = 0;
 
     public void driveOut(double x, double y,double rot){
+
+        double voltageConstant = 1;
+        if (vSensor != null){
+            voltageConstant = 12/vSensor.getVoltage();
+        }
 
         //Clear the cache for better loop times (bulk sensor reads)
         for (LynxModule hub : allHubs) {
@@ -116,7 +126,7 @@ public class drive {
 
         //Subtract our tuning values to account for any encoder drift
         //TODO actually update these
-        mod3P -= -70;
+        mod3P -= -105;
         mod2P -= -55;
         mod1P -= -9;
 
@@ -131,28 +141,35 @@ public class drive {
 
         //Make sure that a module never turns more than 90 degrees
         double[] mod1efvalues = mathsOperations.efficientTurn(mod1reference,mod1P,mod1power);
-        //mod1reference=mod1efvalues[0];
-        //mod1power=mod1efvalues[1];
 
         double[] mod2efvalues = mathsOperations.efficientTurn(mod2reference,mod2P,mod2power);
-        //mod2reference=mod2efvalues[0];
-        //mod2power=mod2efvalues[1];
 
         double[] mod3efvalues = mathsOperations.efficientTurn(mod3reference,mod3P,mod3power);
-        //mod3reference=mod3efvalues[0];
-        //mod3power=mod3efvalues[1];
+
+        if (eff){
+            mod1reference=mod1efvalues[0];
+            mod1power=mod1efvalues[1];
+            mod2reference=mod2efvalues[0];
+            mod2power=mod2efvalues[1];
+            mod3reference=mod3efvalues[0];
+            mod3power=mod3efvalues[1];
+        }
 
         //change coax values into diffy values, from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
+        double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power*voltageConstant);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
+        double[] mod2values = mathsOperations.diffyConvert(mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power*voltageConstant);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
-        double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power);
+        double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power*voltageConstant);
         mod3m1.setPower(mod3values[0]);
         mod3m2.setPower(mod3values[1]);
 
+        if (vSensor != null){
+            telemetry.addData("volt",vSensor.getVoltage());
+            telemetry.addData("voltC",voltageConstant);
+        }
 
         telemetry.addData("mod1reference",mod1reference);
         telemetry.addData("mod2reference",mod2reference);

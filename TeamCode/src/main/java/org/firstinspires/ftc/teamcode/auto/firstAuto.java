@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -52,7 +53,7 @@ public class firstAuto extends LinearOpMode {
     double fy = 578.272;
     double cx = 402.145;
     double cy = 221.506;
-    double tagsize = 0.166;
+    double tagsize = 0.2;
 
     aprilTagDetectPipe pipeline = new aprilTagDetectPipe(tagsize,fx,fy,cx,cy);
 
@@ -85,7 +86,7 @@ public class firstAuto extends LinearOpMode {
 
             @Override
             public void onOpened() {
-                webcam.startStreaming(1920, 1080, OpenCvCameraRotation.UPRIGHT);
+                webcam.startStreaming(864, 480, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -125,6 +126,8 @@ public class firstAuto extends LinearOpMode {
         DcMotorEx mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
         DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
+        VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
+
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -141,7 +144,7 @@ public class firstAuto extends LinearOpMode {
         controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
         controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,mod1PID,mod2PID,mod3PID,swavemath,allHubs);
+        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,mod1PID,mod2PID,mod3PID,swavemath,allHubs,vSensor, false);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -212,8 +215,8 @@ public class firstAuto extends LinearOpMode {
 
         if(detectedTag == null || detectedTag.id == side2) {
             autotime.reset();
-            while (autotime.seconds()<2.5&&opModeIsActive()){
-                drivein.driveOut(0,-0.3,0);
+            while (autotime.seconds()<2.3&&opModeIsActive()){
+                drivein.driveOut(0.035,-0.3,0);
             }
             while(autotime.seconds()<5&&opModeIsActive()){
                 drivein.driveOut(0.01,0.01,0);
@@ -222,10 +225,10 @@ public class firstAuto extends LinearOpMode {
 
         else if(detectedTag.id == side1){
             autotime.reset();
-            while(autotime.seconds()<2.7&&opModeIsActive()){
-                drivein.driveOut(0,-0.3,0);
+            while(autotime.seconds()<2.15&&opModeIsActive()){
+                drivein.driveOut(0.03,-0.3,0);
             }
-            while (autotime.seconds()<4.5&&autotime.seconds()>2.7&&opModeIsActive()){
+            while (autotime.seconds()<3.45&&autotime.seconds()>2.15&&opModeIsActive()){
                 drivein.driveOut(0.3,0,0);
             }
             while(autotime.seconds()<6&&opModeIsActive()){
@@ -234,10 +237,10 @@ public class firstAuto extends LinearOpMode {
         }
         else if(detectedTag.id == side3){
             autotime.reset();
-            while(autotime.seconds()<2.5&&opModeIsActive()){
-                drivein.driveOut(0,-0.3,0);
+            while(autotime.seconds()<2.15&&opModeIsActive()){
+                drivein.driveOut(0.035,-0.3,0);
             }
-            while (autotime.seconds()<4.5&&autotime.seconds()>2.5&&opModeIsActive()){
+            while (autotime.seconds()<3.9&&autotime.seconds()>2.15&&opModeIsActive()){
                 drivein.driveOut(-0.3,0,0);
             }
             while(autotime.seconds()<6&&opModeIsActive()){

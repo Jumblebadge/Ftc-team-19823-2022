@@ -4,10 +4,16 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.roadrunner.profile.MotionProfile;
 import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;import com.outoftheboxrobotics.photoncore.PhotonCore;import com.acmerobotics.dashboard.config.Config;import com.qualcomm.robotcore.hardware.AnalogInput;import com.acmerobotics.dashboard.FtcDashboard;import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;import com.qualcomm.hardware.bosch.BNO055IMU;import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;import com.outoftheboxrobotics.photoncore.PhotonCore;import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.exception.RobotCoreException;
+import com.qualcomm.robotcore.hardware.AnalogInput;import com.acmerobotics.dashboard.FtcDashboard;import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;import com.qualcomm.hardware.bosch.BNO055IMU;import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;import org.firstinspires.ftc.robotcore.external.navigation.Orientation;import org.firstinspires.ftc.teamcode.maths.controlLoopMath;import org.firstinspires.ftc.teamcode.maths.mathsOperations;import org.firstinspires.ftc.robotcore.external.navigation.Position;import org.firstinspires.ftc.teamcode.maths.swerveMaths;import java.util.List;import org.firstinspires.ftc.robotcore.external.navigation.Velocity;import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.util.ElapsedTime;import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;import org.firstinspires.ftc.robotcore.external.navigation.Orientation;import org.firstinspires.ftc.teamcode.maths.controlLoopMath;import org.firstinspires.ftc.teamcode.maths.mathsOperations;import org.firstinspires.ftc.robotcore.external.navigation.Position;import org.firstinspires.ftc.teamcode.maths.swerveMaths;import java.util.List;import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.teamcode.subs.drive;
+
+import com.qualcomm.hardware.lynx.LynxModule;
 
 @Config
 @TeleOp(name="godSwerve", group="Linear Opmode")
@@ -34,11 +40,11 @@ public class godSwerve extends LinearOpMode {
     double mod1power = 0,mod2power = 0,mod3power = 0;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -70, mod1PC = -9, mod2PC = -55;
+    public static double mod3PC = -105, mod1PC = -9, mod2PC = -55;
 
-    double RliftTarget = 1, LliftTarget = 1, clawRotTarget = 0.5, liftTarget = 0;
+    double RliftTarget = 1, LliftTarget = 1, inRotTarget = 0.5, liftTarget = 0, outRotTarget  = 1;
 
-    public static double Kp1 = 0, Ki1 = 0, Kd1 = 0, Kp2 = 0, Kd2 = 0, Ki2 = 0, Kp3 = 0, Kd3 = 0, Ki3 = 0;
+    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0;
 
     //IMU
     BNO055IMU IMU;
@@ -79,9 +85,12 @@ public class godSwerve extends LinearOpMode {
         DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
         DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
 
-        Servo clawrotL = hardwareMap.get(Servo.class,"clawrotL");
-        Servo clawrotR = hardwareMap.get(Servo.class,"clawrotR");
-        Servo claw = hardwareMap.get(Servo.class,"claw");
+        Servo inRotL = hardwareMap.get(Servo.class,"inRotL");
+        Servo inRotR = hardwareMap.get(Servo.class,"inRotR");
+        Servo outRotL = hardwareMap.get(Servo.class,"outRotL");
+        Servo outRotR = hardwareMap.get(Servo.class,"outRotR");
+        Servo clawI = hardwareMap.get(Servo.class,"clawI");
+        Servo clawO = hardwareMap.get(Servo.class,"clawO");
 
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -105,6 +114,8 @@ public class godSwerve extends LinearOpMode {
         controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
         controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
 
+        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,mod1PID,mod2PID,mod3PID,swavemath,allHubs,null, true);
+
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -113,10 +124,15 @@ public class godSwerve extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
+        Gamepad currentGamepad1 = new Gamepad();
+        Gamepad currentGamepad2 = new Gamepad();
+
+        Gamepad previousGamepad1 = new Gamepad();
+        Gamepad previousGamepad2 = new Gamepad();
+
         //Wraparound detection variables
-        boolean mod1wrapped = false, mod2wrapped = false, mod3wrapped = false;
-        double mod1lastpos = 0, mod2lastpos = 0, mod3lastpos = 0;
         double LliftLastTarget = 0, RliftLastTarget = 0;
+        clawI.setPosition(0.4);
 
         MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1);
         MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1);
@@ -124,139 +140,91 @@ public class godSwerve extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
+            try {
+                previousGamepad1.copy(currentGamepad1);
+                previousGamepad2.copy(currentGamepad2);
+
+                currentGamepad1.copy(gamepad1);
+                currentGamepad2.copy(gamepad2);
+            }
+            catch (RobotCoreException e) {
+                //ah
+            }
+
             hztimer.reset();
 
-            //Clear the cache for better loop times (bulk sensor reads)
-            for (LynxModule hub : allHubs) {
-                hub.clearBulkCache();
-            }
+            drivein.driveOut(-gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x);
 
-            //Turn our MA3 absolute encoder signals from volts to degrees
-            double mod1P1 = mod1E.getVoltage() * 74.16;
-            double mod2P1 = mod2E.getVoltage() * 74.16;
-            double mod3P1 = mod3E.getVoltage() * 74.16;
-
-            //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
-            //mod1P = mathsOperations.modWrap(mod1P1,mod1wrapped,mod1lastpos,2);
-            //mod1lastpos = mod1P1;
-            double mod1positiondelta = mod1P1 - mod1lastpos;
-            mod1lastpos = mod1P1;
-
-            mod1wrapped = ((mod1positiondelta > 180) != mod1wrapped);
-            mod1wrapped = ((mod1positiondelta <-180) != mod1wrapped);
-            mod1P = (mod1wrapped ? 180 + mod1P1/2 : mod1P1/2);
-
-            //mod2P = mathsOperations.modWrap(mod2P1,mod2wrapped,mod2lastpos,2);
-            //mod2lastpos = mod2P1;
-            double mod2positiondelta = mod2P1 - mod2lastpos;
-            mod2lastpos = mod2P1;
-
-            mod2wrapped = ((mod2positiondelta > 180) != mod2wrapped);
-            mod2wrapped = ((mod2positiondelta <-180) != mod2wrapped);
-            mod2P = (mod2wrapped ? 180 + mod2P1/2 : mod2P1/2);
-
-            //mod3P = mathsOperations.modWrap(mod3P1,mod3wrapped,mod3lastpos,2);
-            //mod3lastpos = mod3P1;
-            double mod3positiondelta = mod3P1 - mod3lastpos;
-            mod3lastpos = mod3P1;
-
-            mod3wrapped = ((mod3positiondelta > 180) != mod3wrapped);
-            mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
-            mod3P = (mod3wrapped ? 180 + mod3P1/2 : mod3P1/2);
-
-            //Update heading of robot
-            angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            double heading = angles.firstAngle*-1;
-
-            telemetry.addData("IMU",heading);
-
-            //Retrieve the angles and powers for all of our wheels from the swerve kinematics
-            double[] output = swavemath.Math(-gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,heading,true);
-            mod1power=-output[0];
-            mod3power=output[1];
-            mod2power=output[2];
-
-            if (gamepad1.left_stick_y!=0||gamepad1.left_stick_x!=0||gamepad1.right_stick_x!=0){
-                mod1reference1=output[3];
-                mod3reference1=output[5];
-                mod2reference1=-output[4];
-            }
-
-            mod1reference=mod1reference1;
-            mod3reference=mod3reference1;
-            mod2reference=-mod2reference1;
-
-            //Subtract our tuning values to account for any encoder drift
-            mod3P -= mod3PC;
-            mod2P -= mod2PC;
-            mod1P -= mod1PC;
-
-            //Anglewrap all the angles so that the module turns both ways
-            mod1P = mathsOperations.angleWrap(mod1P);
-            mod2P = mathsOperations.angleWrap(mod2P);
-            mod3P = mathsOperations.angleWrap(mod3P);
-
-            mod1reference = mathsOperations.angleWrap(mod1reference);
-            mod2reference = mathsOperations.angleWrap(mod2reference);
-            mod3reference = mathsOperations.angleWrap(mod3reference);
-
-            //Make sure that a module never turns more than 90 degrees
-            double[] mod1efvalues = mathsOperations.efficientTurn(mod1reference,mod1P,mod1power);
-            mod1reference=mod1efvalues[0];
-            mod1power=mod1efvalues[1];
-
-            double[] mod2efvalues = mathsOperations.efficientTurn(mod2reference,mod2P,mod2power);
-            mod2reference=mod2efvalues[0];
-            mod2power=mod2efvalues[1];
-
-            double[] mod3efvalues = mathsOperations.efficientTurn(mod3reference,mod3P,mod3power);
-            mod3reference=mod3efvalues[0];
-            mod3power=mod3efvalues[1];
-
-            //change coax values into diffy values, from pid and power
-            double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
-            mod1m1.setPower(mod1values[0]);
-            mod1m2.setPower(mod1values[1]);
-            double[] mod2values = mathsOperations.diffyConvert(mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
-            mod2m1.setPower(mod2values[0]);
-            mod2m2.setPower(mod2values[1]);
-            double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power);
-            mod3m1.setPower(mod3values[0]);
-            mod3m2.setPower(mod3values[1]);
-
-            if (gamepad1.a) {
+            if (gamepad2.a) {
                 liftTarget = 0;
             }
-            else if (gamepad1.b) {
-                liftTarget = 350;
+            else if (gamepad2.b) {
+                liftTarget = 375;
             }
-            else if (gamepad1.x) {
+            else if (gamepad2.x) {
                 liftTarget = 700;
             }
-            else if (gamepad1.y) {
+            else if (gamepad2.y) {
                 liftTarget = 1200;
             }
             LliftTarget = liftTarget;
             RliftTarget = -liftTarget;
 
-            if (gamepad1.dpad_up) {
-                clawRotTarget = 0.5;
+            if (gamepad2.dpad_up) {
+                inRotTarget = 0.65;
             }
-            else if (gamepad1.dpad_down) {
-                clawRotTarget = 1;
+            else if (gamepad2.dpad_down) {
+                inRotTarget = 0.05;
             }
-            else if (gamepad1.dpad_right) {
-                clawRotTarget = 0.75;
+            else if (gamepad2.dpad_left) {
+                inRotTarget = 0.5;
             }
-            else if (gamepad1.dpad_left) {
-                claw.setPosition(0.4);
-            }
-            else {
-                claw.setPosition(0.9);
-            }
-            clawrotL.setPosition(clawRotTarget);
-            clawrotR.setPosition(1-clawRotTarget);
+            //down = 0.05
+            //0.65 = swap
+            //0.5 = rest
 
+
+            if (gamepad2.right_trigger>0)  {
+                outRotTarget = 0.15;
+            }
+            //flip out
+
+            if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper) {
+                if (clawO.getPosition() == 0.2){
+                    clawO.setPosition(0);
+                    outRotTarget = 0.9;
+                    //open and come in
+                }
+                else if (clawO.getPosition() == 0){
+                    clawO.setPosition(0.2);
+                    //close
+                }
+            }
+
+            if (currentGamepad2.left_bumper && !previousGamepad2.left_bumper) {
+                /*
+                if (clawI.getPosition() == 0.9){
+                    clawI.setPosition(0.4);
+                    //close
+                }
+                else if (clawI.getPosition() == 0.4){
+                    clawI.setPosition(0.9);
+                    //open
+                }
+
+                 */
+            }
+            if (gamepad2.left_bumper) {
+                clawI.setPosition(0.4);
+            }
+            else if (gamepad2.left_trigger>0){
+                clawI.setPosition(0.9);
+            }
+
+            inRotL.setPosition(inRotTarget);
+            inRotR.setPosition(1-inRotTarget);
+            outRotL.setPosition(outRotTarget);
+            outRotR.setPosition(1-outRotTarget);
 
             if (LliftLastTarget != LliftTarget) {
                 LliftLastTarget = LliftTarget;
