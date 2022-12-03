@@ -126,7 +126,7 @@ public class drive {
 
         //Subtract our tuning values to account for any encoder drift
         //TODO actually update these
-        mod3P -= -105;
+        mod3P -= -120;
         mod2P -= -55;
         mod1P -= -9;
 
