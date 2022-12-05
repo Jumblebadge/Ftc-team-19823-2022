@@ -42,7 +42,7 @@ public class godSwerve extends LinearOpMode {
     double mod1power = 0,mod2power = 0,mod3power = 0;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -105, mod1PC = -9, mod2PC = -55;
+    public static double mod3PC = -120, mod1PC = -9, mod2PC = -55;
 
     double RliftTarget = 1, LliftTarget = 1, inRotTarget = 0.5, liftTarget = 0, outRotTarget  = 1;
 
@@ -159,7 +159,7 @@ public class godSwerve extends LinearOpMode {
                 liftTarget = 0;
             }
             else if (gamepad2.b) {
-                liftTarget = 375;
+                liftTarget = 315;
             }
             else if (gamepad2.x) {
                 liftTarget = 700;
@@ -171,14 +171,15 @@ public class godSwerve extends LinearOpMode {
             RliftTarget = -liftTarget;
 
             if (gamepad2.dpad_up) {
-                inRotTarget = 0.65;
+                inRotTarget = 0.62;
             }
             else if (gamepad2.dpad_down) {
-                inRotTarget = 0.05;
+                inRotTarget = 0.075;
             }
             else if (gamepad2.dpad_left) {
                 inRotTarget = 0.5;
             }
+
             //down = 0.05
             //0.65 = swap
             //0.5 = rest
@@ -192,11 +193,12 @@ public class godSwerve extends LinearOpMode {
             if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper) {
                 if (clawO.getPosition() == 0.2){
                     clawO.setPosition(0);
-                    outRotTarget = 0.9;
+                    outRotTarget = 0.86;
                     //open and come in
                 }
                 else if (clawO.getPosition() == 0){
                     clawO.setPosition(0.2);
+                    clawI.setPosition(0.9);
                     //close
                 }
             }
