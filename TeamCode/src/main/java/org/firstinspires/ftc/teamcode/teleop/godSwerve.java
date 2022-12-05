@@ -1,19 +1,23 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 //Import EVERYTHING we need
-import com.acmerobotics.roadrunner.profile.MotionProfile;
-import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
-import com.acmerobotics.roadrunner.profile.MotionState;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;import com.outoftheboxrobotics.photoncore.PhotonCore;import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.profile.*;
+import com.outoftheboxrobotics.photoncore.PhotonCore;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.*;
+import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.hardware.AnalogInput;import com.acmerobotics.dashboard.FtcDashboard;import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;import com.qualcomm.hardware.bosch.BNO055IMU;import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;import org.firstinspires.ftc.robotcore.external.navigation.Orientation;import org.firstinspires.ftc.teamcode.maths.controlLoopMath;import org.firstinspires.ftc.teamcode.maths.mathsOperations;import org.firstinspires.ftc.robotcore.external.navigation.Position;import org.firstinspires.ftc.teamcode.maths.swerveMaths;import java.util.List;import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.hardware.lynx.*;
+import com.acmerobotics.dashboard.*;
+import com.qualcomm.robotcore.util.*;
+import org.firstinspires.ftc.robotcore.external.navigation.*;
+import org.firstinspires.ftc.teamcode.maths.*;
 import org.firstinspires.ftc.teamcode.subs.drive;
+import java.util.List;
 
-import com.qualcomm.hardware.lynx.LynxModule;
 
 @Config
 @TeleOp(name="godSwerve", group="Linear Opmode")
@@ -24,8 +28,6 @@ public class godSwerve extends LinearOpMode {
 
     //Define reference variables for modules' heading
     double mod2reference=0,mod3reference=0;
-    double mod1reference1 = 0, mod2reference1=0,mod3reference1=0;
-
     public static double mod1reference=0;
 
     //Timers for the PID loops
@@ -44,11 +46,8 @@ public class godSwerve extends LinearOpMode {
 
     double RliftTarget = 1, LliftTarget = 1, inRotTarget = 0.5, liftTarget = 0, outRotTarget  = 1;
 
-    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0;
-
     //IMU
     BNO055IMU IMU;
-    Orientation angles;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -94,6 +93,7 @@ public class godSwerve extends LinearOpMode {
 
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        mod2m1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
