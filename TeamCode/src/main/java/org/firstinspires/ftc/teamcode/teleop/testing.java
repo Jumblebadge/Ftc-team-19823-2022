@@ -13,6 +13,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -34,8 +35,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 
-
 @Config
+@Disabled
 @TeleOp(name="testing", group="Linear Opmode")
 public class testing extends LinearOpMode {
 

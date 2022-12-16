@@ -59,7 +59,7 @@ public class drive {
     double mod2reference1 = 0;
     double mod3reference1 = 0;
 
-    public void driveOut(double x, double y,double rot){
+    public void driveOut(double x, double y,double rot,double mod1PC, double mod2PC, double mod3PC){
 
         double voltageConstant = 1;
         if (vSensor != null){
@@ -126,9 +126,9 @@ public class drive {
 
         //Subtract our tuning values to account for any encoder drift
         //TODO actually update these
-        mod3P -= -120;
-        mod2P -= -55;
-        mod1P -= -9;
+        mod3P -= -35;
+        mod2P -= -15;
+        mod1P -= 10;
 
         //Anglewrap all the angles so that the module turns both ways
         mod1P = mathsOperations.angleWrap(mod1P);
@@ -156,13 +156,13 @@ public class drive {
         }
 
         //change coax values into diffy values, from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power*voltageConstant);
+        double[] mod1values = mathsOperations.diffyConvert(-mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power*voltageConstant);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power*voltageConstant);
+        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power*voltageConstant);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
-        double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power*voltageConstant);
+        double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power*voltageConstant);
         mod3m1.setPower(mod3values[0]);
         mod3m2.setPower(mod3values[1]);
 

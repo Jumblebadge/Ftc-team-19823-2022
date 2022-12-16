@@ -20,6 +20,7 @@ import java.util.List;
 
 
 @Config
+@Disabled
 @TeleOp(name="godSwerve", group="Linear Opmode")
 public class godSwerve extends LinearOpMode {
 
@@ -153,7 +154,7 @@ public class godSwerve extends LinearOpMode {
 
             hztimer.reset();
 
-            drivein.driveOut(-gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x);
+            //drivein.driveOut(-gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x);
 
             if (gamepad2.a) {
                 liftTarget = 0;

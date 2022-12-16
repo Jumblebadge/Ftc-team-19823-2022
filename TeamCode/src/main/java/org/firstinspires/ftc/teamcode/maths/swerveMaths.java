@@ -6,7 +6,6 @@ public class swerveMaths {
     public double[] Math(double forward, double strafe, double rotate, double imu, boolean fieldcentrictoggle){
 
         forward*=-1;
-        double[] strafeforward;
 
         //rotate vectors by imu heading for field centric (if toggled on)
         double strafe1 = strafe;
@@ -45,9 +44,6 @@ public class swerveMaths {
         double mod2angle = Math.atan2(mod2strafe, mod2forward)*180 / Math.PI;
         double mod3angle = Math.atan2(mod3strafe, mod3forward)*180 / Math.PI;
 
-        //put our outputs into an array
-        double[] output = {mod1speed,mod2speed,mod3speed,mod1angle,mod2angle,mod3angle};
-
-        return output;
+        return new double[]{mod1speed,mod2speed,mod3speed,mod1angle,mod2angle,mod3angle};
     }
 }
