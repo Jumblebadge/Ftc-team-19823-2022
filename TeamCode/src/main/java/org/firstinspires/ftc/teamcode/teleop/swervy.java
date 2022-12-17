@@ -45,7 +45,7 @@ public class swervy extends LinearOpMode {
     Localizer localizer;
     public static double x,y,Kp,Kd,Ki,maxVel,maxAccel,maxJerk;
     double lastX,lastY;
-    Pose2d temp;
+    Pose2d temp = new Pose2d(0,0,0);
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 

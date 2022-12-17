@@ -11,14 +11,14 @@ public class goToPoint {
     final private drive driver;
     Telemetry telemetry;
     private double Kp,Kd,Ki;
-    private double maxVel, maxAccel, maxJerk;
+    private double maxVel=2, maxAccel=3, maxJerk=7;
     double stateOut,xOut,yOut;
     final private ElapsedTime xPIDTime = new ElapsedTime(); ElapsedTime yPIDTime = new ElapsedTime(); ElapsedTime headingPIDTime = new ElapsedTime();
     final private ElapsedTime profileTime = new ElapsedTime();
     private final controlLoopMath headingPID = new controlLoopMath(0,0,0,0,headingPIDTime);
     controlLoopMath xPID = new controlLoopMath(Kp,Kd,Ki,0,xPIDTime);
     controlLoopMath yPID = new controlLoopMath(Kp,Kd,Ki,0,yPIDTime);
-    private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(1, 0, 0), new MotionState(0, 0, 0), maxVel, maxAccel,maxJerk);
+    private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(1, 0, 0), 2, 3,4);
 
     public goToPoint(drive driver, Telemetry telemetry){
         this.driver=driver;
@@ -32,7 +32,7 @@ public class goToPoint {
         double distanceNow = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
         double angleToEndPoint = Math.atan2(desiredPose.getY()-startPose.getY(),desiredPose.getX()-startPose.getY());
         if (update){
-            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(distanceNow, 0, 0), new MotionState(0, 0, 0), maxVel, maxAccel,maxJerk);
+            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(distanceNow, 0, 0), new MotionState(1, 0, 0), maxVel, maxAccel,maxJerk);
         }
         profileTime.reset();
         if(distanceNow>3||desiredPose.getHeading()-pose.getHeading()>10){

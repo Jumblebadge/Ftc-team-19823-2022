@@ -168,7 +168,7 @@ public class drive {
         }
 
         //change coax values into diffy values, from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(-mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power*voltageConstant);
+        double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power*voltageConstant);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
         double[] mod2values = mathsOperations.diffyConvert(-mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power*voltageConstant);

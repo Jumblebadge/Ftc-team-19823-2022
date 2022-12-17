@@ -6,7 +6,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @Config
 @TeleOp(name="testing", group="Linear Opmode")
@@ -21,8 +21,8 @@ public class testing extends LinearOpMode {
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        ServoImplEx clawrotL = hardwareMap.get(ServoImplEx.class,"clawrotL");
-        ServoImplEx clawrotR = hardwareMap.get(ServoImplEx.class,"clawrotR");
+        Servo clawrotL = hardwareMap.get(Servo.class,"clawrotL");
+        Servo clawrotR = hardwareMap.get(Servo.class,"clawrotR");
         dashboard = FtcDashboard.getInstance();
 
         PhotonCore.enable();
@@ -30,10 +30,8 @@ public class testing extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
-
             clawrotL.setPosition(clawRotTarget);
             clawrotR.setPosition(1-clawRotTarget);
-
 
             telemetry.update();
         }
