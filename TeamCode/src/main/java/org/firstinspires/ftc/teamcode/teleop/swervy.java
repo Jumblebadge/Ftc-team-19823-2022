@@ -22,6 +22,8 @@ import com.qualcomm.robotcore.util.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.maths.*;
 import org.firstinspires.ftc.teamcode.subs.drive;
+import org.firstinspires.ftc.teamcode.subs.goToPoint;
+
 import java.util.List;
 
 
@@ -32,18 +34,8 @@ public class swervy extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
 
-    //Define reference variables for modules' heading
-    double mod2reference=0,mod3reference=0;
-    double mod1reference=0;
-
     //Timers for the PID loops
-    ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
     ElapsedTime hztimer = new ElapsedTime();
-    //Define module position variables
-    double mod1P = 0, mod2P = 0, mod3P = 0;
-
-    //Define variables for power of wheels
-    double mod1power = 0,mod2power = 0,mod3power = 0;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = -120, mod1PC = -9, mod2PC = -55;
@@ -51,10 +43,9 @@ public class swervy extends LinearOpMode {
     //IMU
     BNO055IMU IMU;
     Localizer localizer;
-    public static double Kp,Kd,Ki,headingTarget=0,parX=0,parY=0,perpX=0,perpY=0;
-    ElapsedTime botRotTime = new ElapsedTime();
-
-
+    public static double x,y,Kp,Kd,Ki,maxVel,maxAccel,maxJerk;
+    double lastX,lastY;
+    Pose2d temp;
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
@@ -100,15 +91,11 @@ public class swervy extends LinearOpMode {
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
 
-        //Create objects for the classes we use for swerve and PIDS
-        swerveMaths swavemath = new swerveMaths();
-
-        controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0009,0,mod1timer);
-        controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0009,0,mod2timer);
-        controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0009,0,mod3timer);
+        //set odometry localizer and make object for driving
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,mod1PID,mod2PID,mod3PID,swavemath,allHubs,null, true);
+        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,null, true);
+        goToPoint auto = new goToPoint(drivein,telemetry);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -121,13 +108,12 @@ public class swervy extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
-            controlLoopMath rotPID = new controlLoopMath(Kp,Kd,Ki,0,botRotTime);
-
             localizer.update();
             TelemetryPacket packet = new TelemetryPacket();
             Canvas fieldOverlay = packet.fieldOverlay();
 
             Pose2d pose = localizer.getPoseEstimate();
+            Pose2d desiredPose = new Pose2d(x,y,0);
             fieldOverlay.setStrokeWidth(1);
             fieldOverlay.setStroke("#3F51B5");
             drawRobot(fieldOverlay, pose);
@@ -137,36 +123,33 @@ public class swervy extends LinearOpMode {
             packet.put("heading (deg)", Math.toDegrees(pose.getHeading()));
 
             dashboard.sendTelemetryPacket(packet);
-            double rotPIDout =0;
-            if (Math.abs(rotPID.PIDout(mathsOperations.angleWrap(headingTarget-Math.toDegrees(pose.getHeading()))))>0.1) {
-                rotPIDout = rotPID.PIDout(mathsOperations.angleWrap(headingTarget - Math.toDegrees(pose.getHeading())));
-            }
 
-            //telemetry.addData("x",pose.getX());
-            //telemetry.addData("y",pose.getY());
-            //telemetry.addData("heading",Math.toDegrees(pose.getHeading()));
+            if (lastX != x || lastY != y) {
+                lastX = x;
+                lastY = y;
+                temp = new Pose2d(pose.getX(), pose.getY(),0);
+                auto.driveToPoint(pose,desiredPose,temp,true);
+            }
+            else{ lastX = x; lastY = y; }
+            auto.setPIDCoeffs(Kp,Kd,Ki);
+            auto.setProfileConstraints(maxVel,maxAccel,maxJerk);
+            auto.driveToPoint(pose,desiredPose,temp,false);
+
+            telemetry.addData("x",pose.getX());
+            telemetry.addData("y",pose.getY());
+            telemetry.addData("heading",Math.toDegrees(pose.getHeading()));
+            telemetry.addData("targetx",desiredPose.getX());
+            telemetry.addData("targety",desiredPose.getY());
+            telemetry.addData("targetheading",desiredPose.getHeading());
             //telemetry.addData("gx",gamepad1.left_stick_x);
             //telemetry.addData("gy",gamepad1.left_stick_y);
             //telemetry.addData("headingout",rotPIDout);
             //telemetry.addData("headingtarget",headingTarget);
-            headingTarget += gamepad1.right_stick_x;
+            drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
 
-            drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,mod1PC,mod2PC,mod3PC);
-
-            //telemetry.addData("mod1reference",mod1reference);
-            //telemetry.addData("mod2reference",mod2reference);
-            //telemetry.addData("mod3reference",mod3reference);
-
-            //telemetry.addData("mod1P",mod1P);
-            //telemetry.addData("mod2P",mod2P);
-            //telemetry.addData("mod3P",mod3P);
-
-            //telemetry.addData("mod3power",mod3power);
-            //telemetry.addData("mod2power",mod2power);
-            //telemetry.addData("mod1power",mod1power);
             //telemetry.addData("bore1",mod3m1.getCurrentPosition());
             //telemetry.addData("bore2",mod3m2.getCurrentPosition());
-            telemetry.setAutoClear(false);
+            //telemetry.setAutoClear(false);
             telemetry.addData("ms",hztimer.milliseconds());
             hztimer.reset();
             telemetry.update();

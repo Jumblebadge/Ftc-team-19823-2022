@@ -9,6 +9,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -42,25 +43,10 @@ import java.util.List;
 
 @Config
 @Disabled
-@Autonomous(name="firstAuto", group="Linear Opmode")
-public class firstAuto extends LinearOpMode {
+@Autonomous(name="onePlusPark", group="Linear Opmode")
+public class onePlusPark extends LinearOpMode {
 
     OpenCvWebcam webcam;
-
-    int side1 = 1;
-    int side2 = 2;
-    int side3 = 3;
-
-    double fx = 578.272;
-    double fy = 578.272;
-    double cx = 402.145;
-    double cy = 221.506;
-    double tagsize = 0.2;
-
-    aprilTagDetectPipe pipeline = new aprilTagDetectPipe(tagsize,fx,fy,cx,cy);
-
-    AprilTagDetection detectedTag = null;
-
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
@@ -68,36 +54,18 @@ public class firstAuto extends LinearOpMode {
     //Timers for the PID loops
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
 
-    ElapsedTime autotime = new ElapsedTime();
+    ElapsedTime xPIDTime = new ElapsedTime(); ElapsedTime yPIDTime = new ElapsedTime(); ElapsedTime headingPIDTime = new ElapsedTime();
 
     //IMU
     BNO055IMU IMU;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
+        cameraActivity webcamStuff = new cameraActivity(webcam,hardwareMap,telemetry);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
-        webcam.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-
-        webcam.setPipeline(pipeline);
-
-        webcam.setMillisecondsPermissionTimeout(2500); // Timeout for obtaining permission is configurable. Set before opening.
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-
-            @Override
-            public void onOpened() {
-                webcam.startStreaming(864, 480, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode) {
-            }
-        });
-
+        webcamStuff.initCamera();
         telemetry.addLine("Waiting for start");
-        FtcDashboard.getInstance().startCameraStream(webcam, 60);
 
         //Calibrate the IMU
         //CHANGE TO ODO HEADING!
@@ -140,12 +108,6 @@ public class firstAuto extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //Create objects for the classes we use for swerve and PIDS
-        swerveMaths swavemath = new swerveMaths();
-
-        controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
-        controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
-        controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
-
         drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
 
         //Bulk sensor reads
@@ -157,104 +119,17 @@ public class firstAuto extends LinearOpMode {
         PhotonCore.enable();
 
         while (!isStarted() && !isStopRequested()) {
-
-            ArrayList<AprilTagDetection> detecteds = pipeline.getLatestDetections();
-
-            if(detecteds.size() != 0) {
-                boolean tagFound = false;
-
-                for(AprilTagDetection tag : detecteds) {
-                    if(tag.id == side1 || tag.id == side2 || tag.id == side3) {
-                        detectedTag = tag;
-                        tagFound = true;
-                        break;
-                    }
-                }
-
-                if(tagFound) {
-                    telemetry.addLine("cann see tag \n");
-                    tagToTelemetry(detectedTag);
-                }
-                else
-                {
-                    telemetry.addLine("cant see tag");
-
-                    if(detectedTag == null)
-                    {
-                        telemetry.addLine("never seen tag");
-                    }
-                    else
-                    {
-                        telemetry.addLine("\nlast seen tag");
-                        tagToTelemetry(detectedTag);
-                    }
-                }
-
-            }
-            else
-            {
-                telemetry.addLine("cant see tag");
-
-                if(detectedTag == null)
-                {
-                    telemetry.addLine("neverr seen tag");
-                }
-                else
-                {
-                    telemetry.addLine("\nlast seen tag");
-                    tagToTelemetry(detectedTag);
-                }
-
-            }
-
-            telemetry.update();
+            webcamStuff.detectTags();
             sleep(20);
         }
-
-
         webcam.closeCameraDevice();
+        AprilTagDetection detectedTag = webcamStuff.sideDetected();
         //auto starting
-
-        if(detectedTag == null || detectedTag.id == side2) {
-            autotime.reset();
-            while (autotime.seconds()<2.3&&opModeIsActive()){
-                //drivein.driveOut(0.035,-0.3,0);
-            }
-            while(autotime.seconds()<5&&opModeIsActive()){
-                //drivein.driveOut(0.01,0.01,0);
-            }
-        }
-
-        else if(detectedTag.id == side1){
-            autotime.reset();
-            while(autotime.seconds()<2.15&&opModeIsActive()){
-                //drivein.driveOut(0.03,-0.3,0);
-            }
-            while (autotime.seconds()<3.45&&autotime.seconds()>2.15&&opModeIsActive()){
-                //drivein.driveOut(0.3,0,0);
-            }
-            while(autotime.seconds()<6&&opModeIsActive()){
-                //drivein.driveOut(0.01,0.01,0);
-            }
-        }
-        else if(detectedTag.id == side3){
-            autotime.reset();
-            while(autotime.seconds()<2.15&&opModeIsActive()){
-                //drivein.driveOut(0.035,-0.3,0);
-            }
-            while (autotime.seconds()<3.9&&autotime.seconds()>2.15&&opModeIsActive()){
-                //drivein.driveOut(-0.3,0,0);
-            }
-            while(autotime.seconds()<6&&opModeIsActive()){
-                //drivein.driveOut(0.01,0.01,0);
-            }
-
-        }
 
         if(detectedTag != null)
         {
             telemetry.addLine("tag:\n");
-            tagToTelemetry(detectedTag);
+            webcamStuff.tagToTelemetry(detectedTag);
         }
         else
         {
@@ -262,9 +137,6 @@ public class firstAuto extends LinearOpMode {
         }
         telemetry.update();
 
-    }
-    void tagToTelemetry(AprilTagDetection detection) {
-        telemetry.addLine(String.format("\nDetected tag ID=%d", detection.id));
     }
 }
 

@@ -20,7 +20,6 @@ import java.util.List;
 
 
 @Config
-@Disabled
 @TeleOp(name="godSwerve", group="Linear Opmode")
 public class godSwerve extends LinearOpMode {
 
@@ -115,7 +114,7 @@ public class godSwerve extends LinearOpMode {
         controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
         controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,mod1PID,mod2PID,mod3PID,swavemath,allHubs,null, true);
+        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,null, true);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -154,7 +153,7 @@ public class godSwerve extends LinearOpMode {
 
             hztimer.reset();
 
-            //drivein.driveOut(-gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x);
+            drivein.driveOut(-gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
 
             if (gamepad2.a) {
                 liftTarget = 0;

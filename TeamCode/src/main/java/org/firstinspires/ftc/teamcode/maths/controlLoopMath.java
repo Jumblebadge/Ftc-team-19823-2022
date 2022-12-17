@@ -15,6 +15,7 @@ public class controlLoopMath {
         this.Ki=Ki;
         this.Kf=Kf;
     }
+
     //PID loop
     public double PIDout(double error) {
         if (Math.abs(error) > 0) {
@@ -28,5 +29,12 @@ public class controlLoopMath {
             elapsedtime.reset();
         }
         return out;
+    }
+
+    public void setPIDCoeffs(double Kp, double Kd, double Ki, double Kf){
+        this.Kp = Kp;
+        this.Kd = Kd;
+        this.Ki = Ki;
+        this.Kf = Kf;
     }
 }

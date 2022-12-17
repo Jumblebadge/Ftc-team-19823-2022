@@ -4,7 +4,9 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -22,14 +24,17 @@ public class drive {
     final private BNO055IMU IMU;
     final private DcMotorEx mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2;
     final private AnalogInput mod1E,mod2E,mod3E;
-    final private controlLoopMath mod1PID,mod2PID,mod3PID;
-    final private swerveMaths swavemath;
     final private List<LynxModule> allHubs;
     final private Telemetry telemetry;
     final private VoltageSensor vSensor;
     final private boolean eff;
+    ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
+    controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
+    controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
+    controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
+    swerveMaths swavemath = new swerveMaths();
 
-    public drive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, controlLoopMath mod1PID, controlLoopMath mod2PID, controlLoopMath mod3PID, swerveMaths swavemath, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
+    public drive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
         this.mod1m1 = mod1m1;
         this.mod1m2 = mod1m2;
         this.mod2m1 = mod2m1;
@@ -40,10 +45,6 @@ public class drive {
         this.mod2E = mod2E;
         this.mod3E = mod3E;
         this.IMU = IMU;
-        this.mod1PID = mod1PID;
-        this.mod2PID = mod2PID;
-        this.mod3PID = mod3PID;
-        this.swavemath = swavemath;
         this.allHubs = allHubs;
         this.telemetry = telemetry;
         this.vSensor = vSensor;
@@ -59,7 +60,7 @@ public class drive {
     double mod2reference1 = 0;
     double mod3reference1 = 0;
 
-    public void driveOut(double x, double y,double rot,double mod1PC, double mod2PC, double mod3PC){
+    public void driveOut(double x, double y, double rot, Gamepad gamepad){
 
         double voltageConstant = 1;
         if (vSensor != null){
@@ -104,9 +105,20 @@ public class drive {
         mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
         double mod3P = (mod3wrapped ? 180 + mod3P1/2 : mod3P1/2);
 
+        if (gamepad.y){
+            mod1wrapped = !mod1wrapped;
+        }
+        else if (gamepad.b){
+            mod2wrapped = !mod2wrapped;
+        }
+        else if (gamepad.x){
+            mod3wrapped = !mod3wrapped;
+        }
+
         //Update heading of robot
         angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double heading = angles.firstAngle*-1;
+        double roll = angles.secondAngle;
 
         //Retrieve the angles and powers for all of our wheels from the swerve kinematics
         double[] output = swavemath.Math(-y,x,rot,heading,true);
