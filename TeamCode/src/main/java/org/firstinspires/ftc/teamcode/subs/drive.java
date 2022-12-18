@@ -28,10 +28,11 @@ public class drive {
     final private Telemetry telemetry;
     final private VoltageSensor vSensor;
     final private boolean eff;
+    private double Kp,Kd,Ki;
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
-    controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod1timer);
-    controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod2timer);
-    controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0,mod3timer);
+    controlLoopMath mod1PID = new controlLoopMath(0.2,0.003,0.01,0,mod1timer);
+    controlLoopMath mod2PID = new controlLoopMath(0.2,0.003,0.01,0,mod2timer);
+    controlLoopMath mod3PID = new controlLoopMath(0.2,0.003,0.01,0,mod3timer);
     swerveMaths swavemath = new swerveMaths();
 
     public drive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
@@ -62,6 +63,7 @@ public class drive {
 
     public void driveOut(double x, double y, double rot, Gamepad gamepad){
 
+        mod3PID.setPIDCoeffs(Kp,Kd,Ki,0);
         double voltageConstant = 1;
         if (vSensor != null){
             voltageConstant = 12/vSensor.getVoltage();
@@ -138,8 +140,8 @@ public class drive {
 
         //Subtract our tuning values to account for any encoder drift
         //TODO actually update these
-        mod3P -= -35;
-        mod2P -= -15;
+        mod3P -= -30;
+        mod2P -= -30;
         mod1P -= 10;
 
         //Anglewrap all the angles so that the module turns both ways
@@ -196,5 +198,10 @@ public class drive {
         telemetry.addData("mod1power",mod1power);
 
         telemetry.update();
+    }
+    public void setPIDCoeffs(double Kp, double Kd,double Ki){
+        this.Kp = Kp;
+        this.Kd = Kd;
+        this.Ki = Ki;
     }
 }

@@ -43,8 +43,8 @@ public class swervy extends LinearOpMode {
     //IMU
     BNO055IMU IMU;
     Localizer localizer;
-    public static double x,y,Kp,Kd,Ki,maxVel,maxAccel,maxJerk;
-    double lastX,lastY;
+    public static double x=0,y=0,Kp=0,Kd=0,Ki=0,maxVel=1,maxAccel=1,maxJerk=1;
+    double lastX=0,lastY=0;
     Pose2d temp = new Pose2d(0,0,0);
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -95,7 +95,7 @@ public class swervy extends LinearOpMode {
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
         drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,null, true);
-        goToPoint auto = new goToPoint(drivein,telemetry);
+        goToPoint auto = new goToPoint(drivein,telemetry,gamepad1);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -117,12 +117,19 @@ public class swervy extends LinearOpMode {
             fieldOverlay.setStrokeWidth(1);
             fieldOverlay.setStroke("#3F51B5");
             drawRobot(fieldOverlay, pose);
+            fieldOverlay.setStroke("#51B53F");
+            drawRobot(fieldOverlay,desiredPose);
+            fieldOverlay.setStroke("#B53F51");
+            drawRobot(fieldOverlay,temp);
 
             packet.put("x", pose.getX());
             packet.put("y", pose.getY());
             packet.put("heading (deg)", Math.toDegrees(pose.getHeading()));
 
             dashboard.sendTelemetryPacket(packet);
+
+            auto.setPIDCoeffs(Kp,Kd,Ki);
+            auto.setProfileConstraints(maxVel,maxAccel,maxJerk);
 
             if (lastX != x || lastY != y) {
                 lastX = x;
@@ -131,8 +138,6 @@ public class swervy extends LinearOpMode {
                 auto.driveToPoint(pose,desiredPose,temp,true);
             }
             else{ lastX = x; lastY = y; }
-            auto.setPIDCoeffs(Kp,Kd,Ki);
-            auto.setProfileConstraints(maxVel,maxAccel,maxJerk);
             auto.driveToPoint(pose,desiredPose,temp,false);
 
             telemetry.addData("x",pose.getX());
@@ -145,7 +150,7 @@ public class swervy extends LinearOpMode {
             //telemetry.addData("gy",gamepad1.left_stick_y);
             //telemetry.addData("headingout",rotPIDout);
             //telemetry.addData("headingtarget",headingTarget);
-            drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
+            //drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
 
             //telemetry.addData("bore1",mod3m1.getCurrentPosition());
             //telemetry.addData("bore2",mod3m2.getCurrentPosition());

@@ -26,23 +26,13 @@ public class godSwerve extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
 
-    //Define reference variables for modules' heading
-    double mod2reference=0,mod3reference=0;
-    public static double mod1reference=0;
-
     //Timers for the PID loops
-    ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
     ElapsedTime hztimer = new ElapsedTime();
     ElapsedTime RliftPROtime = new ElapsedTime(); ElapsedTime LliftPROtime = new ElapsedTime(); ElapsedTime LliftPIDtime = new ElapsedTime(); ElapsedTime RliftPIDtime = new ElapsedTime();
 
-    //Define module position variables
-    double mod1P = 0, mod2P = 0, mod3P = 0;
-
-    //Define variables for power of wheels
-    double mod1power = 0,mod2power = 0,mod3power = 0;
-
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = -120, mod1PC = -9, mod2PC = -55;
+    public static double Kp=0.2,Kd=0.0001,Ki=0.0007,maxVel=1,maxAccel=1,maxJerk=1;
 
     double RliftTarget = 1, LliftTarget = 1, liftTarget = 0;
 
@@ -83,8 +73,8 @@ public class godSwerve extends LinearOpMode {
         DcMotorEx mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
         DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
-        //DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
-        //DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
+        DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
+        DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
 
         Servo inRotL = hardwareMap.get(Servo.class,"inL");
         Servo inRotR = hardwareMap.get(Servo.class,"inR");
@@ -98,8 +88,8 @@ public class godSwerve extends LinearOpMode {
         //mod1m1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        //liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        //liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -135,13 +125,14 @@ public class godSwerve extends LinearOpMode {
         Gamepad previousGamepad1 = new Gamepad();
         Gamepad previousGamepad2 = new Gamepad();
 
-        //double LliftLastTarget = 0, RliftLastTarget = 0;
+        double LliftLastTarget = 0, RliftLastTarget = 0;
 
-        //MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1);
-        //MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1);
+        MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
+        MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
 
         waitForStart();
         while (opModeIsActive()) {
+            drivein.setPIDCoeffs(Kp,Kd,Ki);
 
             try {
                 previousGamepad1.copy(currentGamepad1);
@@ -156,37 +147,35 @@ public class godSwerve extends LinearOpMode {
 
             hztimer.reset();
 
-            drivein.driveOut(-gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
+            drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,-gamepad1.right_stick_x/2,gamepad1);
 
-            //if (gamepad2.a) {
-           //     liftTarget = 0;
-           // }
-            //else if (gamepad2.b) {
-            //    liftTarget = 315;
-            //}
-           // else if (gamepad2.x) {
-            //    liftTarget = 700;
-            //}
-           // else if (gamepad2.y) {
-           //     liftTarget = 1200;
-            //}
-            //LliftTarget = liftTarget;
-            //RliftTarget = -liftTarget;
+            if (gamepad2.a) {
+                liftTarget = 0;
+            }
+            else if (gamepad2.b) {
+                liftTarget = 315;
+            }
+            else if (gamepad2.x) {
+                liftTarget = 700;
+            }
+            else if (gamepad2.y) {
+                liftTarget = 1100;
+            }
+            LliftTarget = liftTarget;
+            RliftTarget = -liftTarget;
 
 
             //linkage activated by rising edge detector
             boolean gp2RTC = (currentGamepad2.right_trigger > 0.1);
             boolean gp2RTB = (previousGamepad2.right_trigger > 0.1);
-            linkagePos += gamepad2.left_stick_y/1000;
-            telemetry.addData("linkageee",linkagePos);
-            linkagePos = Range.clip(linkagePos,0,1);
+
             if (gp2RTC && !gp2RTB) {
                 if (linkage.getPosition() > 0.3){
-                    linkage.setPosition(Range.clip(0.15+linkagePos,0.15,0.5));
+                    linkage.setPosition(0.15);
                     //out
                 }
                 else if (linkage.getPosition() < 0.3){
-                    linkage.setPosition(Range.clip(0.5+linkagePos,0.15,0.5));
+                    linkage.setPosition(0.5);
                     //in
                 }
             }
@@ -199,7 +188,7 @@ public class godSwerve extends LinearOpMode {
                     //open
                 }
                 else if (claw.getPosition() > 0.45){
-                    claw.setPosition(0.3);
+                    claw.setPosition(0.275);
                     //close
                 }
             }
@@ -226,7 +215,7 @@ public class godSwerve extends LinearOpMode {
                 //straight up
             }
             else if (gamepad2.dpad_down){
-                inRotL.setPosition(0.875);
+                inRotL.setPosition(0.865);
                 inRotR.setPosition(1-inRotL.getPosition());
                 //down
             }
@@ -244,40 +233,32 @@ public class godSwerve extends LinearOpMode {
             //letter buttons for slide positions
             //claw is on CHUB 2
 
-            //if (LliftLastTarget != LliftTarget) {
-            //    LliftLastTarget = LliftTarget;
-           //     LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftLeft.getCurrentPosition(), 0, 0), new MotionState(LliftTarget, 0, 0), 7000, 5000,50000);
-            //    LliftPROtime.reset();
-            //}
-            //else{ LliftLastTarget = LliftTarget; }
+            if (LliftLastTarget != LliftTarget) {
+                LliftLastTarget = LliftTarget;
+                LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftLeft.getCurrentPosition(), 0, 0), new MotionState(LliftTarget, 0, 0), 10000, 11000,20000);
+                LliftPROtime.reset();
+            }
+            else{ LliftLastTarget = LliftTarget; }
+            MotionState LliftState = LliftProfile.get(LliftPROtime.seconds());
+            liftLeft.setPower(LliftPID.PIDout(LliftState.getX()-liftLeft.getCurrentPosition()));
 
-            //MotionState LliftState = LliftProfile.get(LliftPROtime.seconds());
-            //liftLeft.setPower(LliftPID.PIDout(LliftState.getX()-liftLeft.getCurrentPosition()));
 
+            if (RliftLastTarget != RliftTarget) {
+                RliftLastTarget = RliftTarget;
+                RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftRight.getCurrentPosition(), 0, 0), new MotionState(RliftTarget, 0, 0), 10000, 11000,20000);
+                RliftPROtime.reset();
+            }
+            else{ RliftLastTarget = RliftTarget; }
 
-            //if (RliftLastTarget != RliftTarget) {
-            //    RliftLastTarget = RliftTarget;
-            //    RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftRight.getCurrentPosition(), 0, 0), new MotionState(RliftTarget, 0, 0), 7000, 5000,50000);
-            //    RliftPROtime.reset();
-            //}
-            //else{ RliftLastTarget = RliftTarget; }
-
-            //MotionState RliftState = RliftProfile.get(RliftPROtime.seconds());
-            //liftRight.setPower(RliftPID.PIDout(RliftState.getX()-liftRight.getCurrentPosition()));
-
-            telemetry.addData("mod1reference",mod1reference);
-            telemetry.addData("mod2reference",mod2reference);
-            telemetry.addData("mod3reference",mod3reference);
-
-            telemetry.addData("mod1P",mod1P);
-            telemetry.addData("mod2P",mod2P);
-            telemetry.addData("mod3P",mod3P);
-
-            telemetry.addData("mod3power",mod3power);
-            telemetry.addData("mod2power",mod2power);
-            telemetry.addData("mod1power",mod1power);
+            MotionState RliftState = RliftProfile.get(RliftPROtime.seconds());
+            liftRight.setPower(RliftPID.PIDout(RliftState.getX()-liftRight.getCurrentPosition()));
 
             telemetry.addLine(String.valueOf(1/hztimer.seconds()));
+            telemetry.addData("LliftPos",liftLeft.getCurrentPosition());
+            telemetry.addData("RliftPos",liftRight.getCurrentPosition());
+            telemetry.addData("lliftstate",LliftState.getX());
+            telemetry.addData("rliftstate",RliftState.getX());
+            telemetry.addData("target",liftTarget);
             telemetry.update();
         }
     }
