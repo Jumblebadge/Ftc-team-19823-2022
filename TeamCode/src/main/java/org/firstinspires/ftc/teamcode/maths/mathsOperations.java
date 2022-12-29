@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.maths;
 
 public class mathsOperations {
+    private static boolean turnSwap = false;
 
     //turns 0 through 360 degrees into 0 through 180 and -180 degrees
     public static double angleWrap(double wrap){
@@ -16,19 +17,26 @@ public class mathsOperations {
     //makes sure no wheels turn more than they have to (keeps them within 90 degrees and reverses motor power to compensate)
     public static double[] efficientTurn(double reference,double state,double power){
         double error = reference-state;
+        turnSwap = false;
 
         while(error>90) {
+            turnSwap = true;
             power *=-1;
             reference -= 180;
             error = reference-state;
         }
         while(error<-90) {
+            turnSwap = true;
             power *=-1;
             reference += 180;
             error = reference-state;
         }
 
         return new double[]{reference,power};
+    }
+    public static double reverseEfficientTurn(double reference){
+        if(turnSwap){reference -= 180;}
+        return reference;
     }
     //converts 2 values into values that could go into a differential mechanism
     public static double[] diffyConvert(double rotate, double translate){

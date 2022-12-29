@@ -196,8 +196,6 @@ public class drive {
         telemetry.addData("mod3power",mod3power);
         telemetry.addData("mod2power",mod2power);
         telemetry.addData("mod1power",mod1power);
-
-        telemetry.update();
     }
     public void setPIDCoeffs(double Kp, double Kd,double Ki){
         this.Kp = Kp;

@@ -32,21 +32,21 @@ public class goToPoint {
     public void driveToPoint(Pose2d pose,Pose2d desiredPose,Pose2d startPose,boolean update){
         xPID.setPIDCoeffs(Kp,Kd,Ki,0);
         yPID.setPIDCoeffs(Kp,Kd,Ki,0);
-        double distanceNow = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
-        double angleToEndPoint = Math.atan2(desiredPose.getY()-startPose.getY(),desiredPose.getX()-startPose.getY());
+        double distance = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
+        double angleToEndPoint = Math.atan2(desiredPose.getY()-startPose.getY(),desiredPose.getX()-startPose.getX());
         if (update) {
-            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(distanceNow, 0, 0), new MotionState(0, 0, 0), maxVel, maxAccel, maxJerk);
+            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(distance, 0, 0), new MotionState(0, 0, 0), maxVel, maxAccel, maxJerk);
             profileTime.reset();
         }
-        if(distanceNow>3||desiredPose.getHeading()-pose.getHeading()>10){
+        if(distance>3||desiredPose.getHeading()-pose.getHeading()>10){
             MotionState state = profile.get(profileTime.seconds());
             stateOut = state.getX();
-            xOut = xPID.PIDout(stateOut*Math.sin(angleToEndPoint)-pose.getX());
-            yOut = yPID.PIDout(stateOut*Math.cos(angleToEndPoint)-pose.getY());
+            xOut = xPID.PIDout(stateOut*Math.sin(angleToEndPoint)-pose.getX()+startPose.getX());
+            yOut = yPID.PIDout(stateOut*Math.cos(angleToEndPoint)-pose.getY()+startPose.getY());
             double headingOut = headingPID.PIDout(desiredPose.getHeading()-pose.getHeading());
             //driver.driveOut(xOut,yOut,headingOut,gamepad);
         }
-        telemetry.addData("distanceNow: ",distanceNow);
+        telemetry.addData("distance: ",distance);
         telemetry.addData("angleToEndPoint: ", angleToEndPoint);
         telemetry.addData("stateOut: ",stateOut);
         telemetry.addData("xOut: ",xOut);
