@@ -76,6 +76,8 @@ public class godSwerve extends LinearOpMode {
         DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
         DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
 
+        VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
+
         Servo inRotL = hardwareMap.get(Servo.class,"inL");
         Servo inRotR = hardwareMap.get(Servo.class,"inR");
         Servo outRotL = hardwareMap.get(Servo.class,"outL");
@@ -102,7 +104,7 @@ public class godSwerve extends LinearOpMode {
         controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
         controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,null, true);
+        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -112,12 +114,12 @@ public class godSwerve extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
-        linkage.setPosition(linkagePos);
-        claw.setPosition(0.6);
-        outRotL.setPosition(1);
-        outRotR.setPosition(1-outRotL.getPosition());
-        inRotL.setPosition(0.3);
-        inRotR.setPosition(1-inRotL.getPosition());
+        //linkage.setPosition(linkagePos);
+        //claw.setPosition(0.6);
+        //outRotL.setPosition(1);
+        //outRotR.setPosition(1-outRotL.getPosition());
+        //inRotL.setPosition(0.3);
+        //inRotR.setPosition(1-inRotL.getPosition());
 
         Gamepad currentGamepad1 = new Gamepad();
         Gamepad currentGamepad2 = new Gamepad();
@@ -171,11 +173,11 @@ public class godSwerve extends LinearOpMode {
 
             if (gp2RTC && !gp2RTB) {
                 if (linkage.getPosition() > 0.3){
-                    linkage.setPosition(0.15);
+                    //linkage.setPosition(0.15);
                     //out
                 }
                 else if (linkage.getPosition() < 0.3){
-                    linkage.setPosition(0.5);
+                    //linkage.setPosition(0.5);
                     //in
                 }
             }
@@ -184,11 +186,11 @@ public class godSwerve extends LinearOpMode {
             //rising edge detector for claw open/close
             if(currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
                 if (claw.getPosition() < 0.45){
-                    claw.setPosition(0.6);
+                    //claw.setPosition(0.6);
                     //open
                 }
                 else if (claw.getPosition() > 0.45){
-                    claw.setPosition(0.275);
+                    //claw.setPosition(0.275);
                     //close
                 }
             }
@@ -196,13 +198,13 @@ public class godSwerve extends LinearOpMode {
             //rising edge detector for outtake positions
             if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
                 if (outRotL.getPosition()<0.5){
-                   outRotL.setPosition(1);
-                   outRotR.setPosition(1-outRotL.getPosition());
+                   //outRotL.setPosition(1);
+                   //outRotR.setPosition(1-outRotL.getPosition());
                    //in
                 }
                 else if (outRotL.getPosition()>0.5){
-                    outRotL.setPosition(0.1);
-                    outRotR.setPosition(1-outRotL.getPosition());
+                    //outRotL.setPosition(0.1);
+                    //outRotR.setPosition(1-outRotL.getPosition());
                     //out
                 }
             }
@@ -210,18 +212,18 @@ public class godSwerve extends LinearOpMode {
             //left side is in 1 CHUB
 
             if(gamepad2.left_trigger>0.1){
-                inRotL.setPosition(0.5);
-                inRotR.setPosition(1-inRotL.getPosition());
+                //inRotL.setPosition(0.5);
+                //inRotR.setPosition(1-inRotL.getPosition());
                 //straight up
             }
             else if (gamepad2.dpad_down){
-                inRotL.setPosition(0.865);
-                inRotR.setPosition(1-inRotL.getPosition());
+                //inRotL.setPosition(0.865);
+                //inRotR.setPosition(1-inRotL.getPosition());
                 //down
             }
             else if (gamepad2.dpad_up){
-                inRotL.setPosition(0.3);
-                inRotR.setPosition(1-inRotL.getPosition());
+                //inRotL.setPosition(0.3);
+                //inRotR.setPosition(1-inRotL.getPosition());
                 //up
             }
 

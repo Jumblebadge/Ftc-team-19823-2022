@@ -24,7 +24,7 @@ public class controlLoopMath {
             integralSum = integralSum + (error * elapsedtime.seconds());
             //multiplies those values by a constant, pre-tuned for whatever we are controlling
             out = (Kp * error) + (Kd * derivative) + (Ki * integralSum) + (Kf * Math.signum(error));
-            out/=10;
+            out /= 10;
             lastError = error;
             elapsedtime.reset();
         }

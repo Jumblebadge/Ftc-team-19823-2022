@@ -52,7 +52,8 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
     // Parallel/Perpendicular to the forward axis
     // Parallel wheel is parallel to the forward axis
     // Perpendicular is perpendicular to the forward axis
-    private Encoder parallelEncoder, perpendicularEncoder;
+    private Encoder parallelEncoder;
+    private Encoder perpendicularEncoder;
 
     private BNO055IMU imu;
 

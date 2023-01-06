@@ -64,10 +64,7 @@ public class drive {
     public void driveOut(double x, double y, double rot, Gamepad gamepad){
 
         mod3PID.setPIDCoeffs(Kp,Kd,Ki,0);
-        double voltageConstant = 1;
-        if (vSensor != null){
-            voltageConstant = 12/vSensor.getVoltage();
-        }
+        double voltageConstant = 12/vSensor.getVoltage();
 
         //Clear the cache for better loop times (bulk sensor reads)
         for (LynxModule hub : allHubs) {
@@ -123,7 +120,7 @@ public class drive {
         double roll = angles.secondAngle;
 
         //Retrieve the angles and powers for all of our wheels from the swerve kinematics
-        double[] output = swavemath.Math(-y,x,rot,heading,true);
+        double[] output = swavemath.Math(-y*voltageConstant,x*voltageConstant,rot*voltageConstant,heading,true);
         double mod1power=-output[0];
         double mod3power=output[1];
         double mod2power=output[2];
@@ -170,20 +167,15 @@ public class drive {
         }
 
         //change coax values into diffy values, from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power*voltageConstant);
+        double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power*voltageConstant);
+        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
-        double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power*voltageConstant);
+        double[] mod3values = mathsOperations.diffyConvert(-mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power);
         mod3m1.setPower(mod3values[0]);
         mod3m2.setPower(mod3values[1]);
-
-        if (vSensor != null){
-            telemetry.addData("volt",vSensor.getVoltage());
-            telemetry.addData("voltC",voltageConstant);
-        }
 
         telemetry.addData("mod1reference",mod1reference);
         telemetry.addData("mod2reference",mod2reference);

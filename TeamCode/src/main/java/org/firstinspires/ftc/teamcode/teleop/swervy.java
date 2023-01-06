@@ -78,6 +78,8 @@ public class swervy extends LinearOpMode {
         DcMotorEx mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
         DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
+        VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
+
         mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         //mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -94,7 +96,7 @@ public class swervy extends LinearOpMode {
         //set odometry localizer and make object for driving
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,null, true);
+        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
         goToPoint auto = new goToPoint(drivein,telemetry,gamepad1);
 
         //Bulk sensor reads
@@ -140,8 +142,6 @@ public class swervy extends LinearOpMode {
             else{ lastX = x; lastY = y; }
             auto.driveToPoint(pose,desiredPose,temp,false);
 
-            telemetry.addData("x",pose.getX());
-            telemetry.addData("y",pose.getY());
             telemetry.addData("heading",Math.toDegrees(pose.getHeading()));
             telemetry.addData("targetx",desiredPose.getX());
             telemetry.addData("targety",desiredPose.getY());
@@ -152,8 +152,8 @@ public class swervy extends LinearOpMode {
             //telemetry.addData("headingtarget",headingTarget);
             //drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
 
-            //telemetry.addData("bore1",mod3m1.getCurrentPosition());
-            //telemetry.addData("bore2",mod3m2.getCurrentPosition());
+            telemetry.addData("bore1",mod1m1.getCurrentPosition());
+            telemetry.addData("bore2",mod2m2.getCurrentPosition());
             //telemetry.setAutoClear(false);
             telemetry.addData("ms",hztimer.milliseconds());
             hztimer.reset();
