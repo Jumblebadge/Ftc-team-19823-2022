@@ -173,7 +173,7 @@ public class drive {
         double[] mod2values = mathsOperations.diffyConvert(-mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
-        double[] mod3values = mathsOperations.diffyConvert(-mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power);
+        double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power);
         mod3m1.setPower(mod3values[0]);
         mod3m2.setPower(mod3values[1]);
 

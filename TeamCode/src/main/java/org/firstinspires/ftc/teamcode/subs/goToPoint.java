@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.profile.*;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
+import org.opencv.core.Point;
 
 public class goToPoint {
     final private drive driver;
@@ -41,16 +42,20 @@ public class goToPoint {
             profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(distanceAtStart, 0, 0), maxVel, maxAccel, maxJerk);
             profileTime.reset();
         }
-        if(distanceNow!=0||desiredPose.getHeading()-pose.getHeading()>10){
-            MotionState state = profile.get(profileTime.seconds());
-            stateOut = state.getX();
-            xOut = xPID.PIDout(stateOut*Math.sin(angleToEndPoint)-(pose.getX()-startPose.getX()));
-            yOut = yPID.PIDout(stateOut*Math.cos(angleToEndPoint)-(pose.getY()-startPose.getY()));
-            double headingOut = headingPID.PIDout(desiredPose.getHeading()-pose.getHeading());
-            driver.driveOut(xOut,-yOut,headingOut,gamepad);
-        }
+        MotionState state = profile.get(profileTime.seconds());
+        stateOut = state.getX();
+        double slopeToEndPoint = (desiredPose.getY()-startPose.getY())/(desiredPose.getX()-startPose.getX());
+        double yInterceptToEndPoint = (desiredPose.getY()-slopeToEndPoint*desiredPose.getX());
+        Point statePoint = new Point(startPose.getX()+(stateOut*Math.cos(angleToEndPoint)),(startPose.getX()+(stateOut*Math.cos(angleToEndPoint))*slopeToEndPoint)+yInterceptToEndPoint);
+        double distanceToState = Math.abs(Math.hypot(statePoint.x-startPose.getX(),statePoint.y-startPose.getY()));
+        xOut = xPID.PIDout(distanceToState*Math.sin(angleToEndPoint)-(pose.getX()-startPose.getX()));
+        yOut = yPID.PIDout(distanceToState*Math.cos(angleToEndPoint)-(pose.getY()-startPose.getY()));
+        double headingOut = headingPID.PIDout(desiredPose.getHeading()-pose.getHeading());
+        driver.driveOut(xOut,-yOut,headingOut,gamepad);
+
         telemetry.addData("distance: ",distance);
         telemetry.addData("distanceAtStart: ",distanceAtStart);
+        telemetry.addData("distanceToProfile",distanceToState);
         telemetry.addData("distanceNow: ",distanceNow);
         telemetry.addData("angleToEndPoint: ", angleToEndPoint);
         telemetry.addData("stateOut: ",stateOut);
