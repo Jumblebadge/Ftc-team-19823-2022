@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.subs;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.path.Path;
+import com.acmerobotics.roadrunner.path.PathBuilder;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.acmerobotics.roadrunner.profile.*;
@@ -17,11 +19,10 @@ public class goToPoint {
     private double maxVel, maxAccel, maxJerk;
     double stateOut,xOut,yOut;
     Gamepad gamepad;
-    final private ElapsedTime xPIDTime = new ElapsedTime(); ElapsedTime yPIDTime = new ElapsedTime(); ElapsedTime headingPIDTime = new ElapsedTime();
     final private ElapsedTime profileTime = new ElapsedTime();
-    private final controlLoopMath headingPID = new controlLoopMath(0,0,0,0,headingPIDTime);
-    controlLoopMath xPID = new controlLoopMath(Kp,Kd,Ki,0,xPIDTime);
-    controlLoopMath yPID = new controlLoopMath(Kp,Kd,Ki,0,yPIDTime);
+    private final controlLoopMath headingPID = new controlLoopMath(0,0,0,0);
+    controlLoopMath xPID = new controlLoopMath(Kp,Kd,Ki,0);
+    controlLoopMath yPID = new controlLoopMath(Kp,Kd,Ki,0);
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(1, 0, 0), 2, 3,4);
 
     public goToPoint(drive driver, Telemetry telemetry, Gamepad gamepad){

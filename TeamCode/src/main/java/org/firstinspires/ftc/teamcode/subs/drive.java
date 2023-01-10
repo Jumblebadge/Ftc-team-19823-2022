@@ -30,9 +30,9 @@ public class drive {
     final private boolean eff;
     private double Kp,Kd,Ki;
     ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
-    controlLoopMath mod1PID = new controlLoopMath(0.2,0.003,0.01,0,mod1timer);
-    controlLoopMath mod2PID = new controlLoopMath(0.2,0.003,0.01,0,mod2timer);
-    controlLoopMath mod3PID = new controlLoopMath(0.2,0.003,0.01,0,mod3timer);
+    controlLoopMath mod1PID = new controlLoopMath(0.2,0.003,0.01,0);
+    controlLoopMath mod2PID = new controlLoopMath(0.2,0.003,0.01,0);
+    controlLoopMath mod3PID = new controlLoopMath(0.2,0.003,0.01,0);
     swerveMaths swavemath = new swerveMaths();
 
     public drive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){

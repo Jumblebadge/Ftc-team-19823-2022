@@ -16,6 +16,9 @@ import com.qualcomm.robotcore.util.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.maths.*;
 import org.firstinspires.ftc.teamcode.subs.drive;
+import org.firstinspires.ftc.teamcode.subs.runServoMotionProfile;
+import org.firstinspires.ftc.teamcode.subs.runMotorMotionProfile;
+
 import java.util.List;
 
 
@@ -28,7 +31,7 @@ public class godSwerve extends LinearOpMode {
 
     //Timers for the PID loops
     ElapsedTime hztimer = new ElapsedTime();
-    ElapsedTime RliftPROtime = new ElapsedTime(); ElapsedTime LliftPROtime = new ElapsedTime(); ElapsedTime LliftPIDtime = new ElapsedTime(); ElapsedTime RliftPIDtime = new ElapsedTime();
+    ElapsedTime RliftPROtime = new ElapsedTime(); ElapsedTime LliftPROtime = new ElapsedTime();
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = -120, mod1PC = -9, mod2PC = -55;
@@ -101,10 +104,16 @@ public class godSwerve extends LinearOpMode {
 
         //Create objects for the classes we use for swerve and PIDS
 
-        controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0,LliftPIDtime);
-        controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0,RliftPIDtime);
+        controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0);
+        controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0);
 
         drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
+
+        MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
+        MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
+
+        runMotorMotionProfile test = new runMotorMotionProfile(liftLeft);
+        test.setMotionConstraints(10000,11000,20000);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -128,9 +137,6 @@ public class godSwerve extends LinearOpMode {
         Gamepad previousGamepad2 = new Gamepad();
 
         double LliftLastTarget = 0, RliftLastTarget = 0;
-
-        MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
-        MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
 
         waitForStart();
         while (opModeIsActive()) {

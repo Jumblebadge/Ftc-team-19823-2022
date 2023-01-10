@@ -6,10 +6,9 @@ public class controlLoopMath {
 
     private double integralSum,out,lastError;
     private double Kp, Kd, Ki, Kf;
-    private ElapsedTime elapsedtime;
+    private ElapsedTime elapsedtime = new ElapsedTime();
 
-    public controlLoopMath(double Kp, double Kd, double Ki, double Kf, ElapsedTime elapsedtime){
-        this.elapsedtime=elapsedtime;
+    public controlLoopMath(double Kp, double Kd, double Ki, double Kf){
         this.Kp=Kp;
         this.Kd=Kd;
         this.Ki=Ki;
