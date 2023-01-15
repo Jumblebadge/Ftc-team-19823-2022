@@ -8,12 +8,16 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.wrappers.myElapsedTime;
+
 @Config
 @TeleOp(name="testing", group="Linear Opmode")
 public class testing extends LinearOpMode {
 
     FtcDashboard dashboard;
-    public static double clawRotTarget = 0.5;
+    myElapsedTime timer = new myElapsedTime();
+    public static boolean pause = false;
+    public static boolean reset = false;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -21,8 +25,8 @@ public class testing extends LinearOpMode {
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        Servo clawrotL = hardwareMap.get(Servo.class,"clawrotL");
-        Servo clawrotR = hardwareMap.get(Servo.class,"clawrotR");
+
+
         dashboard = FtcDashboard.getInstance();
 
         PhotonCore.enable();
@@ -30,9 +34,19 @@ public class testing extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
-            clawrotL.setPosition(clawRotTarget);
-            clawrotR.setPosition(1-clawRotTarget);
+            if(pause){
+                timer.pauseTimer();
+            }
+            else {
+                timer.resumeTimer();
+            }
 
+            if (reset){
+                timer.reset();
+                reset = false;
+            }
+
+            telemetry.addData("time",timer.seconds());
             telemetry.update();
         }
 

@@ -27,7 +27,7 @@ public class runMotorMotionProfile {
 
     public void setPIDcoeffs(double Kp, double Kd, double Ki){ PID.setPIDCoeffs(Kp,Kd,Ki,0); }
 
-    public void runProfile(double target){
+    public void profiledMovement(double target){
         if (lastTarget != target) {
             lastTarget = target;
             profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(motor.getCurrentPosition(), 0, 0), new MotionState(target, 0, 0), maxVel, maxAccel,maxJerk);

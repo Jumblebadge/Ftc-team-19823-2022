@@ -15,8 +15,7 @@ import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.maths.*;
-import org.firstinspires.ftc.teamcode.subs.drive;
-import org.firstinspires.ftc.teamcode.subs.runServoMotionProfile;
+import org.firstinspires.ftc.teamcode.subs.driveSwerve;
 import org.firstinspires.ftc.teamcode.subs.runMotorMotionProfile;
 
 import java.util.List;
@@ -34,8 +33,8 @@ public class godSwerve extends LinearOpMode {
     ElapsedTime RliftPROtime = new ElapsedTime(); ElapsedTime LliftPROtime = new ElapsedTime();
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -120, mod1PC = -9, mod2PC = -55;
-    public static double Kp=0.2,Kd=0.0001,Ki=0.0007,maxVel=1,maxAccel=1,maxJerk=1;
+    public static double mod3PC = -30, mod1PC = 10, mod2PC = -30;
+    public static double Kp=0.2,Kd=0.0005,Ki=0.0007,Kf = 1,maxVel=1,maxAccel=1,maxJerk=1;
 
     double RliftTarget = 1, LliftTarget = 1, liftTarget = 0;
 
@@ -107,13 +106,16 @@ public class godSwerve extends LinearOpMode {
         controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0);
         controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
+        driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
 
         MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
         MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
 
         runMotorMotionProfile test = new runMotorMotionProfile(liftLeft);
         test.setMotionConstraints(10000,11000,20000);
+        test.profiledMovement(500);
+
+        drive.setModuleAdjustments(0,-15,-45);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -140,7 +142,7 @@ public class godSwerve extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            drivein.setPIDCoeffs(Kp,Kd,Ki);
+            drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
 
             try {
                 previousGamepad1.copy(currentGamepad1);
@@ -155,7 +157,7 @@ public class godSwerve extends LinearOpMode {
 
             hztimer.reset();
 
-            drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,-gamepad1.right_stick_x/2,gamepad1);
+            drive.driveOut(gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x/2);
 
             if (gamepad2.a) {
                 liftTarget = 0;

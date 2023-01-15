@@ -111,6 +111,11 @@ public class cameraActivity {
         telemetry.update();
         //TODO thread.sleep(20)
     }
+
+    public void closeCamera(){
+        webcam.closeCameraDevice();
+    }
+
     public AprilTagDetection sideDetected(){
         return detectedTag;
     }

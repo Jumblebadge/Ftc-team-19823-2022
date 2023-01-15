@@ -3,13 +3,19 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.localization.Localizer;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+
+import org.firstinspires.ftc.teamcode.maths.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
+import org.firstinspires.ftc.teamcode.subs.goToPoint;
+import org.firstinspires.ftc.teamcode.subs.initIMU;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -28,19 +34,22 @@ import java.util.List;
 
 
 @Config
-@Disabled
-@Autonomous(name="onePlusPark", group="Linear Opmode")
-public class onePlusPark extends LinearOpMode {
+@Autonomous(name="parkAuto", group="Linear Opmode")
+public class parkAuto extends LinearOpMode {
 
     OpenCvWebcam webcam;
+
+    Localizer localizer;
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
 
-    //Timers for the PID loops
-    ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
+    double distance = 0;
 
-    ElapsedTime xPIDTime = new ElapsedTime(); ElapsedTime yPIDTime = new ElapsedTime(); ElapsedTime headingPIDTime = new ElapsedTime();
+    Pose2d pose;
+    Pose2d desiredPose;
+
+    goToPoint auto;
 
     //IMU
     BNO055IMU IMU;
@@ -84,7 +93,7 @@ public class onePlusPark extends LinearOpMode {
 
         VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
 
-        mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
@@ -93,9 +102,9 @@ public class onePlusPark extends LinearOpMode {
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
 
-        //Create objects for the classes we use for swerve and PIDS
-        driveSwerve drivein = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
-
+        //Create objects for the classes we use
+        driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
+        auto = new goToPoint(drive,telemetry,dashboard);
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -103,14 +112,32 @@ public class onePlusPark extends LinearOpMode {
 
         //Fast loop go brrr
         PhotonCore.enable();
+        localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
+
+        drive.setModuleAdjustments(0,-15,-45);
 
         while (!isStarted() && !isStopRequested()) {
             webcamStuff.detectTags();
             sleep(20);
         }
-        webcam.closeCameraDevice();
+        webcamStuff.closeCamera();
         AprilTagDetection detectedTag = webcamStuff.sideDetected();
+
         //auto starting
+        if(detectedTag == null || detectedTag.id == 2) {
+            runPoint(39,0,0);
+            runPoint(39,6,0);
+        }
+        else if(detectedTag.id == 1){
+            runPoint(26,0,0);
+            runPoint(26,-26,0);
+            runPoint(39,-30,0);
+        }
+        else if(detectedTag.id == 3){
+            runPoint(26,0,0);
+            runPoint(26,26,0);
+            runPoint(39,30,0);
+        }
 
         if(detectedTag != null)
         {
@@ -123,6 +150,22 @@ public class onePlusPark extends LinearOpMode {
         }
         telemetry.update();
 
+    }
+    public void runPoint(double x, double y, double heading){
+        desiredPose = new Pose2d(x,y,heading);
+        localizer.update();
+        pose = localizer.getPoseEstimate();
+        distance = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
+        Pose2d startPose = pose;
+        auto.driveToPoint(pose,desiredPose,startPose,true);
+        ElapsedTime moveLimit = new ElapsedTime();
+        moveLimit.reset();
+        while(distance>0.3&&opModeIsActive()&&moveLimit.seconds()<3){
+            localizer.update();
+            pose = localizer.getPoseEstimate();
+            distance = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
+            auto.driveToPoint(pose,desiredPose,startPose,false);
+        }
     }
 }
 

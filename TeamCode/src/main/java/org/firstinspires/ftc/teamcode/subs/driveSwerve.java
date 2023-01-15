@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -15,11 +14,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
-import org.firstinspires.ftc.teamcode.maths.swerveMaths;
+import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
 
 import java.util.List;
 
-public class drive {
+public class driveSwerve {
 
     final private BNO055IMU IMU;
     final private DcMotorEx mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2;
@@ -28,14 +27,14 @@ public class drive {
     final private Telemetry telemetry;
     final private VoltageSensor vSensor;
     final private boolean eff;
-    private double Kp,Kd,Ki;
-    ElapsedTime mod3timer =  new ElapsedTime(); ElapsedTime mod2timer =  new ElapsedTime(); ElapsedTime mod1timer =  new ElapsedTime();
-    controlLoopMath mod1PID = new controlLoopMath(0.2,0.003,0.01,0);
-    controlLoopMath mod2PID = new controlLoopMath(0.2,0.003,0.01,0);
-    controlLoopMath mod3PID = new controlLoopMath(0.2,0.003,0.01,0);
-    swerveMaths swavemath = new swerveMaths();
+    private double Kp,Kd,Ki,Kf;
+    private double module1Adjust = 0, module2Adjust = 0, module3Adjust = 0;
+    controlLoopMath mod1PID = new controlLoopMath(0.2,0.003,0.01,0.75);
+    controlLoopMath mod2PID = new controlLoopMath(0.2,0.003,0.01,1);
+    controlLoopMath mod3PID = new controlLoopMath(0.2,0.003,0.01,1.5);
+    swerveKinematics swavemath = new swerveKinematics();
 
-    public drive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
+    public driveSwerve(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
         this.mod1m1 = mod1m1;
         this.mod1m2 = mod1m2;
         this.mod2m1 = mod2m1;
@@ -52,7 +51,7 @@ public class drive {
         this.eff = eff;
     }
 
-    boolean mod1wrapped = false, mod2wrapped = false, mod3wrapped = false;
+    boolean mod1wrapped = true, mod2wrapped = false, mod3wrapped = false;
     double mod1lastpos = 0, mod2lastpos = 0, mod3lastpos = 0;
 
     Orientation angles;
@@ -61,9 +60,8 @@ public class drive {
     double mod2reference1 = 0;
     double mod3reference1 = 0;
 
-    public void driveOut(double x, double y, double rot, Gamepad gamepad){
+    public void driveOut(double x, double y, double rot){
 
-        mod3PID.setPIDCoeffs(Kp,Kd,Ki,0);
         double voltageConstant = 12/vSensor.getVoltage();
 
         //Clear the cache for better loop times (bulk sensor reads)
@@ -88,6 +86,7 @@ public class drive {
 
         //mod2P = mathsOperations.modWrap(mod2P1,mod2wrapped,mod2lastpos,2);
         //mod2lastpos = mod2P1;
+
         double mod2positiondelta = mod2P1 - mod2lastpos;
         mod2lastpos = mod2P1;
 
@@ -104,23 +103,13 @@ public class drive {
         mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
         double mod3P = (mod3wrapped ? 180 + mod3P1/2 : mod3P1/2);
 
-        if (gamepad.y){
-            mod1wrapped = !mod1wrapped;
-        }
-        else if (gamepad.b){
-            mod2wrapped = !mod2wrapped;
-        }
-        else if (gamepad.x){
-            mod3wrapped = !mod3wrapped;
-        }
-
         //Update heading of robot
         angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double heading = angles.firstAngle*-1;
         double roll = angles.secondAngle;
 
         //Retrieve the angles and powers for all of our wheels from the swerve kinematics
-        double[] output = swavemath.Math(-y*voltageConstant,x*voltageConstant,rot*voltageConstant,heading,true);
+        double[] output = swavemath.Math(-y*voltageConstant,-x*voltageConstant,rot*voltageConstant,heading,true);
         double mod1power=-output[0];
         double mod3power=output[1];
         double mod2power=output[2];
@@ -137,9 +126,9 @@ public class drive {
 
         //Subtract our tuning values to account for any encoder drift
         //TODO actually update these
-        mod3P -= -30;
-        mod2P -= -30;
-        mod1P -= 10;
+        mod3P -= module3Adjust;
+        mod2P -= module2Adjust;
+        mod1P -= module1Adjust;
 
         //Anglewrap all the angles so that the module turns both ways
         mod1P = mathsOperations.angleWrap(mod1P);
@@ -189,9 +178,15 @@ public class drive {
         telemetry.addData("mod2power",mod2power);
         telemetry.addData("mod1power",mod1power);
     }
-    public void setPIDCoeffs(double Kp, double Kd,double Ki){
+    public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf){
         this.Kp = Kp;
         this.Kd = Kd;
         this.Ki = Ki;
+        this.Kf = Kf;
+    }
+    public void setModuleAdjustments(double module1Adjust, double module2Adjust, double module3Adjust){
+        this.module1Adjust=module1Adjust;
+        this.module2Adjust=module2Adjust;
+        this.module3Adjust=module3Adjust;
     }
 }

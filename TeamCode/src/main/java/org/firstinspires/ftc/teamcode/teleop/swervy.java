@@ -8,20 +8,17 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.localization.Localizer;
-import com.acmerobotics.roadrunner.profile.*;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.*;
 import com.qualcomm.robotcore.eventloop.opmode.*;
-import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.maths.*;
-import org.firstinspires.ftc.teamcode.subs.drive;
+import org.firstinspires.ftc.teamcode.subs.driveSwerve;
 import org.firstinspires.ftc.teamcode.subs.goToPoint;
 
 import java.util.List;
@@ -43,7 +40,7 @@ public class swervy extends LinearOpMode {
     //IMU
     BNO055IMU IMU;
     Localizer localizer;
-    public static double x=0,y=0,Kp=0,Kd=0,Ki=0,maxVel=1,maxAccel=1,maxJerk=1;
+    public static double x=0,y=0, heading = 0,Kp=0,Kd=0,Ki=0, Kf = 0,hKp = 0,hKd = 0,hKi = 0,maxVel=1,maxAccel=1,maxJerk=1;
     double lastX=0,lastY=0;
     Pose2d temp = new Pose2d(0,0,0);
     public void runOpMode() {
@@ -96,8 +93,10 @@ public class swervy extends LinearOpMode {
         //set odometry localizer and make object for driving
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
-        goToPoint auto = new goToPoint(drivein,telemetry,gamepad1);
+        driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
+        goToPoint auto = new goToPoint(drive,telemetry,dashboard);
+
+        drive.setModuleAdjustments(0,-15,-45);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -115,7 +114,7 @@ public class swervy extends LinearOpMode {
             Canvas fieldOverlay = packet.fieldOverlay();
 
             Pose2d pose = localizer.getPoseEstimate();
-            Pose2d desiredPose = new Pose2d(x,y,0);
+            Pose2d desiredPose = new Pose2d(x,y,heading);
             fieldOverlay.setStrokeWidth(1);
             fieldOverlay.setStroke("#3F51B5");
             drawRobot(fieldOverlay, pose);
@@ -130,19 +129,20 @@ public class swervy extends LinearOpMode {
 
             dashboard.sendTelemetryPacket(packet);
 
-            auto.setPIDCoeffs(Kp,Kd,Ki);
-            auto.setProfileConstraints(maxVel,maxAccel,maxJerk);
+            //auto.setPIDCoeffs(Kp,Kd,Ki,Kf);
+            //auto.setHeadingPIDcoeffs(hKp,hKd,hKi);
+            //auto.setProfileConstraints(maxVel,maxAccel,maxJerk);
 
             if (lastX != x || lastY != y) {
                 lastX = x;
                 lastY = y;
-                temp = new Pose2d(pose.getX(), pose.getY(),0);
+                temp = new Pose2d(pose.getX(), pose.getY(),pose.getHeading());
                 auto.driveToPoint(pose,desiredPose,temp,true);
             }
             else{ lastX = x; lastY = y; }
             auto.driveToPoint(pose,desiredPose,temp,false);
 
-            telemetry.addData("heading",Math.toDegrees(pose.getHeading()));
+            telemetry.addData("heading",pose.getHeading());
             telemetry.addData("targetx",desiredPose.getX());
             telemetry.addData("targety",desiredPose.getY());
             telemetry.addData("targetheading",desiredPose.getHeading());

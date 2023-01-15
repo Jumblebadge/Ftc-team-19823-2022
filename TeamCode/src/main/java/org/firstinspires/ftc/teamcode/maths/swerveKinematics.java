@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.maths;
 
-public class swerveMaths {
+public class swerveKinematics {
 
     //where swerve math will be done
     public double[] Math(double forward, double strafe, double rotate, double imu, boolean fieldcentrictoggle){

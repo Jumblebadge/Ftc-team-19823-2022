@@ -9,7 +9,6 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -18,22 +17,16 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
-import org.firstinspires.ftc.teamcode.maths.mathsOperations;
-import org.firstinspires.ftc.teamcode.maths.swerveMaths;
-import org.firstinspires.ftc.teamcode.subs.drive;
+import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
+import org.firstinspires.ftc.teamcode.subs.driveSwerve;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
-import org.firstinspires.ftc.teamcode.pipelines.greyPipe;
 import org.firstinspires.ftc.teamcode.pipelines.aprilTagDetectPipe;
 
 import java.util.ArrayList;
@@ -140,13 +133,13 @@ public class firstAuto extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //Create objects for the classes we use for swerve and PIDS
-        swerveMaths swavemath = new swerveMaths();
+        swerveKinematics swavemath = new swerveKinematics();
 
         controlLoopMath mod1PID = new controlLoopMath(0.1,0.0001,0.0007,0);
         controlLoopMath mod2PID = new controlLoopMath(0.1,0.0001,0.0007,0);
         controlLoopMath mod3PID = new controlLoopMath(0.1,0.0001,0.0007,0);
 
-        drive drivein = new drive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
+        driveSwerve drivein = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
