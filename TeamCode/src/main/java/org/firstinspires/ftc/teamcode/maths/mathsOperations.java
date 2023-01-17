@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode.maths;
 
 public class mathsOperations {
-    private static boolean turnSwap = false;
 
-    //turns 0 through 360 degrees into 0 through 180 and -180 degrees
+    //normalizes the angle given
     public static double angleWrap(double wrap){
 
         while(wrap <= -180) {
@@ -14,19 +13,17 @@ public class mathsOperations {
         }
         return wrap;
     }
-    //makes sure no wheels turn more than they have to (keeps them within 90 degrees and reverses motor power to compensate)
+
+    //replaces turning a module by 180 degrees with reversing motor power.
     public static double[] efficientTurn(double reference,double state,double power){
         double error = reference-state;
-        turnSwap = false;
 
         while(error>90) {
-            turnSwap = true;
             power *=-1;
             reference -= 180;
             error = reference-state;
         }
         while(error<-90) {
-            turnSwap = true;
             power *=-1;
             reference += 180;
             error = reference-state;
@@ -34,11 +31,8 @@ public class mathsOperations {
 
         return new double[]{reference,power};
     }
-    public static double reverseEfficientTurn(double reference){
-        if(turnSwap){reference -= 180;}
-        return reference;
-    }
-    //converts 2 values into values that could go into a differential mechanism
+
+    //converts two degrees of freedom into a differential
     public static double[] diffyConvert(double rotate, double translate){
         double m1 = rotate + translate;
         double m2 = rotate - translate;
@@ -49,8 +43,8 @@ public class mathsOperations {
         }
         return new double[]{m1,m2};
     }
+
     //math for detecting when an absolute encoder has wrapped around
-    //TODO FIX MODWRAP
     public static double modWrap(double state, double wrap, double last, double ratio){
         double delta = state - last;
 

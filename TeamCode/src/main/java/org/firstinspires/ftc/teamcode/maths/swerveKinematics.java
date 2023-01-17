@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.maths;
 
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+
+import org.firstinspires.ftc.teamcode.maths.Vector;
+
 public class swerveKinematics {
 
-    //where swerve math will be done
-    public double[] Math(double forward, double strafe, double rotate, double imu, boolean fieldcentrictoggle){
-
-        forward*=-1;
+    //swerve kinematics
+    public double[] calculate(double forward, double strafe, double rotate, double imu, boolean fieldcentrictoggle){
 
         //rotate vectors by imu heading for field centric (if toggled on)
         double strafe1 = strafe;

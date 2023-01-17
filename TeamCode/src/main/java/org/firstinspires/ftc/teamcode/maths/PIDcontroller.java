@@ -2,30 +2,31 @@ package org.firstinspires.ftc.teamcode.maths;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class controlLoopMath {
+public class PIDcontroller {
+    //PID controller class
 
     private double integralSum,out,lastError;
     private double Kp, Kd, Ki, Kf;
-    private ElapsedTime elapsedtime = new ElapsedTime();
+    private ElapsedTime timer = new ElapsedTime();
 
-    public controlLoopMath(double Kp, double Kd, double Ki, double Kf){
+    public PIDcontroller(double Kp, double Kd, double Ki, double Kf){
         this.Kp=Kp;
         this.Kd=Kd;
         this.Ki=Ki;
         this.Kf=Kf;
     }
 
-    //PID loop
-    public double PIDout(double error) {
+    //calculate
+    public double out(double error) {
         if (Math.abs(error) > 0) {
-            //calculate the integral and derivative values
-            double derivative = (error - lastError) / elapsedtime.seconds();
-            integralSum = integralSum + (error * elapsedtime.seconds());
-            //multiplies those values by a constant, pre-tuned for whatever we are controlling
+            //integral and derivative values
+            double derivative = (error - lastError) / timer.seconds();
+            integralSum = integralSum + (error * timer.seconds());
+            //weight each term so that tuning makes a difference
             out = (Kp * error) + (Kd * derivative) + (Ki * integralSum) + (Kf * Math.signum(error));
             out /= 10;
             lastError = error;
-            elapsedtime.reset();
+            timer.reset();
         }
         return out;
     }

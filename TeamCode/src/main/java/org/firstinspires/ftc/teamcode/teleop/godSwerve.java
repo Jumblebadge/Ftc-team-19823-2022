@@ -12,11 +12,11 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
-import com.qualcomm.robotcore.util.*;
+
 import org.firstinspires.ftc.robotcore.external.navigation.*;
-import org.firstinspires.ftc.teamcode.maths.*;
+import org.firstinspires.ftc.teamcode.subs.Toggler;
 import org.firstinspires.ftc.teamcode.subs.driveSwerve;
-import org.firstinspires.ftc.teamcode.subs.runMotorMotionProfile;
+import org.firstinspires.ftc.teamcode.subs.runMotionProfile;
 
 import java.util.List;
 
@@ -27,10 +27,6 @@ public class godSwerve extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-
-    //Timers for the PID loops
-    ElapsedTime hztimer = new ElapsedTime();
-    ElapsedTime RliftPROtime = new ElapsedTime(); ElapsedTime LliftPROtime = new ElapsedTime();
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = -30, mod1PC = 10, mod2PC = -30;
@@ -103,17 +99,19 @@ public class godSwerve extends LinearOpMode {
 
         //Create objects for the classes we use for swerve and PIDS
 
-        controlLoopMath LliftPID = new controlLoopMath(0.2,0,0,0);
-        controlLoopMath RliftPID = new controlLoopMath(0.2,0,0,0);
-
         driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
 
-        MotionProfile LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
-        MotionProfile RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
+        runMotionProfile leftSlideMotorProfile = new runMotionProfile(10000,11000,20000,0.2,0,0,0);
+        runMotionProfile rightSlideMotorProfile = new runMotionProfile(10000,11000,20000,0.2,0,0,0);
 
-        runMotorMotionProfile test = new runMotorMotionProfile(liftLeft);
-        test.setMotionConstraints(10000,11000,20000);
-        test.profiledMovement(500);
+        runMotionProfile linkageServoProfile = new runMotionProfile(1,1,1,0,0,0,0);
+        runMotionProfile depositServosProfile = new runMotionProfile(1,1,1,0,0,0,0);
+        runMotionProfile intakeServosProfile = new runMotionProfile(1,1,1,0,0,0,0);
+
+        Toggler right_trigger = new Toggler();
+        Toggler right_bumper = new Toggler();
+        Toggler left_trigger = new Toggler();
+        Toggler left_bumper = new Toggler();
 
         drive.setModuleAdjustments(0,-15,-45);
 
@@ -132,30 +130,11 @@ public class godSwerve extends LinearOpMode {
         //inRotL.setPosition(0.3);
         //inRotR.setPosition(1-inRotL.getPosition());
 
-        Gamepad currentGamepad1 = new Gamepad();
-        Gamepad currentGamepad2 = new Gamepad();
-
-        Gamepad previousGamepad1 = new Gamepad();
-        Gamepad previousGamepad2 = new Gamepad();
-
         double LliftLastTarget = 0, RliftLastTarget = 0;
 
         waitForStart();
         while (opModeIsActive()) {
             drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
-
-            try {
-                previousGamepad1.copy(currentGamepad1);
-                previousGamepad2.copy(currentGamepad2);
-
-                currentGamepad1.copy(gamepad1);
-                currentGamepad2.copy(gamepad2);
-            }
-            catch (RobotCoreException e) {
-                //ah
-            }
-
-            hztimer.reset();
 
             drive.driveOut(gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x/2);
 
@@ -176,11 +155,9 @@ public class godSwerve extends LinearOpMode {
 
 
             //linkage activated by rising edge detector
-            boolean gp2RTC = (currentGamepad2.right_trigger > 0.1);
-            boolean gp2RTB = (previousGamepad2.right_trigger > 0.1);
-
-            if (gp2RTC && !gp2RTB) {
+            if (right_trigger.update(gamepad2.right_trigger > 0.1)){
                 if (linkage.getPosition() > 0.3){
+                    //linkage.setPosition(linkageServoProfile.profiledServoMovement(0.15,linkage.getPosition()));
                     //linkage.setPosition(0.15);
                     //out
                 }
@@ -189,6 +166,7 @@ public class godSwerve extends LinearOpMode {
                     //in
                 }
             }
+
             telemetry.addData("linkage",linkage.getPosition());
 
             //rising edge detector for claw open/close
@@ -250,7 +228,7 @@ public class godSwerve extends LinearOpMode {
             }
             else{ LliftLastTarget = LliftTarget; }
             MotionState LliftState = LliftProfile.get(LliftPROtime.seconds());
-            liftLeft.setPower(LliftPID.PIDout(LliftState.getX()-liftLeft.getCurrentPosition()));
+            liftLeft.setPower(LliftPID.out(LliftState.getX()-liftLeft.getCurrentPosition()));
 
 
             if (RliftLastTarget != RliftTarget) {
@@ -261,7 +239,7 @@ public class godSwerve extends LinearOpMode {
             else{ RliftLastTarget = RliftTarget; }
 
             MotionState RliftState = RliftProfile.get(RliftPROtime.seconds());
-            liftRight.setPower(RliftPID.PIDout(RliftState.getX()-liftRight.getCurrentPosition()));
+            liftRight.setPower(RliftPID.out(RliftState.getX()-liftRight.getCurrentPosition()));
 
             telemetry.addLine(String.valueOf(1/hztimer.seconds()));
             telemetry.addData("LliftPos",liftLeft.getCurrentPosition());

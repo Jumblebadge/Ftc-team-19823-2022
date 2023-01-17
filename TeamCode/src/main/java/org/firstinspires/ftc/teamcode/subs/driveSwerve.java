@@ -4,7 +4,6 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -12,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.maths.controlLoopMath;
+import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
 
@@ -29,9 +28,9 @@ public class driveSwerve {
     final private boolean eff;
     private double Kp,Kd,Ki,Kf;
     private double module1Adjust = 0, module2Adjust = 0, module3Adjust = 0;
-    controlLoopMath mod1PID = new controlLoopMath(0.2,0.003,0.01,0.75);
-    controlLoopMath mod2PID = new controlLoopMath(0.2,0.003,0.01,1);
-    controlLoopMath mod3PID = new controlLoopMath(0.2,0.003,0.01,1.5);
+    PIDcontroller mod1PID = new PIDcontroller(0.2,0.003,0.01,0.75);
+    PIDcontroller mod2PID = new PIDcontroller(0.2,0.003,0.01,1);
+    PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,1.5);
     swerveKinematics swavemath = new swerveKinematics();
 
     public driveSwerve(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
@@ -106,10 +105,9 @@ public class driveSwerve {
         //Update heading of robot
         angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double heading = angles.firstAngle*-1;
-        double roll = angles.secondAngle;
 
         //Retrieve the angles and powers for all of our wheels from the swerve kinematics
-        double[] output = swavemath.Math(-y*voltageConstant,-x*voltageConstant,rot*voltageConstant,heading,true);
+        double[] output = swavemath.calculate(y*voltageConstant,-x*voltageConstant,rot*voltageConstant,heading,true);
         double mod1power=-output[0];
         double mod3power=output[1];
         double mod2power=output[2];
@@ -156,13 +154,13 @@ public class driveSwerve {
         }
 
         //change coax values into diffy values, from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(mod1PID.PIDout(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power);
+        double[] mod1values = mathsOperations.diffyConvert(mod1PID.out(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.PIDout(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power);
+        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.out(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
-        double[] mod3values = mathsOperations.diffyConvert(mod3PID.PIDout(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power);
+        double[] mod3values = mathsOperations.diffyConvert(mod3PID.out(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power);
         mod3m1.setPower(mod3values[0]);
         mod3m2.setPower(mod3values[1]);
 
