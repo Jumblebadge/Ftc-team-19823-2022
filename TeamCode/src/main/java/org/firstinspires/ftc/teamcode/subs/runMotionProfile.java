@@ -12,7 +12,6 @@ public class runMotionProfile {
 
     private double lastTarget;
     private double maxVel, maxAccel, maxJerk;
-    private double Kp, Kd, Ki, Kf;
     private final PIDcontroller PID;
     private final ElapsedTime timer = new ElapsedTime();
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
@@ -21,11 +20,6 @@ public class runMotionProfile {
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
         this.maxJerk = maxJerk;
-
-        this.Kp = Kp;
-        this.Kd = Kd;
-        this.Ki = Ki;
-        this.Kf = Kf;
 
         PID = new PIDcontroller(Kp,Kd,Ki,Kf);
     }

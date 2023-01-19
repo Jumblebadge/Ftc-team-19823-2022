@@ -16,6 +16,8 @@ import com.acmerobotics.dashboard.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.subs.Toggler;
 import org.firstinspires.ftc.teamcode.subs.driveSwerve;
+import org.firstinspires.ftc.teamcode.subs.linearSlide;
+import org.firstinspires.ftc.teamcode.subs.motorGroup;
 import org.firstinspires.ftc.teamcode.subs.runMotionProfile;
 
 import java.util.List;
@@ -89,7 +91,6 @@ public class godSwerve extends LinearOpMode {
         mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -101,8 +102,9 @@ public class godSwerve extends LinearOpMode {
 
         driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
 
-        runMotionProfile leftSlideMotorProfile = new runMotionProfile(10000,11000,20000,0.2,0,0,0);
-        runMotionProfile rightSlideMotorProfile = new runMotionProfile(10000,11000,20000,0.2,0,0,0);
+        motorGroup slideMotors = new motorGroup(liftLeft,liftRight);
+
+        linearSlide slide = new linearSlide(slideMotors);
 
         runMotionProfile linkageServoProfile = new runMotionProfile(1,1,1,0,0,0,0);
         runMotionProfile depositServosProfile = new runMotionProfile(1,1,1,0,0,0,0);
@@ -130,8 +132,6 @@ public class godSwerve extends LinearOpMode {
         //inRotL.setPosition(0.3);
         //inRotR.setPosition(1-inRotL.getPosition());
 
-        double LliftLastTarget = 0, RliftLastTarget = 0;
-
         waitForStart();
         while (opModeIsActive()) {
             drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
@@ -150,8 +150,8 @@ public class godSwerve extends LinearOpMode {
             else if (gamepad2.y) {
                 liftTarget = 1100;
             }
-            LliftTarget = liftTarget;
-            RliftTarget = -liftTarget;
+
+            slide.moveTo(liftTarget);
 
 
             //linkage activated by rising edge detector
@@ -221,31 +221,8 @@ public class godSwerve extends LinearOpMode {
             //letter buttons for slide positions
             //claw is on CHUB 2
 
-            if (LliftLastTarget != LliftTarget) {
-                LliftLastTarget = LliftTarget;
-                LliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftLeft.getCurrentPosition(), 0, 0), new MotionState(LliftTarget, 0, 0), 10000, 11000,20000);
-                LliftPROtime.reset();
-            }
-            else{ LliftLastTarget = LliftTarget; }
-            MotionState LliftState = LliftProfile.get(LliftPROtime.seconds());
-            liftLeft.setPower(LliftPID.out(LliftState.getX()-liftLeft.getCurrentPosition()));
-
-
-            if (RliftLastTarget != RliftTarget) {
-                RliftLastTarget = RliftTarget;
-                RliftProfile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(liftRight.getCurrentPosition(), 0, 0), new MotionState(RliftTarget, 0, 0), 10000, 11000,20000);
-                RliftPROtime.reset();
-            }
-            else{ RliftLastTarget = RliftTarget; }
-
-            MotionState RliftState = RliftProfile.get(RliftPROtime.seconds());
-            liftRight.setPower(RliftPID.out(RliftState.getX()-liftRight.getCurrentPosition()));
-
-            telemetry.addLine(String.valueOf(1/hztimer.seconds()));
             telemetry.addData("LliftPos",liftLeft.getCurrentPosition());
             telemetry.addData("RliftPos",liftRight.getCurrentPosition());
-            telemetry.addData("lliftstate",LliftState.getX());
-            telemetry.addData("rliftstate",RliftState.getX());
             telemetry.addData("target",liftTarget);
             telemetry.update();
         }
