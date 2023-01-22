@@ -20,7 +20,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.teamcode.subs.driveSwerve;
+import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvWebcam;
 
@@ -94,7 +94,7 @@ public class onePlusPark extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //Create objects for the classes we use for swerve and PIDS
-        driveSwerve drivein = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
+        SwerveDrive drivein = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {

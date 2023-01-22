@@ -1,9 +1,8 @@
-package org.firstinspires.ftc.teamcode.subs;
+package org.firstinspires.ftc.teamcode.utility;
 
 import com.acmerobotics.roadrunner.profile.MotionProfile;
 import com.acmerobotics.roadrunner.profile.MotionProfileGenerator;
 import com.acmerobotics.roadrunner.profile.MotionState;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
@@ -12,6 +11,7 @@ public class runMotionProfile {
 
     private double lastTarget;
     private double maxVel, maxAccel, maxJerk;
+    private MotionState motionState;
     private final PIDcontroller PID;
     private final ElapsedTime timer = new ElapsedTime();
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
@@ -23,7 +23,6 @@ public class runMotionProfile {
 
         PID = new PIDcontroller(Kp,Kd,Ki,Kf);
     }
-
 
     public void setMotionConstraints(double maxVel, double maxAccel, double maxJerk){
         this.maxVel=maxVel;
@@ -40,8 +39,12 @@ public class runMotionProfile {
             timer.reset();
         }
         else{ lastTarget = target; }
-        MotionState motionState = profile.get(timer.seconds());
+        motionState = profile.get(timer.seconds());
         return PID.out(motionState.getX()-state);
+    }
+
+    public double getMotionTarget(){
+        return motionState.getX();
     }
 
     public double profiledServoMovement(double target, double state){
@@ -51,7 +54,7 @@ public class runMotionProfile {
             timer.reset();
         }
         else{ lastTarget = target; }
-        MotionState motionState = profile.get(timer.seconds());
+        motionState = profile.get(timer.seconds());
         return motionState.getX();
     }
 }

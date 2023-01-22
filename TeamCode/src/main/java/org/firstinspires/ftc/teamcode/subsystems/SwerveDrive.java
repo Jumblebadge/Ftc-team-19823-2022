@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subs;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
 
 import java.util.List;
 
-public class driveSwerve {
+public class SwerveDrive {
 
     final private BNO055IMU IMU;
     final private DcMotorEx mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2;
@@ -33,7 +33,7 @@ public class driveSwerve {
     PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,1.5);
     swerveKinematics swavemath = new swerveKinematics();
 
-    public driveSwerve(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
+    public SwerveDrive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
         this.mod1m1 = mod1m1;
         this.mod1m2 = mod1m2;
         this.mod2m1 = mod2m1;
@@ -63,44 +63,10 @@ public class driveSwerve {
 
         double voltageConstant = 12/vSensor.getVoltage();
 
-        //Clear the cache for better loop times (bulk sensor reads)
-        for (LynxModule hub : allHubs) {
-            hub.clearBulkCache();
-        }
-
         //Turn our MA3 absolute encoder signals from volts to degrees
-        double mod1P1 = mod1E.getVoltage() * 74.16;
-        double mod2P1 = mod2E.getVoltage() * 74.16;
-        double mod3P1 = mod3E.getVoltage() * 74.16;
-
-        //detecting wraparounds on the ma3's so that the 1:2 gear ratio does not matter
-        //mod1P = mathsOperations.modWrap(mod1P1,mod1wrapped,mod1lastpos,2);
-        //mod1lastpos = mod1P1;
-        double mod1positiondelta = mod1P1 - mod1lastpos;
-        mod1lastpos = mod1P1;
-
-        mod1wrapped = ((mod1positiondelta > 180) != mod1wrapped);
-        mod1wrapped = ((mod1positiondelta <-180) != mod1wrapped);
-        double mod1P = (mod1wrapped ? 180 + mod1P1/2 : mod1P1/2);
-
-        //mod2P = mathsOperations.modWrap(mod2P1,mod2wrapped,mod2lastpos,2);
-        //mod2lastpos = mod2P1;
-
-        double mod2positiondelta = mod2P1 - mod2lastpos;
-        mod2lastpos = mod2P1;
-
-        mod2wrapped = ((mod2positiondelta > 180) != mod2wrapped);
-        mod2wrapped = ((mod2positiondelta <-180) != mod2wrapped);
-        double mod2P = (mod2wrapped ? 180 + mod2P1/2 : mod2P1/2);
-
-        //mod3P = mathsOperations.modWrap(mod3P1,mod3wrapped,mod3lastpos,2);
-        //mod3lastpos = mod3P1;
-        double mod3positiondelta = mod3P1 - mod3lastpos;
-        mod3lastpos = mod3P1;
-
-        mod3wrapped = ((mod3positiondelta > 180) != mod3wrapped);
-        mod3wrapped = ((mod3positiondelta <-180) != mod3wrapped);
-        double mod3P = (mod3wrapped ? 180 + mod3P1/2 : mod3P1/2);
+        double mod1P = mod1E.getVoltage() * 74.16;
+        double mod2P = mod2E.getVoltage() * 74.16;
+        double mod3P = mod3E.getVoltage() * 74.16;
 
         //Update heading of robot
         angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
@@ -123,7 +89,6 @@ public class driveSwerve {
         double mod2reference=-mod2reference1;
 
         //Subtract our tuning values to account for any encoder drift
-        //TODO actually update these
         mod3P -= module3Adjust;
         mod2P -= module2Adjust;
         mod1P -= module1Adjust;
@@ -157,7 +122,7 @@ public class driveSwerve {
         double[] mod1values = mathsOperations.diffyConvert(mod1PID.out(AngleUnit.normalizeDegrees(mod1reference-mod1P))/2,mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.out(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power);
+        double[] mod2values = mathsOperations.diffyConvert(mod2PID.out(AngleUnit.normalizeDegrees(mod2reference-mod2P))/2,mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
         double[] mod3values = mathsOperations.diffyConvert(mod3PID.out(AngleUnit.normalizeDegrees(mod3reference-mod3P))/2,-mod3power);

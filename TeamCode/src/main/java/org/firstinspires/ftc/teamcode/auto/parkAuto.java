@@ -10,12 +10,10 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
-import org.firstinspires.ftc.teamcode.maths.TwoWheelTrackingLocalizer;
+import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
-import org.firstinspires.ftc.teamcode.subs.goToPoint;
-import org.firstinspires.ftc.teamcode.subs.initIMU;
+import org.firstinspires.ftc.teamcode.navigation.goToPoint;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -26,7 +24,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.teamcode.subs.driveSwerve;
+import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvWebcam;
 
@@ -45,9 +43,27 @@ public class parkAuto extends LinearOpMode {
     FtcDashboard dashboard;
 
     double distance = 0;
+    double lastX, lastY;
+    double cyclesCompleted = 0;
+
+    enum apexStates {
+        DRIVE_TO_CYCLE,
+        CYCLING,
+        PARK
+    }
+
+    enum cycleStates {
+        INTAKE,
+        DEPOSIT,
+        WAIT
+    }
+
+    apexStates apexstate = apexStates.DRIVE_TO_CYCLE;
+    cycleStates cyclestate = cycleStates.WAIT;
 
     Pose2d pose;
     Pose2d desiredPose;
+    Pose2d temp;
 
     goToPoint auto;
 
@@ -103,7 +119,7 @@ public class parkAuto extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //Create objects for the classes we use
-        driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
+        SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
         auto = new goToPoint(drive,telemetry,dashboard);
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -123,6 +139,65 @@ public class parkAuto extends LinearOpMode {
         webcamStuff.closeCamera();
         AprilTagDetection detectedTag = webcamStuff.sideDetected();
 
+        while (opModeIsActive()) {
+            //Clear the cache for better loop times (bulk sensor reads)
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
+
+            runPoint(desiredPose.getX(),desiredPose.getY(),desiredPose.getHeading());
+
+            switch (apexstate){
+                case DRIVE_TO_CYCLE:
+                    //drive to cycling position
+                    desiredPose = new Pose2d(0,0,0);
+                    apexstate = apexStates.CYCLING;
+                    break;
+
+                case CYCLING:
+                    if (cyclesCompleted == 0){
+                        cyclestate = cycleStates.DEPOSIT;
+                    }
+                    else if (cyclesCompleted == 6){
+                        apexstate = apexStates.PARK;
+                        cyclestate = cycleStates.WAIT;
+                    }
+                    break;
+
+                case PARK:
+                    //drive to park position
+                    if(detectedTag == null || detectedTag.id == 2) {
+                        desiredPose = new Pose2d(39,0,0);
+                        desiredPose = new Pose2d(39,6,0);
+                    }
+                    else if(detectedTag.id == 1){
+                        desiredPose = new Pose2d(26,0,0);
+                        desiredPose = new Pose2d(26,-26,0);
+                        desiredPose = new Pose2d(39,-30,0);
+                    }
+                    else if(detectedTag.id == 3){
+                        desiredPose = new Pose2d(26,0,0);
+                        desiredPose = new Pose2d(26,26,0);
+                        desiredPose = new Pose2d(39,30,0);
+                    }
+                    break;
+            }
+
+            switch (cyclestate){
+                case WAIT:
+                    //set all systems to init position
+                case INTAKE:
+                    //intake extends and then retracts with cone, then drops into deposit box
+                    cyclestate = cycleStates.DEPOSIT;
+                    break;
+
+                case DEPOSIT:
+                    //lift slides drop cone come back down
+                    cyclestate = cycleStates.INTAKE;
+                    cyclesCompleted += 1;
+                    break;
+            }
+        }
         //auto starting
         if(detectedTag == null || detectedTag.id == 2) {
             runPoint(39,0,0);
@@ -157,15 +232,14 @@ public class parkAuto extends LinearOpMode {
         pose = localizer.getPoseEstimate();
         distance = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
         Pose2d startPose = pose;
-        auto.driveToPoint(pose,desiredPose,startPose,true);
-        ElapsedTime moveLimit = new ElapsedTime();
-        moveLimit.reset();
-        while(distance>0.3&&opModeIsActive()&&moveLimit.seconds()<3){
-            localizer.update();
-            pose = localizer.getPoseEstimate();
-            distance = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
-            auto.driveToPoint(pose,desiredPose,startPose,false);
+        if (lastX != x || lastY != y) {
+            lastX = x;
+            lastY = y;
+            temp = new Pose2d(pose.getX(), pose.getY(),pose.getHeading());
+            auto.driveToPoint(pose,desiredPose,temp,true);
         }
+        else{ lastX = x; lastY = y; }
+        auto.driveToPoint(pose,desiredPose,startPose,true);
     }
 }
 

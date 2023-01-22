@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subs;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 
 public class motorGroup {
 
-    private final DcMotorEx[] motors;
+    public final DcMotorEx[] motors;
     private final PIDcontroller controller = new PIDcontroller(0,0,0,0);
 
     public motorGroup(DcMotorEx... motors){
@@ -23,6 +23,15 @@ public class motorGroup {
         }
     }
 
+    public void setPower(double power, int motor){
+        motors[motor].setPower(power);
+    }
+
+    public double getPosition(int motor){
+        return motors[motor].getCurrentPosition();
+    }
+
+    //TODO set power of more than one motor
     public void setPositions(double target){
         setPowers(controller.out(target-getAveragePosition()));
     }

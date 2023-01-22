@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.maths;
+package org.firstinspires.ftc.teamcode.utility;
 
 import androidx.annotation.NonNull;
 
@@ -8,12 +8,10 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.wrappers.Encoder;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subs;
+package org.firstinspires.ftc.teamcode.navigation;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
@@ -10,20 +10,22 @@ import com.acmerobotics.roadrunner.profile.*;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.wrappers.myElapsedTime;
+import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
+import org.firstinspires.ftc.teamcode.utility.myElapsedTime;
 import org.opencv.core.Point;
 
 public class goToPoint {
-    private final driveSwerve driver;
+    private final SwerveDrive driver;
     private final Telemetry telemetry;
     private final FtcDashboard dashboard;
+    private boolean isDone;
     private final myElapsedTime profileTime = new myElapsedTime();
     private final PIDcontroller headingPID = new PIDcontroller(6,0,0,0);
     private final PIDcontroller xPID = new PIDcontroller(2.1,0,0.15,0);
     private final PIDcontroller yPID = new PIDcontroller(2.1,0,0.15,0);
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(1, 0, 0), 2, 3,4);
 
-    public goToPoint(driveSwerve driver, Telemetry telemetry, FtcDashboard dashboard){
+    public goToPoint(SwerveDrive driver, Telemetry telemetry, FtcDashboard dashboard){
         this.driver=driver;
         this.telemetry = telemetry;
         this.dashboard = dashboard;
@@ -56,6 +58,8 @@ public class goToPoint {
         driver.driveOut(-yOut,-xOut,-headingOut);
         drawField(pose,desiredPose,startPose,dashboard);
 
+        isDone = distanceNow < 1;
+
         telemetry.addData("distance: ",distance);
         telemetry.addData("timer,",profileTime.seconds());
         telemetry.addData("distanceAtStart: ",distanceAtStart);
@@ -69,6 +73,10 @@ public class goToPoint {
         telemetry.addData("statepointY",statePoint.y);
         telemetry.addData("xerror",distanceToState*Math.cos(angleToEndPoint)-(pose.getX()-startPose.getX()));
         telemetry.addData("yerror",distanceToState*Math.sin(angleToEndPoint)-(pose.getY()-startPose.getY()));
+    }
+
+    public boolean isDone(){
+        return isDone;
     }
 
     /**

@@ -21,7 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
-import org.firstinspires.ftc.teamcode.subs.driveSwerve;
+import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -139,7 +139,7 @@ public class firstAuto extends LinearOpMode {
         PIDcontroller mod2PID = new PIDcontroller(0.1,0.0001,0.0007,0);
         PIDcontroller mod3PID = new PIDcontroller(0.1,0.0001,0.0007,0);
 
-        driveSwerve drivein = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
+        SwerveDrive drivein = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, false);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {

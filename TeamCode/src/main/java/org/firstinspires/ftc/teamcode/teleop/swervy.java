@@ -17,9 +17,9 @@ import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
-import org.firstinspires.ftc.teamcode.maths.*;
-import org.firstinspires.ftc.teamcode.subs.driveSwerve;
-import org.firstinspires.ftc.teamcode.subs.goToPoint;
+import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
+import org.firstinspires.ftc.teamcode.navigation.goToPoint;
+import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 
 import java.util.List;
 
@@ -93,7 +93,7 @@ public class swervy extends LinearOpMode {
         //set odometry localizer and make object for driving
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
-        driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
+        SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
         goToPoint auto = new goToPoint(drive,telemetry,dashboard);
 
         drive.setModuleAdjustments(0,-15,-45);
@@ -108,6 +108,11 @@ public class swervy extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
+
+            //Clear the cache for better loop times (bulk sensor reads)
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
 
             localizer.update();
             TelemetryPacket packet = new TelemetryPacket();

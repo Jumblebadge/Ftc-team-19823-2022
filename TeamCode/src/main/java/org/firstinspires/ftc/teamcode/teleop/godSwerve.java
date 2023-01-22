@@ -3,22 +3,19 @@ package org.firstinspires.ftc.teamcode.teleop;
 //Import EVERYTHING we need
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.profile.*;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.*;
 import com.qualcomm.robotcore.eventloop.opmode.*;
-import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
-import org.firstinspires.ftc.teamcode.subs.Toggler;
-import org.firstinspires.ftc.teamcode.subs.driveSwerve;
-import org.firstinspires.ftc.teamcode.subs.linearSlide;
-import org.firstinspires.ftc.teamcode.subs.motorGroup;
-import org.firstinspires.ftc.teamcode.subs.runMotionProfile;
+import org.firstinspires.ftc.teamcode.utility.Toggler;
+import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
+import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
+import org.firstinspires.ftc.teamcode.utility.runMotionProfile;
 
 import java.util.List;
 
@@ -85,12 +82,12 @@ public class godSwerve extends LinearOpMode {
         Servo claw = hardwareMap.get(Servo.class,"claw");
         Servo linkage = hardwareMap.get(Servo.class,"linkage");
 
-        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        //mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         //mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
         //mod1m1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -98,21 +95,20 @@ public class godSwerve extends LinearOpMode {
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
 
-        //Create objects for the classes we use for swerve and PIDS
 
-        driveSwerve drive = new driveSwerve(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
+        //class to drive the swerve
+        SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
 
-        motorGroup slideMotors = new motorGroup(liftLeft,liftRight);
+        //class that runs our linear slide
+        linearSlide slide = new linearSlide(liftLeft,liftRight);
 
-        linearSlide slide = new linearSlide(slideMotors);
-
+        //motion profiles for all servos
         runMotionProfile linkageServoProfile = new runMotionProfile(1,1,1,0,0,0,0);
         runMotionProfile depositServosProfile = new runMotionProfile(1,1,1,0,0,0,0);
         runMotionProfile intakeServosProfile = new runMotionProfile(1,1,1,0,0,0,0);
 
         Toggler right_trigger = new Toggler();
         Toggler right_bumper = new Toggler();
-        Toggler left_trigger = new Toggler();
         Toggler left_bumper = new Toggler();
 
         drive.setModuleAdjustments(0,-15,-45);
@@ -134,9 +130,15 @@ public class godSwerve extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
+
             drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
 
             drive.driveOut(gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x/2);
+
+            //Clear the cache for better loop times (bulk sensor reads)
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
 
             if (gamepad2.a) {
                 liftTarget = 0;
@@ -167,10 +169,8 @@ public class godSwerve extends LinearOpMode {
                 }
             }
 
-            telemetry.addData("linkage",linkage.getPosition());
-
             //rising edge detector for claw open/close
-            if(currentGamepad2.left_bumper && !previousGamepad2.left_bumper){
+            if(left_bumper.update(gamepad2.left_bumper)){
                 if (claw.getPosition() < 0.45){
                     //claw.setPosition(0.6);
                     //open
@@ -182,7 +182,7 @@ public class godSwerve extends LinearOpMode {
             }
 
             //rising edge detector for outtake positions
-            if (currentGamepad2.right_bumper && !previousGamepad2.right_bumper){
+            if (right_bumper.update(gamepad2.right_bumper)){
                 if (outRotL.getPosition()<0.5){
                    //outRotL.setPosition(1);
                    //outRotR.setPosition(1-outRotL.getPosition());

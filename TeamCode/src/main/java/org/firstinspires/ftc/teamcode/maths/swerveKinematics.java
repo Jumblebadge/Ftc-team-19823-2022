@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.maths;
 
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-
-import org.firstinspires.ftc.teamcode.maths.Vector;
-
 public class swerveKinematics {
 
     //swerve kinematics
