@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.lynx.commands.LynxCommand;
+import com.qualcomm.hardware.lynx.commands.core.LynxResetMotorEncoderCommand;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
@@ -16,7 +19,7 @@ public class linearSlide{
 
     public void moveTo(double target){
         motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),0);
-        motors.setPower(profile.profiledMovement(target,motors.getPosition(1)),1);
+        motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),1);
     }
 
     public void setMotionConstraints(double maxVel, double maxAccel, double maxJerk){
