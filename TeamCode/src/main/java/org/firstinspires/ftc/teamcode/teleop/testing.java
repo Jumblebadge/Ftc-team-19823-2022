@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 //Import EVERYTHING we need
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
@@ -21,8 +22,9 @@ public class testing extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
+    double lastClawTarget = 0;
 
-    public static double Kp=0,Kd=0,Ki=0,Kf = 0,maxVel=0.1,maxAccel=0.1,maxJerk=0.1, liftTarget = 0, depositTarget = 0.5;
+    public static double Kp=0,Kd=0,Ki=0,Kf = 0,maxVel=0.1,maxAccel=0.1,maxJerk=0.1, liftTarget = 0, depositTarget = 0.5, clawTarget = 0.5;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -30,13 +32,14 @@ public class testing extends LinearOpMode {
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        DcMotorEx liftLeftMotor = hardwareMap.get(DcMotorEx.class,"Llift");
-        DcMotorEx liftRightMotor = hardwareMap.get(DcMotorEx.class,"Rlift");
+        //DcMotorEx liftLeftMotor = hardwareMap.get(DcMotorEx.class,"Llift");
+        //DcMotorEx liftRightMotor = hardwareMap.get(DcMotorEx.class,"Rlift");
 
         Servo depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "LdepositServo");
         Servo depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "RdepositServo");
 
-        liftRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        //liftRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -45,8 +48,8 @@ public class testing extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //class that runs our linear slide
-        linearSlide slide = new linearSlide(liftLeftMotor,liftRightMotor);
-        slide.resetEncoders();
+        //linearSlide slide = new linearSlide(liftLeftMotor,liftRightMotor);
+        //slide.resetEncoders();
 
         twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
 
@@ -61,18 +64,14 @@ public class testing extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
-            deposit.setMotionConstraints(maxVel,maxAccel,maxJerk);
-
             //Clear the cache for better loop times (bulk sensor reads)
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
 
-            slide.moveTo(liftTarget);
             deposit.moveTo(depositTarget);
 
-            telemetry.addData("motionTarget",deposit.getMotionTarget());
-            telemetry.update();
+
         }
     }
 }

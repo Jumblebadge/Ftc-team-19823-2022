@@ -32,6 +32,8 @@ public class mathsOperations {
         return new double[]{reference,power};
     }
 
+    public static boolean dynamicTurn(double error){ return Math.abs(error) > 90; }
+
     //converts two degrees of freedom into a differential
     public static double[] diffyConvert(double rotate, double translate){
         double m1 = rotate + translate;

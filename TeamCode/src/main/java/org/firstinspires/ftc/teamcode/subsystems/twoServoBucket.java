@@ -8,6 +8,7 @@ public class twoServoBucket{
 
     private final Servo servo1, servo2;
     private final runMotionProfile profile = new runMotionProfile(0.1,0.1,0.1,0,0,0,0);
+    private double lastTarget;
 
     public twoServoBucket(Servo servo2, Servo servo1){
         this.servo1 = servo1;
@@ -20,8 +21,12 @@ public class twoServoBucket{
     }
 
     public void moveTo(double target){
-        servo1.setPosition(target);
-        servo2.setPosition(1-target);
+        if (lastTarget != target) {
+            lastTarget = target;
+            servo1.setPosition(1-target);
+            servo2.setPosition(target);
+        }
+        else{ lastTarget = target;}
     }
 
     public void setMotionConstraints(double maxVel, double maxAccel, double maxJerk){
