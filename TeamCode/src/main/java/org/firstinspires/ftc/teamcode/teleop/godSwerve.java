@@ -12,6 +12,8 @@ import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
+import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
+import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
@@ -102,14 +104,14 @@ public class godSwerve extends LinearOpMode {
         //class that runs our linear slide
         linearSlide slide = new linearSlide(liftLeft,liftRight);
 
-        //motion profiles for all servos
-        runMotionProfile linkageServoProfile = new runMotionProfile(1,1,1,0,0,0,0);
-        runMotionProfile depositServosProfile = new runMotionProfile(1,1,1,0,0,0,0);
-        runMotionProfile intakeServosProfile = new runMotionProfile(1,1,1,0,0,0,0);
+        twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
+        twoServoBucket deposit = new twoServoBucket(outRotL,outRotR);
 
         Toggler right_trigger = new Toggler();
         Toggler right_bumper = new Toggler();
         Toggler left_bumper = new Toggler();
+
+        slewRateLimiter leftX = new slewRateLimiter(), leftY = new slewRateLimiter(), rightX = new slewRateLimiter();
 
         drive.setModuleAdjustments(0,-15,-45);
 
@@ -133,7 +135,7 @@ public class godSwerve extends LinearOpMode {
 
             drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
 
-            drive.driveOut(gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x/2);
+            //drive.driveOut(leftX.rateLimit(gamepad1.left_stick_x,4),leftY.rateLimit(gamepad1.left_stick_y,4),rightX.rateLimit(gamepad1.right_stick_x/2,4));
 
             //Clear the cache for better loop times (bulk sensor reads)
             for (LynxModule hub : allHubs) {
@@ -198,18 +200,15 @@ public class godSwerve extends LinearOpMode {
             //left side is in 1 CHUB
 
             if(gamepad2.left_trigger>0.1){
-                //inRotL.setPosition(0.5);
-                //inRotR.setPosition(1-inRotL.getPosition());
+                intake.moveTo(0.5);
                 //straight up
             }
             else if (gamepad2.dpad_down){
-                //inRotL.setPosition(0.865);
-                //inRotR.setPosition(1-inRotL.getPosition());
+                intake.moveTo(1);
                 //down
             }
             else if (gamepad2.dpad_up){
-                //inRotL.setPosition(0.3);
-                //inRotR.setPosition(1-inRotL.getPosition());
+                intake.moveTo(0.2);
                 //up
             }
 

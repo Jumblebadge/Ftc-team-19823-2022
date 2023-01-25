@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
+import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
+
 import java.util.List;
 
 
@@ -18,18 +20,13 @@ public class please extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-    public static double liftTarget = 0;
+    public static double r = 0;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-        DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
-        DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
-
-        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -45,12 +42,14 @@ public class please extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
+        slewRateLimiter limiter = new slewRateLimiter();
+
         waitForStart();
         while (opModeIsActive()) {
 
-            telemetry.addData("LliftPos",liftLeft.getCurrentPosition());
-            telemetry.addData("RliftPos",liftRight.getCurrentPosition());
-            telemetry.addData("target",liftTarget);
+            double x = limiter.rateLimit(gamepad1.left_stick_y,r);
+            telemetry.addData("gamepad real",gamepad1.left_stick_y);
+            telemetry.addData("limited",x);
             telemetry.update();
         }
     }
