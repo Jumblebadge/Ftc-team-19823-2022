@@ -9,7 +9,9 @@ import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
+import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
+import org.firstinspires.ftc.teamcode.utility.Toggler;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class please extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
     public static double r = 0;
+    double pos = 0;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -43,13 +46,16 @@ public class please extends LinearOpMode {
         PhotonCore.enable();
 
         slewRateLimiter limiter = new slewRateLimiter();
+        Toggler right_bumper = new Toggler();
 
         waitForStart();
         while (opModeIsActive()) {
 
-            double x = limiter.rateLimit(gamepad1.left_stick_y,r);
-            telemetry.addData("gamepad real",gamepad1.left_stick_y);
-            telemetry.addData("limited",x);
+            pos = right_bumper.update(gamepad2.right_bumper) ? 0.7 : 0.3;
+
+            telemetry.addData("pos",pos);
+            telemetry.addData("last",right_bumper.last);
+            telemetry.addData("current",right_bumper.current);
             telemetry.update();
         }
     }

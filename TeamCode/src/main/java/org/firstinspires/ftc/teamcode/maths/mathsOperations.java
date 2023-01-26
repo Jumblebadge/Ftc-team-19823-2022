@@ -56,4 +56,11 @@ public class mathsOperations {
         if (wrap == 0) return state/ratio;
         return 360/(wrap+1) + state/ratio;
     }
+
+    public static boolean equals(double state, double equals, double thresh){
+        if (Math.abs(state - equals) < thresh){
+            return true;
+        }
+        return false;
+    }
 }

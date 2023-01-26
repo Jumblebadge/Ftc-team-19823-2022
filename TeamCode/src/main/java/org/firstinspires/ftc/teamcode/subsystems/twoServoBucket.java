@@ -41,4 +41,8 @@ public class twoServoBucket{
         return profile.getMotionTarget();
     }
 
+    public double getBucketPosition(){
+        return servo2.getPosition();
+    }
+
 }
