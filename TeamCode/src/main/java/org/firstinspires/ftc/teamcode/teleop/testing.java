@@ -12,6 +12,7 @@ import com.acmerobotics.dashboard.*;
 
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
+import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
 import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
@@ -28,7 +29,7 @@ public class testing extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
     public static double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
-    public static double adjust = 0, Kp = 0, Kd = 0, Ki = 0, Kf = 0;
+    public static double adjust = 0, Kp = 0, Kd = 0, Ki = 0, Kf = 0,r = 1000;
     public static boolean update = false;
 
     enum automation{
@@ -80,6 +81,8 @@ public class testing extends LinearOpMode {
         Toggler right_bumper = new Toggler();
         Toggler left_bumper = new Toggler();
 
+        slewRateLimiter limiter = new slewRateLimiter();
+
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -96,8 +99,7 @@ public class testing extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            turret.setPIDcoeffs(Kp, Kd, Ki, Kf);
-            turret.setAdjust(adjust);
+            turretTarget = limiter.rateLimit(gamepad2.right_stick_x * 90, r);
             turret.moveTo(turretTarget);
 
             if(update){
@@ -130,7 +132,7 @@ public class testing extends LinearOpMode {
 
 
             //rising edge detector for outtake positions
-            deposit.moveTo(right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.3 : 0.85);
+            deposit.moveTo(right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.35 : 0.85);
 
 
 
@@ -143,11 +145,11 @@ public class testing extends LinearOpMode {
                 //straight up
             }
             else if (gamepad2.dpad_down){
-                intake.moveTo(1);
+                intake.moveTo(0.25);
                 //down
             }
             else if (gamepad2.dpad_up){
-                intake.moveTo(0.25);
+                intake.moveTo(1);
                 //up
             }
 
@@ -159,6 +161,10 @@ public class testing extends LinearOpMode {
             //linkage in: 0.3, linkage out: 0.7
             //bucket all the way down: linkage 0.5, intake 0.14
             //linkage all the way in: intake 0.25, slides 200
+
+            telemetry.addData("turretpos",turret.getHeading());
+            telemetry.addData("target",turretTarget);
+            telemetry.update();
 
         }
     }

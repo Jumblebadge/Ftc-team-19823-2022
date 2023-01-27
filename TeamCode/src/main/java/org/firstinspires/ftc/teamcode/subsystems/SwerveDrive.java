@@ -119,10 +119,10 @@ public class SwerveDrive {
         }
 
         //change coax values into diffy values, from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(-mod1PID.out(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
+        double[] mod1values = mathsOperations.diffyConvert(mod1PID.out(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(mod2PID.out(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
+        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.out(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
         double[] mod3values = mathsOperations.diffyConvert(mod3PID.out(AngleUnit.normalizeDegrees(mod3reference-mod3P)),-mod3power);

@@ -77,14 +77,14 @@ public class godSwerve extends LinearOpMode {
 
         VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
 
-        Servo inRotL = hardwareMap.get(Servo.class,"inL");
-        Servo inRotR = hardwareMap.get(Servo.class,"inR");
-        Servo outRotL = hardwareMap.get(Servo.class,"outL");
-        Servo outRotR = hardwareMap.get(Servo.class,"outR");
-        Servo claw = hardwareMap.get(Servo.class,"claw");
-        Servo linkage = hardwareMap.get(Servo.class,"linkage");
+        //Servo inRotL = hardwareMap.get(Servo.class,"inL");
+        //Servo inRotR = hardwareMap.get(Servo.class,"inR");
+        //Servo outRotL = hardwareMap.get(Servo.class,"outL");
+        //Servo outRotR = hardwareMap.get(Servo.class,"outR");
+        //Servo claw = hardwareMap.get(Servo.class,"claw");
+        //Servo linkage = hardwareMap.get(Servo.class,"linkage");
 
-        //mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         //mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
         //mod1m1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -104,8 +104,8 @@ public class godSwerve extends LinearOpMode {
         //class that runs our linear slide
         linearSlide slide = new linearSlide(liftLeft,liftRight);
 
-        twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
-        twoServoBucket deposit = new twoServoBucket(outRotL,outRotR);
+        //twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
+        //twoServoBucket deposit = new twoServoBucket(outRotL,outRotR);
 
         Toggler right_trigger = new Toggler();
         Toggler right_bumper = new Toggler();
@@ -133,83 +133,13 @@ public class godSwerve extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
-            drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
+            drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
 
-            //drive.driveOut(leftX.rateLimit(gamepad1.left_stick_x,4),leftY.rateLimit(gamepad1.left_stick_y,4),rightX.rateLimit(gamepad1.right_stick_x/2,4));
+            drive.driveOut(leftX.rateLimit(gamepad1.left_stick_x,4),leftY.rateLimit(gamepad1.left_stick_y,4),rightX.rateLimit(gamepad1.right_stick_x/2,4));
 
             //Clear the cache for better loop times (bulk sensor reads)
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
-            }
-
-            if (gamepad2.a) {
-                liftTarget = 0;
-            }
-            else if (gamepad2.b) {
-                liftTarget = 315;
-            }
-            else if (gamepad2.x) {
-                liftTarget = 700;
-            }
-            else if (gamepad2.y) {
-                liftTarget = 1100;
-            }
-
-            slide.moveTo(liftTarget);
-
-
-            //linkage activated by rising edge detector
-            if (right_trigger.update(gamepad2.right_trigger > 0.1)){
-                if (linkage.getPosition() > 0.3){
-                    //linkage.setPosition(linkageServoProfile.profiledServoMovement(0.15,linkage.getPosition()));
-                    //linkage.setPosition(0.15);
-                    //out
-                }
-                else if (linkage.getPosition() < 0.3){
-                    //linkage.setPosition(0.5);
-                    //in
-                }
-            }
-
-            //rising edge detector for claw open/close
-            if(left_bumper.update(gamepad2.left_bumper)){
-                if (claw.getPosition() < 0.45){
-                    //claw.setPosition(0.6);
-                    //open
-                }
-                else if (claw.getPosition() > 0.45){
-                    //claw.setPosition(0.275);
-                    //close
-                }
-            }
-
-            //rising edge detector for outtake positions
-            if (right_bumper.update(gamepad2.right_bumper)){
-                if (outRotL.getPosition()<0.5){
-                   //outRotL.setPosition(1);
-                   //outRotR.setPosition(1-outRotL.getPosition());
-                   //in
-                }
-                else if (outRotL.getPosition()>0.5){
-                    //outRotL.setPosition(0.1);
-                    //outRotR.setPosition(1-outRotL.getPosition());
-                    //out
-                }
-            }
-            //right side is in 0 CHUB
-            //left side is in 1 CHUB
-
-            if(gamepad2.left_trigger>0.1){
-                intake.moveTo(0.5);
-                //straight up
-            }
-            else if (gamepad2.dpad_down){
-                intake.moveTo(1);
-                //down
-            }
-            else if (gamepad2.dpad_up){
-                intake.moveTo(0.2);
-                //up
             }
 
             ///right bumper for the outtake
