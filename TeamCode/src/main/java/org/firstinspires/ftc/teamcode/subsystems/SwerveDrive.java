@@ -28,9 +28,9 @@ public class SwerveDrive {
     final private boolean eff;
     private double Kp,Kd,Ki,Kf;
     private double module1Adjust = 0, module2Adjust = 0, module3Adjust = 0;
-    PIDcontroller mod1PID = new PIDcontroller(0.2,0.003,0.01,0.75);
-    PIDcontroller mod2PID = new PIDcontroller(0.2,0.003,0.01,1);
-    PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,1.5);
+    PIDcontroller mod1PID = new PIDcontroller(0.2,0.003,0.01,0.2);
+    PIDcontroller mod2PID = new PIDcontroller(0.2,0.003,0.01,0.275);
+    PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,0.2);
     swerveKinematics swavemath = new swerveKinematics();
 
     public SwerveDrive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, List<LynxModule> allHubs, VoltageSensor vSensor, boolean eff){
@@ -61,6 +61,8 @@ public class SwerveDrive {
 
     public void driveOut(double x, double y, double rot){
 
+        //mod1PID.setPIDCoeffs(Kp,Kd,Ki,Kf);
+
         double voltageConstant = 12/vSensor.getVoltage();
 
         //Turn our MA3 absolute encoder signals from volts to degrees
@@ -73,7 +75,7 @@ public class SwerveDrive {
         double heading = angles.firstAngle*-1;
 
         //Retrieve the angles and powers for all of our wheels from the swerve kinematics
-        double[] output = swavemath.calculate(y*voltageConstant,-x*voltageConstant,rot*voltageConstant,heading,true);
+        double[] output = swavemath.calculate(-y*voltageConstant,x*voltageConstant,-rot*voltageConstant,heading,true);
         double mod1power=-output[0];
         double mod3power=output[1];
         double mod2power=output[2];
@@ -119,13 +121,13 @@ public class SwerveDrive {
         }
 
         //change coax values into diffy values, from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(mod1PID.out(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
+        double[] mod1values = mathsOperations.diffyConvert(-mod1PID.out(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
         double[] mod2values = mathsOperations.diffyConvert(-mod2PID.out(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
-        double[] mod3values = mathsOperations.diffyConvert(mod3PID.out(AngleUnit.normalizeDegrees(mod3reference-mod3P)),-mod3power);
+        double[] mod3values = mathsOperations.diffyConvert(mod3PID.out(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power);
         mod3m1.setPower(mod3values[0]);
         mod3m2.setPower(mod3values[1]);
 

@@ -18,14 +18,11 @@ import java.util.List;
 
 
 @Config
-@TeleOp(name="please", group="Linear Opmode")
-public class please extends LinearOpMode {
+@TeleOp(name="oneome", group="Linear Opmode")
+public class oneModule extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-    public static double r = 0, div = 1;
-    double pos = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
@@ -34,6 +31,9 @@ public class please extends LinearOpMode {
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        DcMotorEx mod3m1 = hardwareMap.get(DcMotorEx.class, "mod3m1");
+        DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
@@ -46,26 +46,14 @@ public class please extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
-        slewRateLimiter limiter = new slewRateLimiter();
-        slewRateLimiter limiter2 = new slewRateLimiter();
-
         waitForStart();
         while (opModeIsActive()) {
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
 
-            pos = limiter.rateLimit(gamepad2.right_stick_x * 90, r);
-            pos2 += gamepad2.right_stick_x/div;
-            if(gamepad2.right_stick_button) { pos2 = 0; }
-            pos3 += limiter2.rateLimit(gamepad2.right_stick_x, r)/div;
-            pos4 += (gamepad2.right_stick_x*gamepad2.right_stick_x* gamepad2.right_stick_x)/div;
-
-            telemetry.addData("pos",pos);
-            telemetry.addData("pos2",pos2);
-            telemetry.addData("pos3", pos3);
-            telemetry.addData("pos4",pos4);
-            telemetry.addData("last",gamepad2.right_stick_x);
+            mod3m1.setPower(gamepad1.left_stick_y);
+            mod3m2.setPower(gamepad1.right_stick_y);
             telemetry.update();
         }
     }

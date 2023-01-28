@@ -30,7 +30,7 @@ public class godSwerve extends LinearOpMode {
     FtcDashboard dashboard;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -30, mod1PC = 10, mod2PC = -30;
+    public static double mod3PC = 20, mod1PC = 10, mod2PC = -60;
     public static double Kp=0.2,Kd=0.0005,Ki=0.0007,Kf = 1,maxVel=1,maxAccel=1,maxJerk=1;
 
     double RliftTarget = 1, LliftTarget = 1, liftTarget = 0;
@@ -134,6 +134,7 @@ public class godSwerve extends LinearOpMode {
         while (opModeIsActive()) {
 
             drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
+            //drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
 
             drive.driveOut(leftX.rateLimit(gamepad1.left_stick_x,4),leftY.rateLimit(gamepad1.left_stick_y,4),rightX.rateLimit(gamepad1.right_stick_x/2,4));
 

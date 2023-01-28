@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.utility.runMotionProfile;
 public class linearSlide{
 
     private final motorGroup motors;
+    private double target;
     private final runMotionProfile profile = new runMotionProfile(25000,20000,50000,0.3,0,0,0);
 
     public linearSlide(DcMotorEx motor1, DcMotorEx motor2){
@@ -20,6 +21,11 @@ public class linearSlide{
     public void moveTo(double target){
         motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),0);
         motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),1);
+        this. target = target;
+    }
+
+    public double getError(){
+        return target - motors.getPosition(0);
     }
 
     public void setMotionConstraints(double maxVel, double maxAccel, double maxJerk){
