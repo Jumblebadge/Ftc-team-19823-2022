@@ -33,7 +33,7 @@ public class motorGroup {
 
     //TODO set power of more than one motor
     public void setPositions(double target){
-        setPowers(controller.out(target-getAveragePosition()));
+        setPowers(controller.pidOut(target-getAveragePosition()));
     }
 
     public double getAveragePosition(){

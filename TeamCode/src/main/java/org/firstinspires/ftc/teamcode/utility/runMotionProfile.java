@@ -40,7 +40,7 @@ public class runMotionProfile {
         }
         else{ lastTarget = target; }
         motionState = profile.get(timer.seconds());
-        return PID.out(motionState.getX()-state);
+        return PID.pidOut(motionState.getX()-state);
     }
 
     public double getMotionTarget(){

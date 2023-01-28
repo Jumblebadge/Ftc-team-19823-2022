@@ -51,9 +51,9 @@ public class goToPoint {
         double distanceToState = Math.abs(Math.hypot(statePoint.x-startPose.getX(),statePoint.y-startPose.getY()));
         //use pid on x and y position to move towards the target point determined by the state
         //distanceToState * sin or cos of the angle to end point will give the x or y component of the distance vector, which ensures that x and y arrive at the same time. pose-startpos is the current state
-        double xOut = xPID.out(distanceToState * Math.cos(angleToEndPoint) - (pose.getX() - startPose.getX()));
-        double yOut = yPID.out(distanceToState * Math.sin(angleToEndPoint) - (pose.getY() - startPose.getY()));
-        double headingOut = headingPID.out(AngleUnit.normalizeRadians(desiredPose.getHeading()-pose.getHeading()));
+        double xOut = xPID.pidOut(distanceToState * Math.cos(angleToEndPoint) - (pose.getX() - startPose.getX()));
+        double yOut = yPID.pidOut(distanceToState * Math.sin(angleToEndPoint) - (pose.getY() - startPose.getY()));
+        double headingOut = headingPID.pidOut(AngleUnit.normalizeRadians(desiredPose.getHeading()-pose.getHeading()));
         //feed the pid output into swerve kinematics and draw the robot on FTCdash field
         driver.driveOut(-yOut,-xOut,-headingOut);
         drawField(pose,desiredPose,startPose,dashboard);

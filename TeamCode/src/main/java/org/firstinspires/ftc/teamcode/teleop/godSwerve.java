@@ -10,14 +10,15 @@ import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
+import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
-import org.firstinspires.ftc.teamcode.utility.runMotionProfile;
 
 import java.util.List;
 
@@ -26,19 +27,17 @@ import java.util.List;
 @TeleOp(name="godSwerve", group="Linear Opmode")
 public class godSwerve extends LinearOpMode {
 
-    //Initialize FTCDashboard
     FtcDashboard dashboard;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = 20, mod1PC = 10, mod2PC = -60;
-    public static double Kp=0.2,Kd=0.0005,Ki=0.0007,Kf = 1,maxVel=1,maxAccel=1,maxJerk=1;
+    public static double Kp=0.2,Kd=0.0005,Ki=0.0007,Kf = 1;
 
-    double RliftTarget = 1, LliftTarget = 1, liftTarget = 0;
-
-    double linkagePos = 0.5;
+    public static double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
 
     //IMU
     BNO055IMU IMU;
+    Orientation angles;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -77,19 +76,33 @@ public class godSwerve extends LinearOpMode {
 
         VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
 
-        //Servo inRotL = hardwareMap.get(Servo.class,"inL");
-        //Servo inRotR = hardwareMap.get(Servo.class,"inR");
-        //Servo outRotL = hardwareMap.get(Servo.class,"outL");
-        //Servo outRotR = hardwareMap.get(Servo.class,"outR");
-        //Servo claw = hardwareMap.get(Servo.class,"claw");
-        //Servo linkage = hardwareMap.get(Servo.class,"linkage");
-
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         //mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
         //mod1m1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        DcMotorEx liftLeftMotor = hardwareMap.get(DcMotorEx.class, "Llift");
+        DcMotorEx liftRightMotor = hardwareMap.get(DcMotorEx.class,"Rlift");
+
+        AnalogInput turretPosition = hardwareMap.get(AnalogInput.class, "turretMa3");
+
+        ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
+        ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
+        ServoImplEx inRotL = hardwareMap.get(ServoImplEx.class,"inL");
+        ServoImplEx inRotR = hardwareMap.get(ServoImplEx.class,"inR");
+        ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
+        CRServoImplEx turretServo = hardwareMap.get(CRServoImplEx.class, "turret");
+        ServoImplEx claw = hardwareMap.get(ServoImplEx.class, "claw");
+
+        depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        inRotL.setPwmRange(new PwmControl.PwmRange(500,2500));
+        inRotR.setPwmRange(new PwmControl.PwmRange(500,2500));
+        linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        turretServo.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        claw.setPwmRange(new PwmControl.PwmRange(500,2500));
+
+        liftLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -97,15 +110,16 @@ public class godSwerve extends LinearOpMode {
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
 
-
         //class to drive the swerve
-        SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU,allHubs,vSensor, true);
+        SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU, vSensor, true);
 
         //class that runs our linear slide
         linearSlide slide = new linearSlide(liftLeft,liftRight);
+        slide.resetEncoders();
 
-        //twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
-        //twoServoBucket deposit = new twoServoBucket(outRotL,outRotR);
+        twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
+        twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
+        Turret turret = new Turret(turretServo, turretPosition);
 
         Toggler right_trigger = new Toggler();
         Toggler right_bumper = new Toggler();
@@ -133,27 +147,70 @@ public class godSwerve extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
 
-            drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
-            //drive.setPIDCoeffs(Kp,Kd,Ki,Kf);
-
-            drive.driveOut(leftX.rateLimit(gamepad1.left_stick_x,4),leftY.rateLimit(gamepad1.left_stick_y,4),rightX.rateLimit(gamepad1.right_stick_x/2,4));
-
             //Clear the cache for better loop times (bulk sensor reads)
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
 
-            ///right bumper for the outtake
-            ///right trigger for linkage
-            ////left trigger for mid point of intake
-            ///left bumper for claw open/close
-            ////dpad up and down for up and down intake
-            //letter buttons for slide positions
-            //claw is on CHUB 2
+            angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            double heading = angles.firstAngle*-1;
 
-            telemetry.addData("LliftPos",liftLeft.getCurrentPosition());
-            telemetry.addData("RliftPos",liftRight.getCurrentPosition());
-            telemetry.addData("target",liftTarget);
+            drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
+
+            drive.driveOut(leftX.rateLimit(gamepad1.left_stick_x,4),leftY.rateLimit(gamepad1.left_stick_y,4),rightX.rateLimit(gamepad1.right_stick_x*gamepad1.right_stick_x*gamepad1.right_stick_x,4));
+
+
+            if (gamepad2.a) {
+                slideTarget = 0;
+            }
+            else if (gamepad2.b) {
+                slideTarget = 200;
+            }
+            else if (gamepad2.x) {
+                slideTarget = 700;
+            }
+            else if (gamepad2.y) {
+                slideTarget = 1100;
+            }
+
+            //rising edge detector for linkage out/in
+            linkageTarget = (right_bumper.update(gamepad2.right_bumper) ? 0.7 : 0.3);
+
+            //rising edge detector for claw open/close
+            clawTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.175 : 0.5);
+
+
+            //rising edge detector for outtake positions
+            depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.35 : 0.85);
+
+            if(gamepad2.dpad_right){
+                intakeTarget = 0.45;
+                //straight up
+            }
+            else if (gamepad2.dpad_down){
+                intakeTarget = 0.25;
+                //down
+            }
+            else if (gamepad2.dpad_up){
+                intakeTarget = 1;
+                //up
+            }
+
+            turretTarget += (gamepad2.right_stick_x * gamepad2.right_stick_x * gamepad2.right_stick_x);
+            turretTarget = Range.clip(turretTarget, -90,90);
+            if (gamepad2.right_stick_button){
+                turretTarget = 0;
+            }
+            turret.moveTo(turretTarget);
+            linkage.setPosition(linkageTarget);
+            claw.setPosition(clawTarget);
+            deposit.moveTo(depositTarget);
+            intake.moveTo(intakeTarget);
+            slide.moveTo(-slideTarget);
+
+            telemetry.addData("turrettarget",turretTarget);
+            telemetry.addData("slidetarget",slideTarget);
+            telemetry.addData("heading",heading);
             telemetry.update();
         }
     }

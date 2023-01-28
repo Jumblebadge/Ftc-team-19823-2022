@@ -35,8 +35,8 @@ public class swerveModule {
             heading -= 180;
             power *= -1;
         }
-        motors.setPower(mathsOperations.diffyConvert(PID.out(AngleUnit.normalizeDegrees(heading - getModuleHeading())), power)[0], 0);
-        motors.setPower(mathsOperations.diffyConvert(PID.out(AngleUnit.normalizeDegrees(heading - getModuleHeading())), power)[1], 1);
+        motors.setPower(mathsOperations.diffyConvert(PID.pidOut(AngleUnit.normalizeDegrees(heading - getModuleHeading())), power)[0], 0);
+        motors.setPower(mathsOperations.diffyConvert(PID.pidOut(AngleUnit.normalizeDegrees(heading - getModuleHeading())), power)[1], 1);
     }
 
 }

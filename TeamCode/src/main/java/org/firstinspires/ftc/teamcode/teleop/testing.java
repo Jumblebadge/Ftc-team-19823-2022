@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
@@ -69,7 +70,7 @@ public class testing extends LinearOpMode {
         linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
         turretServo.setPwmRange(new PwmControl.PwmRange(500, 2500));
         claw.setPwmRange(new PwmControl.PwmRange(500,2500));
-        liftRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -113,7 +114,7 @@ public class testing extends LinearOpMode {
                         slideTarget = 0;
                     }
                     else if (gamepad2.b) {
-                        slideTarget = 200;
+                        slideTarget = 250;
                     }
                     else if (gamepad2.x) {
                         slideTarget = 700;
@@ -123,10 +124,10 @@ public class testing extends LinearOpMode {
                     }
 
                     //rising edge detector for linkage out/in
-                    linkageTarget = (right_bumper.update(gamepad2.right_bumper) ? 0.7 : 0.3);
+                    linkageTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.7 : 0.3);
 
                     //rising edge detector for claw open/close
-                    clawTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.175 : 0.5);
+                    clawTarget = (right_bumper.update(gamepad2.right_bumper) ? 0.175 : 0.5);
 
 
                     //rising edge detector for outtake positions
@@ -145,7 +146,7 @@ public class testing extends LinearOpMode {
                         //up
                     }
 
-                    if (gamepad2.left_trigger > 0.1){
+                    if (gamepad2.left_trigger > 2){
                         state = automation.LINKAGE;
                     }
                     break;
@@ -205,14 +206,19 @@ public class testing extends LinearOpMode {
                 state = automation.EXTERNAL;
             }
 
-            linkageTarget += (gamepad2.right_stick_x * gamepad2.right_stick_x * gamepad2.right_stick_x)/250;
+            turretTarget += (gamepad2.right_stick_x * gamepad2.right_stick_x * gamepad2.right_stick_x);
+            turretTarget = Range.clip(turretTarget, -90,90);
+            if (gamepad2.right_stick_button){
+                turretTarget = 0;
+            }
 
+            turret.setAdjust(adjust);
             turret.moveTo(turretTarget);
             linkage.setPosition(linkageTarget);
             claw.setPosition(clawTarget);
             deposit.moveTo(depositTarget);
             intake.moveTo(intakeTarget);
-            slide.moveTo(slideTarget);
+            slide.moveTo(-slideTarget);
 
             //x y a b is slide positions
             //lleft bumper toggled for open close claw
@@ -224,7 +230,10 @@ public class testing extends LinearOpMode {
             //linkage all the way in: intake 0.25, slides 200
 
             telemetry.addData("turretpos",turret.getHeading());
-            telemetry.addData("target",turretTarget);
+            telemetry.addData("lLift",liftLeftMotor.getCurrentPosition());
+            telemetry.addData("rLift",liftRightMotor.getCurrentPosition());
+            telemetry.addData("lifttarget",slideTarget);
+            telemetry.addData("turrettarget",turretTarget);
             telemetry.update();
 
         }

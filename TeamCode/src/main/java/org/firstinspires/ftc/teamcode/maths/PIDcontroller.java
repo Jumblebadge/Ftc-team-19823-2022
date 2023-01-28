@@ -6,7 +6,7 @@ public class PIDcontroller {
     //PID controller class
 
     private double integralSum,out,lastError;
-    private double Kp, Kd, Ki, Kf;
+    private double Kp, Kd, Ki, Kf, Kv, Ka;
     private ElapsedTime timer = new ElapsedTime();
 
     public PIDcontroller(double Kp, double Kd, double Ki, double Kf){
@@ -17,7 +17,7 @@ public class PIDcontroller {
     }
 
     //calculate
-    public double out(double error) {
+    public double pidOut(double error) {
         if (Math.abs(error) > 0) {
             //integral and derivative values
             double derivative = (error - lastError) / timer.seconds();
@@ -29,6 +29,10 @@ public class PIDcontroller {
             timer.reset();
         }
         return out;
+    }
+
+    public double ffOut(double error, double velocityTarget, double accelerationTarget){
+        return pidOut(error) + Kv * velocityTarget + Ka * accelerationTarget;
     }
 
     public void setPIDCoeffs(double Kp, double Kd, double Ki, double Kf){
