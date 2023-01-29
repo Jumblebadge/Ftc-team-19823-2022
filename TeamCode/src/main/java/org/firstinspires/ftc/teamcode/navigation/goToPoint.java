@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.profile.*;
+import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
@@ -21,8 +22,8 @@ public class goToPoint {
     private boolean isDone;
     private final myElapsedTime profileTime = new myElapsedTime();
     private final PIDcontroller headingPID = new PIDcontroller(6,0,0,0);
-    private final PIDcontroller xPID = new PIDcontroller(2.1,0,0.15,0);
-    private final PIDcontroller yPID = new PIDcontroller(2.1,0,0.15,0);
+    private final PIDcontroller xPID = new PIDcontroller(2.1,0,0,0);
+    private final PIDcontroller yPID = new PIDcontroller(2.1,0,0,0);
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(1, 0, 0), 2, 3,4);
 
     public goToPoint(SwerveDrive driver, Telemetry telemetry, FtcDashboard dashboard){
@@ -40,7 +41,7 @@ public class goToPoint {
         double angleToEndPoint = Math.atan2(desiredPose.getY()-startPose.getY(),desiredPose.getX()-startPose.getX());
         //if the target position has changed, then create a new motion profile and reset the profile timer
         if(update){
-            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(distanceAtStart, 0, 0), 20, 20, 20);
+            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(distanceAtStart, 0, 0), 10, 10, 10);
             profileTime.reset();
         }
         MotionState state = profile.get(profileTime.seconds());
@@ -55,10 +56,10 @@ public class goToPoint {
         double yOut = yPID.pidOut(distanceToState * Math.sin(angleToEndPoint) - (pose.getY() - startPose.getY()));
         double headingOut = headingPID.pidOut(AngleUnit.normalizeRadians(desiredPose.getHeading()-pose.getHeading()));
         //feed the pid output into swerve kinematics and draw the robot on FTCdash field
-        driver.driveOut(-yOut,-xOut,-headingOut);
+        driver.driveOut(yOut,xOut,-headingOut);
         drawField(pose,desiredPose,startPose,dashboard);
 
-        isDone = distanceNow < 1;
+        isDone = profile.duration() + 3 < profileTime.seconds();
 
         telemetry.addData("distance: ",distance);
         telemetry.addData("timer,",profileTime.seconds());
@@ -79,26 +80,21 @@ public class goToPoint {
         return isDone;
     }
 
-    /**
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf){
-        this.Kp = Kp;
-        this.Kd = Kd;
-        this.Ki = Ki;
-        this.Kf = Kf;
+        xPID.setPIDCoeffs(Kp, Kd, Ki, Kf);
+        yPID.setPIDCoeffs(Kp, Kd, Ki, Kf);
     }
 
     public void setHeadingPIDcoeffs(double Kp,double Kd, double Ki){
-        this.headingKp = Kp;
-        this.headingKd = Kd;
-        this.headingKi = Ki;
+        headingPID.setPIDCoeffs(Kp, Kd, Ki, 0);
     }
 
     public void setProfileConstraints(double maxVel, double maxAccel, double maxJerk){
-        this.maxVel = maxVel;
-        this.maxAccel = maxAccel;
-        this.maxJerk = maxJerk;
+        //this.maxVel = maxVel;
+        //this.maxAccel = maxAccel;
+        //this.maxJerk = maxJerk;
     }
-     **/
+
 
     //draw the robot on the FTCdash field (copied from the roadrunner quickstart)
     public static void drawRobot(Canvas canvas, Pose2d pose) {

@@ -6,8 +6,8 @@ public class swerveKinematics {
     public double[] calculate(double forward, double strafe, double rotate, double imu, boolean fieldcentrictoggle){
 
         //rotate vectors by imu heading for field centric (if toggled on)
-        double strafe1 = strafe;
-        double forward1 = forward;
+        double strafe1 = -strafe;
+        double forward1 = -forward;
 
         if(fieldcentrictoggle) {
             strafe1 = Math.cos(Math.toRadians(imu)) * strafe - Math.sin(Math.toRadians(imu)) * forward;

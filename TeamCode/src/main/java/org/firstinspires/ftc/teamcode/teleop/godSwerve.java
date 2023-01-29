@@ -30,7 +30,7 @@ public class godSwerve extends LinearOpMode {
     FtcDashboard dashboard;
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = 20, mod1PC = 10, mod2PC = -60;
+    public static double mod3PC = 20, mod1PC = 10, mod2PC = -20;
     public static double Kp=0.2,Kd=0.0005,Ki=0.0007,Kf = 1;
 
     public static double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
@@ -157,14 +157,14 @@ public class godSwerve extends LinearOpMode {
 
             drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
 
-            drive.driveOut(leftX.rateLimit(gamepad1.left_stick_x,4),leftY.rateLimit(gamepad1.left_stick_y,4),rightX.rateLimit(gamepad1.right_stick_x*gamepad1.right_stick_x*gamepad1.right_stick_x,4));
+            drive.driveOut(-gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x*gamepad1.right_stick_x*gamepad1.right_stick_x);
 
 
             if (gamepad2.a) {
                 slideTarget = 0;
             }
             else if (gamepad2.b) {
-                slideTarget = 200;
+                slideTarget = 250;
             }
             else if (gamepad2.x) {
                 slideTarget = 700;
@@ -177,11 +177,11 @@ public class godSwerve extends LinearOpMode {
             linkageTarget = (right_bumper.update(gamepad2.right_bumper) ? 0.7 : 0.3);
 
             //rising edge detector for claw open/close
-            clawTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.175 : 0.5);
+            clawTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.2 : 0.5);
 
 
             //rising edge detector for outtake positions
-            depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.35 : 0.85);
+            depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.3 : 0.85);
 
             if(gamepad2.dpad_right){
                 intakeTarget = 0.45;

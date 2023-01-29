@@ -67,7 +67,7 @@ public class SwerveDrive {
         double heading = angles.firstAngle*-1;
 
         //Retrieve the angle and power for each module
-        double[] output = swavemath.calculate(y,x,-rot,heading,true);
+        double[] output = swavemath.calculate(y,-x,-rot,heading,true);
         double mod1power = output[0];
         double mod3power = output[1];
         double mod2power = output[2];
@@ -117,7 +117,7 @@ public class SwerveDrive {
         double[] mod1values = mathsOperations.diffyConvert(-mod1PID.pidOut(AngleUnit.normalizeDegrees(mod1reference-mod1P)),-mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.pidOut(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
+        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.pidOut(AngleUnit.normalizeDegrees(mod2reference-mod2P)),-mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
         double[] mod3values = mathsOperations.diffyConvert(mod3PID.pidOut(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power);

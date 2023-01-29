@@ -35,7 +35,7 @@ public class swervy extends LinearOpMode {
     ElapsedTime hztimer = new ElapsedTime();
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -120, mod1PC = -9, mod2PC = -55;
+    public static double mod3PC = 20, mod1PC = 10, mod2PC = -20;
 
     //IMU
     BNO055IMU IMU;
@@ -96,7 +96,7 @@ public class swervy extends LinearOpMode {
         SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU, vSensor, true);
         goToPoint auto = new goToPoint(drive,telemetry,dashboard);
 
-        drive.setModuleAdjustments(0,-15,-45);
+        drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -134,8 +134,8 @@ public class swervy extends LinearOpMode {
 
             dashboard.sendTelemetryPacket(packet);
 
-            //auto.setPIDCoeffs(Kp,Kd,Ki,Kf);
-            //auto.setHeadingPIDcoeffs(hKp,hKd,hKi);
+            auto.setPIDCoeffs(Kp,Kd,Ki,Kf);
+            auto.setHeadingPIDcoeffs(hKp,hKd,hKi);
             //auto.setProfileConstraints(maxVel,maxAccel,maxJerk);
 
             if (lastX != x || lastY != y) {
