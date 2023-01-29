@@ -120,7 +120,7 @@ import java.util.List;
             PhotonCore.enable();
             localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
-            drive.setModuleAdjustments(10,-20,20);
+            drive.setModuleAdjustments(0,-30,50);
 
             while (!isStarted() && !isStopRequested()) {
                 webcamStuff.detectTags();

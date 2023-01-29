@@ -47,7 +47,7 @@ public class goToPoint {
         MotionState state = profile.get(profileTime.seconds());
         double stateOut = state.getX();
         //create a point from the motion profile output, which is normally just a distance value
-        Point statePoint = new Point(startPose.getX()+(stateOut *Math.cos(angleToEndPoint)),startPose.getY()+(stateOut *Math.sin(angleToEndPoint)));
+        Point statePoint = new Point(startPose.getX()+(stateOut * Math.cos(angleToEndPoint)),startPose.getY()+(stateOut *Math.sin(angleToEndPoint)));
         //distance from current position to the target point, determined by the motion profile
         double distanceToState = Math.abs(Math.hypot(statePoint.x-startPose.getX(),statePoint.y-startPose.getY()));
         //use pid on x and y position to move towards the target point determined by the state

@@ -25,8 +25,8 @@ public class SwerveDrive {
     private double Kp,Kd,Ki,Kf;
     private double module1Adjust = 0, module2Adjust = 0, module3Adjust = 0;
     PIDcontroller mod1PID = new PIDcontroller(0.2,0.003,0.01,0.2);
-    PIDcontroller mod2PID = new PIDcontroller(0.2,0.003,0.01,0.275);
-    PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,0.2);
+    PIDcontroller mod2PID = new PIDcontroller(0.2,0.003,0.01,0.1);
+    PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,0.1);
     swerveKinematics swavemath = new swerveKinematics();
 
     public SwerveDrive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, VoltageSensor vSensor, boolean eff){
@@ -53,7 +53,7 @@ public class SwerveDrive {
 
     public void driveOut(double x, double y, double rot){
 
-        //mod1PID.setPIDCoeffs(Kp,Kd,Ki,Kf);
+        mod3PID.setPIDCoeffs(Kp,Kd,Ki,Kf);
 
         double voltageConstant = 12 / vSensor.getVoltage();
 
