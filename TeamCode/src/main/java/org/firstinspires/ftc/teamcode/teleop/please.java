@@ -8,14 +8,12 @@ import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
-import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.teamcode.maths.mathsOperations;
-import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
+import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
+import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
 
 import java.util.List;
-
 
 @Config
 @TeleOp(name="please", group="Linear Opmode")
@@ -23,9 +21,7 @@ public class please extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-    public static double r = 0, div = 1;
-    double pos = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
+    double slideTarget;
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
@@ -46,8 +42,20 @@ public class please extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
-        slewRateLimiter limiter = new slewRateLimiter();
-        slewRateLimiter limiter2 = new slewRateLimiter();
+        DcMotorEx liftLeftMotor = hardwareMap.get(DcMotorEx.class, "Llift");
+        DcMotorEx liftRightMotor = hardwareMap.get(DcMotorEx.class,"Rlift");
+
+        ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
+        ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
+        depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
+        Toggler right_trigger = new Toggler();
+        liftLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        linearSlide slide = new linearSlide(liftLeftMotor,liftRightMotor);
+        slide.resetEncoders();
+
 
         waitForStart();
         while (opModeIsActive()) {
@@ -55,18 +63,23 @@ public class please extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            pos = limiter.rateLimit(gamepad2.right_stick_x * 90, r);
-            pos2 += gamepad2.right_stick_x/div;
-            if(gamepad2.right_stick_button) { pos2 = 0; }
-            pos3 += limiter2.rateLimit(gamepad2.right_stick_x, r)/div;
-            pos4 += (gamepad2.right_stick_x*gamepad2.right_stick_x* gamepad2.right_stick_x)/div;
+            if (gamepad2.a) {
+                slideTarget = 0;
+            }
+            else if (gamepad2.b) {
+                slideTarget = 250;
+            }
+            else if (gamepad2.x) {
+                slideTarget = 600;
+            }
+            else if (gamepad2.y) {
+                slideTarget = 1000;
+            }
+            slide.moveTo(slideTarget);
 
-            telemetry.addData("pos",pos);
-            telemetry.addData("pos2",pos2);
-            telemetry.addData("pos3", pos3);
-            telemetry.addData("pos4",pos4);
-            telemetry.addData("last",gamepad2.right_stick_x);
-            telemetry.update();
+            deposit.moveTo(right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.275 : 0.85);
+
+
         }
     }
 }

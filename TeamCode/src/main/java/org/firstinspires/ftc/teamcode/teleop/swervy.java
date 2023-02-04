@@ -93,7 +93,7 @@ public class swervy extends LinearOpMode {
         //set odometry localizer and make object for driving
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
-        SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU, vSensor, true);
+        SwerveDrive drive = new SwerveDrive(telemetry, IMU, hardwareMap, true);
         goToPoint auto = new goToPoint(drive,telemetry,dashboard);
 
         drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);

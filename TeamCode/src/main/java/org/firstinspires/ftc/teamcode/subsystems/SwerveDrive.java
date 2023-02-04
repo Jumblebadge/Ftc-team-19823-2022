@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -20,7 +21,6 @@ public class SwerveDrive {
     final private DcMotorEx mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2;
     final private AnalogInput mod1E,mod2E,mod3E;
     final private Telemetry telemetry;
-    final private VoltageSensor vSensor;
     final private boolean eff;
     private double Kp,Kd,Ki,Kf;
     private double module1Adjust = 0, module2Adjust = 0, module3Adjust = 0;
@@ -29,33 +29,30 @@ public class SwerveDrive {
     PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,0.1);
     swerveKinematics swavemath = new swerveKinematics();
 
-    public SwerveDrive(Telemetry telemetry, DcMotorEx mod1m1, DcMotorEx mod1m2, DcMotorEx mod2m1, DcMotorEx mod2m2, DcMotorEx mod3m1, DcMotorEx mod3m2, AnalogInput mod1E, AnalogInput mod2E, AnalogInput mod3E, BNO055IMU IMU, VoltageSensor vSensor, boolean eff){
-        this.mod1m1 = mod1m1;
-        this.mod1m2 = mod1m2;
-        this.mod2m1 = mod2m1;
-        this.mod2m2 = mod2m2;
-        this.mod3m1 = mod3m1;
-        this.mod3m2 = mod3m2;
-        this.mod1E = mod1E;
-        this.mod2E = mod2E;
-        this.mod3E = mod3E;
+    public SwerveDrive(Telemetry telemetry, BNO055IMU IMU, HardwareMap hardwareMap, boolean eff){
+        mod1m1 = hardwareMap.get(DcMotorEx.class,"mod1m1");
+        mod1m2 = hardwareMap.get(DcMotorEx.class,"mod1m2");
+        mod2m1 = hardwareMap.get(DcMotorEx.class,"mod2m1");
+        mod2m2 = hardwareMap.get(DcMotorEx.class,"mod2m2");
+        mod3m1 = hardwareMap.get(DcMotorEx.class,"mod3m1");
+        mod3m2 = hardwareMap.get(DcMotorEx.class,"mod3m2");
+        mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
+        mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
+        mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
         this.IMU = IMU;
         this.telemetry = telemetry;
-        this.vSensor = vSensor;
         this.eff = eff;
     }
 
     Orientation angles;
 
-    double mod1reference1 = 0;
-    double mod2reference1 = 0;
-    double mod3reference1 = 0;
+    double mod1reference = 0;
+    double mod2reference = 0;
+    double mod3reference = 0;
 
     public void driveOut(double x, double y, double rot){
 
-        mod3PID.setPIDCoeffs(Kp,Kd,Ki,Kf);
-
-        double voltageConstant = 12 / vSensor.getVoltage();
+        //mod3PID.setPIDCoeffs(Kp,Kd,Ki,Kf);
 
         //Turn our MA3 absolute encoder signals from volts to degrees
         double mod1P = mod1E.getVoltage() * 74.16;
@@ -74,14 +71,10 @@ public class SwerveDrive {
 
         //keep previous module heading if joystick not being used
         if (y != 0 || x != 0 || rot != 0){
-            mod1reference1 = output[3];
-            mod3reference1 = output[5];
-            mod2reference1 = output[4];
+            mod1reference = output[3];
+            mod3reference = output[5];
+            mod2reference = output[4];
         }
-
-        double mod1reference = mod1reference1;
-        double mod3reference = mod3reference1;
-        double mod2reference = mod2reference1;
 
         //set the zero of each module to be forward
         mod3P -= module3Adjust;

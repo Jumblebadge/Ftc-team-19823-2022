@@ -111,7 +111,7 @@ public class godSwerve extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //class to drive the swerve
-        SwerveDrive drive = new SwerveDrive(telemetry,mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2,mod1E,mod2E,mod3E,IMU, vSensor, true);
+        SwerveDrive drive = new SwerveDrive(telemetry, IMU, hardwareMap, true);
 
         //class that runs our linear slide
         linearSlide slide = new linearSlide(liftLeft,liftRight);
@@ -158,7 +158,7 @@ public class godSwerve extends LinearOpMode {
             drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
             drive.setPIDCoeffs(Kp, Kd, Ki, Kf);
 
-            drive.driveOut(-gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x*gamepad1.right_stick_x*gamepad1.right_stick_x);
+            //drive.driveOut(-gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x*gamepad1.right_stick_x*gamepad1.right_stick_x);
 
 
             if (gamepad2.a) {
@@ -179,7 +179,6 @@ public class godSwerve extends LinearOpMode {
 
             //rising edge detector for claw open/close
             clawTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.2 : 0.5);
-
 
             //rising edge detector for outtake positions
             depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.3 : 0.85);
@@ -207,7 +206,7 @@ public class godSwerve extends LinearOpMode {
             claw.setPosition(clawTarget);
             deposit.moveTo(depositTarget);
             intake.moveTo(intakeTarget);
-            slide.moveTo(-slideTarget);
+            //slide.moveTo(-slideTarget);
 
             telemetry.addData("turrettarget",turretTarget);
             telemetry.addData("slidetarget",slideTarget);
