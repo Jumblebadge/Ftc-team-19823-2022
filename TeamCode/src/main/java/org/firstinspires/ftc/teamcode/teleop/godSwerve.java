@@ -4,8 +4,8 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.*;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
@@ -33,26 +33,26 @@ public class godSwerve extends LinearOpMode {
     public static double mod3PC = 50, mod1PC = 0, mod2PC = -30;
     public static double Kp=0.2,Kd=0.003,Ki=0.01,Kf = 0.2;
 
-    public static double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
+    double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
 
     //IMU
-    BNO055IMU IMU;
-    Orientation angles;
+    IMU imu;
+    YawPitchRollAngles angles;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
         //Calibrate the IMU
         //CHANGE TO ODO HEADING!
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        IMU = hardwareMap.get(BNO055IMU.class, "IMU");
-        IMU.initialize(parameters);
-        IMU.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(
+                new IMU.Parameters(
+                        new RevHubOrientationOnRobot(
+                                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                                RevHubOrientationOnRobot.UsbFacingDirection.UP
+                        )
+                )
+        );
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -111,7 +111,7 @@ public class godSwerve extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //class to drive the swerve
-        SwerveDrive drive = new SwerveDrive(telemetry, IMU, hardwareMap, true);
+        SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
 
         //class that runs our linear slide
         linearSlide slide = new linearSlide(liftLeft,liftRight);
@@ -152,8 +152,8 @@ public class godSwerve extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            double heading = angles.firstAngle*-1;
+            angles = imu.getRobotYawPitchRollAngles();
+            double heading = angles.getYaw(AngleUnit.DEGREES)*-1;
 
             drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
             drive.setPIDCoeffs(Kp, Kd, Ki, Kf);

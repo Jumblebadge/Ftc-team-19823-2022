@@ -4,11 +4,15 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
 import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
@@ -34,6 +38,16 @@ public class please extends LinearOpMode {
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
 
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(
+                new IMU.Parameters(
+                        new RevHubOrientationOnRobot(
+                                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                                RevHubOrientationOnRobot.UsbFacingDirection.UP
+                        )
+                )
+        );
+
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -55,7 +69,6 @@ public class please extends LinearOpMode {
 
         linearSlide slide = new linearSlide(liftLeftMotor,liftRightMotor);
         slide.resetEncoders();
-
 
         waitForStart();
         while (opModeIsActive()) {
@@ -79,6 +92,9 @@ public class please extends LinearOpMode {
 
             deposit.moveTo(right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.275 : 0.85);
 
+            YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
+            telemetry.addData("imu,", angles.getYaw(AngleUnit.DEGREES));
+            telemetry.update();
 
         }
     }

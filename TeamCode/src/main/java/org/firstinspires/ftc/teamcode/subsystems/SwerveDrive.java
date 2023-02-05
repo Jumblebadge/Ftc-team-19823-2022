@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -11,13 +12,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
 
 public class SwerveDrive {
 
-    final private BNO055IMU IMU;
+    final private IMU imu;
     final private DcMotorEx mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2;
     final private AnalogInput mod1E,mod2E,mod3E;
     final private Telemetry telemetry;
@@ -29,7 +31,7 @@ public class SwerveDrive {
     PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,0.1);
     swerveKinematics swavemath = new swerveKinematics();
 
-    public SwerveDrive(Telemetry telemetry, BNO055IMU IMU, HardwareMap hardwareMap, boolean eff){
+    public SwerveDrive(Telemetry telemetry, IMU imu, HardwareMap hardwareMap, boolean eff){
         mod1m1 = hardwareMap.get(DcMotorEx.class,"mod1m1");
         mod1m2 = hardwareMap.get(DcMotorEx.class,"mod1m2");
         mod2m1 = hardwareMap.get(DcMotorEx.class,"mod2m1");
@@ -39,12 +41,10 @@ public class SwerveDrive {
         mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
         mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
         mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
-        this.IMU = IMU;
+        this.imu = imu;
         this.telemetry = telemetry;
         this.eff = eff;
     }
-
-    Orientation angles;
 
     double mod1reference = 0;
     double mod2reference = 0;
@@ -60,8 +60,8 @@ public class SwerveDrive {
         double mod3P = mod3E.getVoltage() * 74.16;
 
         //Update heading of robot
-        angles   = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double heading = angles.firstAngle*-1;
+        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
+        double heading = angles.getYaw(AngleUnit.DEGREES)*-1;
 
         //Retrieve the angle and power for each module
         double[] output = swavemath.calculate(y,-x,-rot,heading,true);
