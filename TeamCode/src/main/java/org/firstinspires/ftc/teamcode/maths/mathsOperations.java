@@ -63,4 +63,11 @@ public class mathsOperations {
         }
         return false;
     }
+
+    public static double power(double x, double pow){
+        for (int i = 0; i < pow + 1; i++){
+            x *= x;
+        }
+        return x;
+    }
 }

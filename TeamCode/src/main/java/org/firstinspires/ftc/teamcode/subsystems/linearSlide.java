@@ -19,9 +19,9 @@ public class linearSlide{
     }
 
     public void moveTo(double target){
-        motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),0);
-        motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),1);
-        this. target = target;
+        motors.setPower(profile.profiledMovement(-target, motors.getPosition(0)),0);
+        motors.setPower(profile.profiledMovement(-target, motors.getPosition(0)),1);
+        this. target = -target;
     }
 
     public double getError(){

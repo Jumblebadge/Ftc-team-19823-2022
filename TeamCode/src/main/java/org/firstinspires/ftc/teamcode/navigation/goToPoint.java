@@ -6,7 +6,6 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.acmerobotics.roadrunner.profile.*;
-import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
@@ -56,7 +55,7 @@ public class goToPoint {
         double yOut = yPID.pidOut(distanceToState * Math.sin(angleToEndPoint) - (pose.getY() - startPose.getY()));
         double headingOut = headingPID.pidOut(AngleUnit.normalizeRadians(desiredPose.getHeading()-pose.getHeading()));
         //feed the pid output into swerve kinematics and draw the robot on FTCdash field
-        driver.driveOut(yOut,xOut,-headingOut);
+        driver.drive(yOut,xOut,-headingOut);
         drawField(pose,desiredPose,startPose,dashboard);
 
         isDone = profile.duration() + 3 < profileTime.seconds();

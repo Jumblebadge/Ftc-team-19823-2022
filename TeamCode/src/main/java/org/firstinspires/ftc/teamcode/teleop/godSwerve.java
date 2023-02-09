@@ -27,24 +27,18 @@ import java.util.List;
 @TeleOp(name="godSwerve", group="Linear Opmode")
 public class godSwerve extends LinearOpMode {
 
-    FtcDashboard dashboard;
-
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = 50, mod1PC = 0, mod2PC = -30;
-    public static double Kp=0.2,Kd=0.003,Ki=0.01,Kf = 0.2;
+    public static double mod3PC = -20, mod1PC = -20, mod2PC = -105;
+    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0;
 
     double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
-
-    //IMU
-    IMU imu;
-    YawPitchRollAngles angles;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
         //Calibrate the IMU
         //CHANGE TO ODO HEADING!
-        imu = hardwareMap.get(IMU.class, "imu");
+        IMU imu = hardwareMap.get(IMU.class, "imu");
         imu.initialize(
                 new IMU.Parameters(
                         new RevHubOrientationOnRobot(
@@ -59,31 +53,12 @@ public class godSwerve extends LinearOpMode {
 
         //Link all of our hardware to our hardwaremap
         //E = encoder, m1 = motor 1, m2 = motor 2
-        AnalogInput mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
-        AnalogInput mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
-        AnalogInput mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
-
-        DcMotorEx mod1m1 = hardwareMap.get(DcMotorEx.class, "mod1m1");
-        DcMotorEx mod2m1 = hardwareMap.get(DcMotorEx.class, "mod2m1");
-        DcMotorEx mod3m1 = hardwareMap.get(DcMotorEx.class, "mod3m1");
-
-        DcMotorEx mod1m2 = hardwareMap.get(DcMotorEx.class, "mod1m2");
-        DcMotorEx mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
-        DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
 
         DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
         DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
 
-        VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
 
-        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        //mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        //mod1m1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        DcMotorEx liftLeftMotor = hardwareMap.get(DcMotorEx.class, "Llift");
-        DcMotorEx liftRightMotor = hardwareMap.get(DcMotorEx.class,"Rlift");
-
+        /*
         AnalogInput turretPosition = hardwareMap.get(AnalogInput.class, "turretMa3");
 
         ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
@@ -101,33 +76,32 @@ public class godSwerve extends LinearOpMode {
         linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
         turretServo.setPwmRange(new PwmControl.PwmRange(500, 2500));
         claw.setPwmRange(new PwmControl.PwmRange(500,2500));
+        */
 
-        liftLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
         //Initialize FTCDashboard
-        dashboard = FtcDashboard.getInstance();
+        FtcDashboard dashboard = FtcDashboard.getInstance();
 
-        //class to drive the swerve
-        SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
+        //class to swerve the swerve
+        SwerveDrive swerve = new SwerveDrive(telemetry, imu, hardwareMap, true);
 
         //class that runs our linear slide
         linearSlide slide = new linearSlide(liftLeft,liftRight);
         slide.resetEncoders();
 
-        twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
-        twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
-        Turret turret = new Turret(turretServo, turretPosition);
+        //twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
+        //twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
+        //Turret turret = new Turret(turretServo, turretPosition);
 
         Toggler right_trigger = new Toggler();
         Toggler right_bumper = new Toggler();
         Toggler left_bumper = new Toggler();
 
-        slewRateLimiter leftX = new slewRateLimiter(), leftY = new slewRateLimiter(), rightX = new slewRateLimiter();
-
-        drive.setModuleAdjustments(0,-15,-45);
+        swerve.setModuleAdjustments(0,-15,-45);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -152,14 +126,13 @@ public class godSwerve extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            angles = imu.getRobotYawPitchRollAngles();
+            YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
             double heading = angles.getYaw(AngleUnit.DEGREES)*-1;
 
-            drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
-            drive.setPIDCoeffs(Kp, Kd, Ki, Kf);
+            swerve.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
+            //swerve.setPIDCoeffs(Kp, Kd, Ki, Kf);
 
-            //drive.driveOut(-gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x*gamepad1.right_stick_x*gamepad1.right_stick_x);
-
+            swerve.drive(gamepad1.left_stick_x, gamepad1.left_stick_y,gamepad1.right_stick_x * gamepad1.right_stick_x * gamepad1.right_stick_x);
 
             if (gamepad2.a) {
                 slideTarget = 0;
@@ -196,17 +169,14 @@ public class godSwerve extends LinearOpMode {
                 //up
             }
 
-            turretTarget += (gamepad2.right_stick_x * gamepad2.right_stick_x * gamepad2.right_stick_x);
-            turretTarget = Range.clip(turretTarget, -90,90);
-            if (gamepad2.right_stick_button){
-                turretTarget = 0;
-            }
-            turret.moveTo(turretTarget);
-            linkage.setPosition(linkageTarget);
-            claw.setPosition(clawTarget);
-            deposit.moveTo(depositTarget);
-            intake.moveTo(intakeTarget);
-            //slide.moveTo(-slideTarget);
+            turretTarget = 0;
+
+            //turret.moveTo(turretTarget);
+            //linkage.setPosition(linkageTarget);
+            //claw.setPosition(clawTarget);
+            //deposit.moveTo(depositTarget);
+            //intake.moveTo(intakeTarget);
+            slide.moveTo(slideTarget);
 
             telemetry.addData("turrettarget",turretTarget);
             telemetry.addData("slidetarget",slideTarget);

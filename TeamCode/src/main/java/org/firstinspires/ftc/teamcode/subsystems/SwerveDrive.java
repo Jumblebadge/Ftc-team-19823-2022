@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
@@ -26,9 +27,9 @@ public class SwerveDrive {
     final private boolean eff;
     private double Kp,Kd,Ki,Kf;
     private double module1Adjust = 0, module2Adjust = 0, module3Adjust = 0;
-    PIDcontroller mod1PID = new PIDcontroller(0.2,0.003,0.01,0.2);
-    PIDcontroller mod2PID = new PIDcontroller(0.2,0.003,0.01,0.1);
-    PIDcontroller mod3PID = new PIDcontroller(0.2,0.003,0.01,0.1);
+    PIDcontroller mod1PID = new PIDcontroller(0.1,0.001,0,0.1);
+    PIDcontroller mod2PID = new PIDcontroller(0.1,0.001,0,0.1);
+    PIDcontroller mod3PID = new PIDcontroller(0.1,0.001,0,0.1);
     swerveKinematics swavemath = new swerveKinematics();
 
     public SwerveDrive(Telemetry telemetry, IMU imu, HardwareMap hardwareMap, boolean eff){
@@ -41,6 +42,9 @@ public class SwerveDrive {
         mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
         mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
         mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
+
+        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
+        mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
         this.imu = imu;
         this.telemetry = telemetry;
         this.eff = eff;
@@ -50,7 +54,7 @@ public class SwerveDrive {
     double mod2reference = 0;
     double mod3reference = 0;
 
-    public void driveOut(double x, double y, double rot){
+    public void drive(double x, double y, double rot){
 
         //mod3PID.setPIDCoeffs(Kp,Kd,Ki,Kf);
 
@@ -107,7 +111,7 @@ public class SwerveDrive {
         }
 
         //change coax values into diffy values from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(-mod1PID.pidOut(AngleUnit.normalizeDegrees(mod1reference-mod1P)),-mod1power);
+        double[] mod1values = mathsOperations.diffyConvert(mod1PID.pidOut(AngleUnit.normalizeDegrees(mod1reference-mod1P)),-mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
         double[] mod2values = mathsOperations.diffyConvert(-mod2PID.pidOut(AngleUnit.normalizeDegrees(mod2reference-mod2P)),-mod2power);

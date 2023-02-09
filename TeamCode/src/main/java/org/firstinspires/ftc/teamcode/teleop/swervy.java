@@ -11,6 +11,7 @@ import com.acmerobotics.roadrunner.localization.Localizer;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.*;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
@@ -46,18 +47,15 @@ public class swervy extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        //Calibrate the IMU
-        //CHANGE TO ODO HEADING!
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        IMU = hardwareMap.get(BNO055IMU.class, "IMU");
-        IMU.initialize(parameters);
-        IMU.startAccelerationIntegration(new Position(), new Velocity(), 1000);
-
+        IMU imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(
+                new IMU.Parameters(
+                        new RevHubOrientationOnRobot(
+                                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                                RevHubOrientationOnRobot.UsbFacingDirection.UP
+                        )
+                )
+        );
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -93,7 +91,7 @@ public class swervy extends LinearOpMode {
         //set odometry localizer and make object for driving
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
 
-        SwerveDrive drive = new SwerveDrive(telemetry, null, hardwareMap, true);
+        SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
         goToPoint auto = new goToPoint(drive,telemetry,dashboard);
 
         drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
@@ -155,7 +153,7 @@ public class swervy extends LinearOpMode {
             //telemetry.addData("gy",gamepad1.left_stick_y);
             //telemetry.addData("headingout",rotPIDout);
             //telemetry.addData("headingtarget",headingTarget);
-            //drivein.driveOut(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
+            //drivein.drive(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
 
             telemetry.addData("bore1",mod1m1.getCurrentPosition());
             telemetry.addData("bore2",mod2m2.getCurrentPosition());

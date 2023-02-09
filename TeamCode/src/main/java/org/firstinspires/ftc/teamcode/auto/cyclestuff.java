@@ -198,21 +198,6 @@ public class cyclestuff extends LinearOpMode {
             }
         }
 
-        //auto starting
-        if(detectedTag == null || detectedTag.id == 2) {
-            runPoint(39,0,0);
-            runPoint(39,6,0);
-        }
-        else if(detectedTag.id == 1){
-            runPoint(26,0,0);
-            runPoint(26,-26,0);
-            runPoint(39,-30,0);
-        }
-        else if(detectedTag.id == 3){
-            runPoint(26,0,0);
-            runPoint(26,26,0);
-            runPoint(39,30,0);
-        }
 
         if(detectedTag != null)
         {

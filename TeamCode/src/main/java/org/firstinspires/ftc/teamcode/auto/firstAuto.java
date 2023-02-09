@@ -211,35 +211,35 @@ public class firstAuto extends LinearOpMode {
         if(detectedTag == null || detectedTag.id == side2) {
             autotime.reset();
             while (autotime.seconds()<2.3&&opModeIsActive()){
-                //drivein.driveOut(0.035,-0.3,0);
+                //drivein.drive(0.035,-0.3,0);
             }
             while(autotime.seconds()<5&&opModeIsActive()){
-                //drivein.driveOut(0.01,0.01,0);
+                //drivein.drive(0.01,0.01,0);
             }
         }
 
         else if(detectedTag.id == side1){
             autotime.reset();
             while(autotime.seconds()<2.15&&opModeIsActive()){
-                //drivein.driveOut(0.03,-0.3,0);
+                //drivein.drive(0.03,-0.3,0);
             }
             while (autotime.seconds()<3.45&&autotime.seconds()>2.15&&opModeIsActive()){
-                //drivein.driveOut(0.3,0,0);
+                //drivein.drive(0.3,0,0);
             }
             while(autotime.seconds()<6&&opModeIsActive()){
-                //drivein.driveOut(0.01,0.01,0);
+                //drivein.drive(0.01,0.01,0);
             }
         }
         else if(detectedTag.id == side3){
             autotime.reset();
             while(autotime.seconds()<2.15&&opModeIsActive()){
-                //drivein.driveOut(0.035,-0.3,0);
+                //drivein.drive(0.035,-0.3,0);
             }
             while (autotime.seconds()<3.9&&autotime.seconds()>2.15&&opModeIsActive()){
-                //drivein.driveOut(-0.3,0,0);
+                //drivein.drive(-0.3,0,0);
             }
             while(autotime.seconds()<6&&opModeIsActive()){
-                //drivein.driveOut(0.01,0.01,0);
+                //drivein.drive(0.01,0.01,0);
             }
 
         }
