@@ -66,12 +66,14 @@ public class cyclestuff extends LinearOpMode {
 
     goToPoint auto;
 
+    //TODO auto cycling position = new Pose2d(47, 10, -1)
+
     //IMU
     BNO055IMU IMU;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
-        cameraActivity webcamStuff = new cameraActivity(webcam,hardwareMap,telemetry);
+        cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         webcamStuff.initCamera();

@@ -39,7 +39,6 @@ public class swervy extends LinearOpMode {
     public static double mod3PC = 20, mod1PC = 10, mod2PC = -20;
 
     //IMU
-    BNO055IMU IMU;
     Localizer localizer;
     public static double x=0,y=0, heading = 0,Kp=0,Kd=0,Ki=0, Kf = 0,hKp = 0,hKd = 0,hKi = 0,maxVel=1,maxAccel=1,maxJerk=1;
     double lastX=0,lastY=0;
@@ -47,40 +46,21 @@ public class swervy extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        imu.initialize(
-                new IMU.Parameters(
-                        new RevHubOrientationOnRobot(
-                                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                                RevHubOrientationOnRobot.UsbFacingDirection.UP
-                        )
-                )
-        );
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+
+
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        //Link all of our hardware to our hardwaremap
-        //E = encoder, m1 = motor 1, m2 = motor 2
-        AnalogInput mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
-        AnalogInput mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
-        AnalogInput mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
-
-        DcMotorEx mod1m1 = hardwareMap.get(DcMotorEx.class, "mod1m1");
-        DcMotorEx mod2m1 = hardwareMap.get(DcMotorEx.class, "mod2m1");
-        DcMotorEx mod3m1 = hardwareMap.get(DcMotorEx.class, "mod3m1");
-
-        DcMotorEx mod1m2 = hardwareMap.get(DcMotorEx.class, "mod1m2");
-        DcMotorEx mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
-        DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
-
-        VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
-
-        mod1m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        //mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        //liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        //liftRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -89,12 +69,12 @@ public class swervy extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //set odometry localizer and make object for driving
-        localizer = new TwoWheelTrackingLocalizer(hardwareMap,IMU);
+        localizer = new TwoWheelTrackingLocalizer(hardwareMap,imu);
 
         SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
         goToPoint auto = new goToPoint(drive,telemetry,dashboard);
 
-        drive.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
+        drive.setModuleAdjustments(-20,-105,-40);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -155,8 +135,6 @@ public class swervy extends LinearOpMode {
             //telemetry.addData("headingtarget",headingTarget);
             //drivein.drive(gamepad1.left_stick_x,-gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1);
 
-            telemetry.addData("bore1",mod1m1.getCurrentPosition());
-            telemetry.addData("bore2",mod2m2.getCurrentPosition());
             //telemetry.setAutoClear(false);
             telemetry.addData("ms",hztimer.milliseconds());
             hztimer.reset();

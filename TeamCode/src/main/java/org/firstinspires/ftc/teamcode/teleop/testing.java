@@ -79,7 +79,7 @@ public class testing extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //class that runs our linear slide
-        linearSlide slide = new linearSlide(liftLeftMotor,liftRightMotor);
+        linearSlide slide = new linearSlide(hardwareMap);
         slide.resetEncoders();
 
         twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);

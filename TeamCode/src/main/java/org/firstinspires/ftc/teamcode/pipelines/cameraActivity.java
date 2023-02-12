@@ -28,8 +28,7 @@ public class cameraActivity {
 
     aprilTagDetectPipe pipeline = new aprilTagDetectPipe(tagsize,fx,fy,cx,cy);
 
-    public cameraActivity(OpenCvWebcam webcam, HardwareMap hardwareMap, Telemetry telemetry){
-        this.webcam=webcam;
+    public cameraActivity(HardwareMap hardwareMap, Telemetry telemetry){
         this.hardwareMap=hardwareMap;
         this.telemetry=telemetry;
     }

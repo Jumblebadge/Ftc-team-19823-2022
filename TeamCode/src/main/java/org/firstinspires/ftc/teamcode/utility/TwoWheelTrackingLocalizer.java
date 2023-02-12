@@ -61,8 +61,8 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
                 new Pose2d(PERPENDICULAR_X, PERPENDICULAR_Y, Math.toRadians(90))
         ));
         this.imu = imu;
-        parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "mod1m1"));
-        perpendicularEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "mod2m2"));
+        parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "mod2m2"));
+        perpendicularEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "mod2m1"));
         //parallelEncoder.setDirection(Encoder.Direction.REVERSE);
         perpendicularEncoder.setDirection(Encoder.Direction.REVERSE);
         parallelEncoder.setDirection(Encoder.Direction.REVERSE);

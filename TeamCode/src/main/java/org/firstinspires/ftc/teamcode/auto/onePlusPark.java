@@ -47,7 +47,7 @@ public class onePlusPark extends LinearOpMode {
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
-        cameraActivity webcamStuff = new cameraActivity(webcam,hardwareMap,telemetry);
+        cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         webcamStuff.initCamera();
@@ -61,31 +61,12 @@ public class onePlusPark extends LinearOpMode {
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        IMU = hardwareMap.get(BNO055IMU.class, "IMU");
+        IMU = hardwareMap.get(BNO055IMU.class, "imu");
         IMU.initialize(parameters);
         IMU.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-        //Link all of our hardware to our hardwaremap
-        //E = encoder, m1 = motor 1, m2 = motor 2
-        AnalogInput mod1E = hardwareMap.get(AnalogInput.class, "mod1E");
-        AnalogInput mod2E = hardwareMap.get(AnalogInput.class, "mod2E");
-        AnalogInput mod3E = hardwareMap.get(AnalogInput.class, "mod3E");
-
-        DcMotorEx mod1m1 = hardwareMap.get(DcMotorEx.class, "mod1m1");
-        DcMotorEx mod2m1 = hardwareMap.get(DcMotorEx.class, "mod2m1");
-        DcMotorEx mod3m1 = hardwareMap.get(DcMotorEx.class, "mod3m1");
-
-        DcMotorEx mod1m2 = hardwareMap.get(DcMotorEx.class, "mod1m2");
-        DcMotorEx mod2m2 = hardwareMap.get(DcMotorEx.class, "mod2m2");
-        DcMotorEx mod3m2 = hardwareMap.get(DcMotorEx.class, "mod3m2");
-
-        VoltageSensor vSensor = hardwareMap.voltageSensor.iterator().next();
-
-        mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);

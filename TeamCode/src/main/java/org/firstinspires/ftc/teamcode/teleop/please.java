@@ -25,7 +25,9 @@ public class please extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-    double slideTarget;
+    public static double pos = 0.5;
+    public static double depositTarget = 0.5;
+
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
@@ -38,16 +40,6 @@ public class please extends LinearOpMode {
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
 
-        IMU imu = hardwareMap.get(IMU.class, "imu");
-        imu.initialize(
-                new IMU.Parameters(
-                        new RevHubOrientationOnRobot(
-                                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                                RevHubOrientationOnRobot.UsbFacingDirection.UP
-                        )
-                )
-        );
-
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -56,19 +48,15 @@ public class please extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
-        DcMotorEx liftLeftMotor = hardwareMap.get(DcMotorEx.class, "Llift");
-        DcMotorEx liftRightMotor = hardwareMap.get(DcMotorEx.class,"Rlift");
-
         ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
         ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
+        ServoImplEx aligner = hardwareMap.get(ServoImplEx.class, "linkage");
         depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
         depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        aligner.setPwmRange(new PwmControl.PwmRange(500, 2500));
         twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
-        Toggler right_trigger = new Toggler();
-        liftLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        linearSlide slide = new linearSlide(liftLeftMotor,liftRightMotor);
-        slide.resetEncoders();
+        //5 linkage, 4 turret, 3 intake right, 2 intake left, 1 aligner, 0 claw
 
         waitForStart();
         while (opModeIsActive()) {
@@ -76,25 +64,11 @@ public class please extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            if (gamepad2.a) {
-                slideTarget = 0;
-            }
-            else if (gamepad2.b) {
-                slideTarget = 250;
-            }
-            else if (gamepad2.x) {
-                slideTarget = 600;
-            }
-            else if (gamepad2.y) {
-                slideTarget = 1000;
-            }
-            slide.moveTo(slideTarget);
+            aligner.setPosition(pos);
 
-            deposit.moveTo(right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.275 : 0.85);
-
-            YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-            telemetry.addData("imu,", angles.getYaw(AngleUnit.DEGREES));
+            telemetry.addData("pos",pos);
             telemetry.update();
+
 
         }
     }

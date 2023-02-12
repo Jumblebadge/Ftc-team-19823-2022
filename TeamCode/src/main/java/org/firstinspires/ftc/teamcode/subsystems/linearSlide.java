@@ -5,6 +5,8 @@ import com.qualcomm.hardware.lynx.commands.LynxCommand;
 import com.qualcomm.hardware.lynx.commands.core.LynxResetMotorEncoderCommand;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.utility.runMotionProfile;
 
@@ -14,8 +16,12 @@ public class linearSlide{
     private double target;
     private final runMotionProfile profile = new runMotionProfile(25000,20000,50000,0.3,0,0,0);
 
-    public linearSlide(DcMotorEx motor1, DcMotorEx motor2){
-        motors = new motorGroup(motor1,motor2);
+    public linearSlide(HardwareMap hardwareMap){
+        DcMotorEx liftLeft = hardwareMap.get(DcMotorEx.class,"Llift");
+        DcMotorEx liftRight = hardwareMap.get(DcMotorEx.class,"Rlift");
+        liftLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        motors = new motorGroup(liftLeft,liftRight);
     }
 
     public void moveTo(double target){

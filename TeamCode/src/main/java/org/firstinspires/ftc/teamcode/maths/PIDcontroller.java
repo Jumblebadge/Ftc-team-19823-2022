@@ -21,7 +21,7 @@ public class PIDcontroller {
         if (Math.abs(error) > 0) {
             //integral and derivative values
             double derivative = (error - lastError) / timer.seconds();
-            integralSum = integralSum + (error * timer.seconds());
+            integralSum += (error * timer.seconds());
             //weight each term so that tuning makes a difference
             out = (Kp * error) + (Kd * derivative) + (Ki * integralSum) + (Kf * Math.signum(error));
             out /= 10;

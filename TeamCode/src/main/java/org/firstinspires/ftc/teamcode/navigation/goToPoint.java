@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.navigation;
 
+import static org.firstinspires.ftc.teamcode.teleop.swervy.maxAccel;
+import static org.firstinspires.ftc.teamcode.teleop.swervy.maxJerk;
+import static org.firstinspires.ftc.teamcode.teleop.swervy.maxVel;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -40,7 +44,7 @@ public class goToPoint {
         double angleToEndPoint = Math.atan2(desiredPose.getY()-startPose.getY(),desiredPose.getX()-startPose.getX());
         //if the target position has changed, then create a new motion profile and reset the profile timer
         if(update){
-            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(distanceAtStart, 0, 0), 10, 10, 10);
+            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(distanceAtStart, 0, 0), 20, 20, 20);
             profileTime.reset();
         }
         MotionState state = profile.get(profileTime.seconds());
