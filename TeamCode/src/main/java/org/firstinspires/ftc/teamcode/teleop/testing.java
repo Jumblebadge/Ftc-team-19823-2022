@@ -1,25 +1,35 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-//Import EVERYTHING we need
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.localization.Localizer;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
-import com.qualcomm.robotcore.eventloop.opmode.*;
-import com.qualcomm.robotcore.hardware.*;
-import com.qualcomm.hardware.lynx.*;
-import com.acmerobotics.dashboard.*;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.lynx.LynxModule;
 
-import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
-import org.firstinspires.ftc.teamcode.maths.mathsOperations;
-import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
-import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
-import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
-import org.firstinspires.ftc.teamcode.utility.Toggler;
-import org.firstinspires.ftc.teamcode.utility.myDcMotorEx;
+import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
+import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
+import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
+import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
+import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.AnalogInput;
+import com.qualcomm.robotcore.hardware.CRServoImplEx;
+import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
+import org.openftc.apriltag.AprilTagDetection;
+import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.List;
 
@@ -28,31 +38,68 @@ import java.util.List;
 @TeleOp(name="testing", group="Linear Opmode")
 public class testing extends LinearOpMode {
 
+    OpenCvWebcam webcam;
+
+    Localizer localizer;
+
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-    public static double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
-    public static double adjust = 0, Kp = 0, Kd = 0, Ki = 0, Kf = 0,r = 1000;
-    public static boolean update = false;
 
-    enum automation{
-        IDLE,
-        DEPOSIT,
-        LINKAGE,
-        TURRET,
-        CLAW,
-        EXTERNAL
+    double distance = 0;
+    double lastX, lastY;
+    double cyclesCompleted = 0;
+
+    enum apexStates {
+        DRIVE_TO_CYCLE,
+        CYCLING,
+        PARK
     }
 
-    automation state = automation.EXTERNAL;
+    enum cycleStates {
+        INTAKE_GRAB,
+        INTAKE_UP,
+        DEPOSIT_EXTEND,
+        DEPOSIT_DUMP,
+        WAIT,
+        TRANSFER
+    }
+
+    apexStates apexstate = apexStates.DRIVE_TO_CYCLE;
+    cycleStates cyclestate = cycleStates.WAIT;
+
+    Pose2d pose;
+    Pose2d desiredPose;
+    Pose2d temp;
+
+    GoToPoint auto;
+
+    ElapsedTime goofytimer = new ElapsedTime();
+    ElapsedTime autogoofytimer = new ElapsedTime();
+
+    //TODO auto cycling position = new Pose2d(47, 10, -1)
+
+    //IMU
+    BNO055IMU imu;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
+        cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
 
-        //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        webcamStuff.initCamera();
+        telemetry.addLine("Waiting for start");
 
-        DcMotorEx liftLeftMotor = hardwareMap.get(DcMotorEx.class, "Llift");
-        DcMotorEx liftRightMotor = hardwareMap.get(DcMotorEx.class,"Rlift");
+        //Calibrate the IMU
+        //CHANGE TO ODO HEADING!
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
         AnalogInput turretPosition = hardwareMap.get(AnalogInput.class, "turretMa3");
 
@@ -63,6 +110,7 @@ public class testing extends LinearOpMode {
         ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
         CRServoImplEx turretServo = hardwareMap.get(CRServoImplEx.class, "turret");
         ServoImplEx claw = hardwareMap.get(ServoImplEx.class, "claw");
+
         depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
         depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
         inRotL.setPwmRange(new PwmControl.PwmRange(500,2500));
@@ -70,7 +118,16 @@ public class testing extends LinearOpMode {
         linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
         turretServo.setPwmRange(new PwmControl.PwmRange(500, 2500));
         claw.setPwmRange(new PwmControl.PwmRange(500,2500));
-        liftLeftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        LinearSlide slide = new LinearSlide(hardwareMap);
+        slide.resetEncoders();
+
+        TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
+        TwoServo intake = new TwoServo(inRotL,inRotR);
+        Turret turret = new Turret(turretServo, turretPosition);
+
+        //Initialize FTCDashboard telemetry
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -78,19 +135,9 @@ public class testing extends LinearOpMode {
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
 
-        //class that runs our linear slide
-        linearSlide slide = new linearSlide(hardwareMap);
-        slide.resetEncoders();
-
-        twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
-        twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
-        Turret turret = new Turret(turretServo, turretPosition);
-
-        Toggler right_trigger = new Toggler();
-        Toggler right_bumper = new Toggler();
-        Toggler left_bumper = new Toggler();
-
-        ElapsedTime linkageTimer = new ElapsedTime();
+        //Create objects for the classes we use
+        SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
+        auto = new GoToPoint(drive,telemetry,dashboard);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -99,143 +146,168 @@ public class testing extends LinearOpMode {
 
         //Fast loop go brrr
         PhotonCore.enable();
+        localizer = new TwoWheelTrackingLocalizer(hardwareMap, imu);
 
-        waitForStart();
+        while (!isStarted() && !isStopRequested()) {
+            webcamStuff.detectTags();
+            intake.moveTo(0.45);
+            claw.setPosition(0.5);
+            sleep(20);
+        }
+        webcamStuff.closeCamera();
+        AprilTagDetection detectedTag = webcamStuff.sideDetected();
+        apexstate = apexStates.DRIVE_TO_CYCLE;
+
         while (opModeIsActive()) {
-
             //Clear the cache for better loop times (bulk sensor reads)
             for (LynxModule hub : allHubs) {
                 hub.clearBulkCache();
             }
 
-            switch(state){
-                case EXTERNAL:
-                    if (gamepad2.a) {
-                        slideTarget = 0;
-                    }
-                    else if (gamepad2.b) {
-                        slideTarget = 250;
-                    }
-                    else if (gamepad2.x) {
-                        slideTarget = 700;
-                    }
-                    else if (gamepad2.y) {
-                        slideTarget = 1100;
-                    }
+            //runPoint(0,0,0);
 
-                    //rising edge detector for linkage out/in
-                    linkageTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.7 : 0.3);
+            switch (apexstate){
+                case DRIVE_TO_CYCLE:
+                    //drive to cycling position
+                    desiredPose = new Pose2d(0,0,0);
+                    //telemetry.addData("state","DRIVETOCYCLE");
+                    apexstate = apexStates.CYCLING;
+                    cyclestate = cycleStates.DEPOSIT_EXTEND;
+                    break;
 
-                    //rising edge detector for claw open/close
-                    clawTarget = (right_bumper.update(gamepad2.right_bumper) ? 0.175 : 0.5);
-
-
-                    //rising edge detector for outtake positions
-                    depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.35 : 0.85);
-
-                    if(gamepad2.dpad_right){
-                        intakeTarget = 0.45;
-                        //straight up
-                    }
-                    else if (gamepad2.dpad_down){
-                        intakeTarget = 0.25;
-                        //down
-                    }
-                    else if (gamepad2.dpad_up){
-                        intakeTarget = 1;
-                        //up
-                    }
-
-                    if (gamepad2.left_trigger > 2){
-                        state = automation.LINKAGE;
+                case CYCLING:
+                    if (cyclesCompleted == 6){
+                        cyclestate = cycleStates.WAIT;
+                        apexstate = apexStates.PARK;
                     }
                     break;
 
-                case LINKAGE:
-                    linkageTarget = 0.7;
-
-                    if (gamepad2.left_trigger > 0.1){
-                        state = automation.CLAW;
+                case PARK:
+                    //drive to park position
+                    //telemetry.addData("state","PARK");
+                    if(detectedTag == null || detectedTag.id == 2) {
+                        desiredPose = new Pose2d(39,0,0);
+                        desiredPose = new Pose2d(39,6,0);
                     }
-                    break;
-
-                case CLAW:
-                    clawTarget = 0.175;
-                    turretTarget = 0;
-                    linkageTarget = 0.3;
-
-                    if (gamepad2.left_trigger > 0.1){
-                        linkageTimer.reset();
-                        state = automation.DEPOSIT;
+                    else if(detectedTag.id == 1){
+                        desiredPose = new Pose2d(26,0,0);
+                        desiredPose = new Pose2d(26,-26,0);
+                        desiredPose = new Pose2d(39,-30,0);
                     }
-                    break;
-
-                case DEPOSIT:
-                    if (linkageTimer.seconds() > 0.4){
-                        clawTarget = 0.5;
-
-                        if (gamepad2.a) {
-                            slideTarget = 0;
-                        }
-                        else if (gamepad2.b) {
-                            slideTarget = 200;
-                        }
-                        else if (gamepad2.x) {
-                            slideTarget = 700;
-                        }
-                        else if (gamepad2.y) {
-                            slideTarget = 1100;
-                        }
-
-                        if (slide.getError() < 25 && slideTarget != 0){
-                            depositTarget = 0.35;
-                            linkageTimer.reset();
-
-                            if (linkageTimer.seconds() > 0.3){
-                                depositTarget = 0.85;
-                                slideTarget = 0;
-                                state = automation.EXTERNAL;
-                            }
-                        }
-
+                    else if(detectedTag.id == 3){
+                        desiredPose = new Pose2d(26,0,0);
+                        desiredPose = new Pose2d(26,26,0);
+                        desiredPose = new Pose2d(39,30,0);
                     }
                     break;
             }
 
-            if (gamepad2.left_stick_button && state != automation.EXTERNAL){
-                state = automation.EXTERNAL;
+            switch (cyclestate){
+                case WAIT:
+                    slide.zero();
+                    deposit.moveTo(0.3);
+                    break;
+
+                case INTAKE_GRAB:
+                    //intake extends and then retracts with cone, then drops into deposit box
+                    slide.transfer();
+                    deposit.moveTo(0.3);
+                    intake.moveTo(1);
+                    goofytimer.reset();
+                    autogoofytimer.reset();
+                    cyclestate = cycleStates.INTAKE_UP;
+                    break;
+
+                case INTAKE_UP:
+                    if (autogoofytimer.seconds() > 0.5){
+                        claw.setPosition(0.2);
+                    }
+                    if (goofytimer.seconds() > 1) {
+
+                        intake.moveTo(0.3);
+                        cyclestate = cycleStates.TRANSFER;
+                        goofytimer.reset();
+                        autogoofytimer.reset();
+                    }
+                    break;
+
+                case TRANSFER:
+                    if (autogoofytimer.seconds() > 0.5) {
+                        claw.setPosition(0.5);
+                    }
+                    if (goofytimer.seconds() > 1) {
+
+                        intake.moveTo(0.45);
+                        cyclestate = cycleStates.DEPOSIT_EXTEND;
+                    }
+                    break;
+
+                case DEPOSIT_EXTEND:
+                    //lift slides, drop cone, come back down
+
+                    slide.highPole();
+                    if (slide.isPositionDone()) {
+                        cyclestate = cycleStates.DEPOSIT_DUMP;
+                        goofytimer.reset();
+                        deposit.moveTo(0.8);
+                    }
+                    break;
+
+                case DEPOSIT_DUMP:
+                    if (goofytimer.seconds() > 0.75){
+                        deposit.moveTo(0.3);
+                        cyclesCompleted += 1;
+                        cyclestate = cycleStates.INTAKE_GRAB;
+                    }
+                    break;
             }
 
-            turretTarget += (gamepad2.right_stick_x * gamepad2.right_stick_x * gamepad2.right_stick_x);
-            turretTarget = Range.clip(turretTarget, -90,90);
-            if (gamepad2.right_stick_button){
-                turretTarget = 0;
-            }
 
-            turret.setAdjust(adjust);
-            turret.moveTo(turretTarget);
-            linkage.setPosition(linkageTarget);
-            claw.setPosition(clawTarget);
-            deposit.moveTo(depositTarget);
-            intake.moveTo(intakeTarget);
-            slide.moveTo(-slideTarget);
-
-            //x y a b is slide positions
-            //lleft bumper toggled for open close claw
-            //linkage toggle right bumper
-            //deposit right trigger
-            //dpad is claw rotation righ is middle down is in the robot, up is on the floor
-            //linkage in: 0.3, linkage out: 0.7
-            //bucket all the way down: linkage 0.5, intake 0.14
-            //linkage all the way in: intake 0.25, slides 200
-
-            telemetry.addData("turretpos",turret.getHeading());
-            telemetry.addData("lLift",liftLeftMotor.getCurrentPosition());
-            telemetry.addData("rLift",liftRightMotor.getCurrentPosition());
-            telemetry.addData("lifttarget",slideTarget);
-            telemetry.addData("turrettarget",turretTarget);
+            slide.update();
+            turret.moveTo(0);
+            linkage.setPosition(0.25);
+            localizer.update();
+            pose = localizer.getPoseEstimate();
+            distance = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
+            Pose2d startPose = temp;
+            telemetry.addData("apexstate",apexstate.toString());
+            telemetry.addData("cyclestate",cyclestate.toString());
+            telemetry.addData("cyclescomlete",cyclesCompleted);
+            telemetry.addData("slidetarget",slide.getTarget());
+            telemetry.addData("slideerror",slide.getError());
+            telemetry.addData("slidtime",slide.getMotionTime());
+            telemetry.addData("isdone?",slide.isPositionDone());
+            telemetry.addData("goofy",goofytimer.seconds());
             telemetry.update();
 
+
         }
+
+
+        if(detectedTag != null)
+        {
+            telemetry.addLine("tag:\n");
+            webcamStuff.tagToTelemetry(detectedTag);
+        }
+        else
+        {
+            telemetry.addLine("never seen tag");
+        }
+
+    }
+
+    public void runPoint(double x, double y, double heading){
+        Pose2d startPose = temp;
+        desiredPose = new Pose2d(x,y,heading);
+        if (lastX != x || lastY != y) {
+            lastX = x;
+            lastY = y;
+            temp = new Pose2d(pose.getX(), pose.getY(),pose.getHeading());
+            auto.driveToPoint(pose,desiredPose,temp,true);
+            startPose = temp;
+        }
+        else{ lastX = x; lastY = y; }
+        auto.driveToPoint(pose,desiredPose,startPose,false);
     }
 }
+

@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
-import org.firstinspires.ftc.teamcode.navigation.goToPoint;
+import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -64,7 +64,7 @@ public class cyclestuff extends LinearOpMode {
     Pose2d desiredPose;
     Pose2d temp;
 
-    goToPoint auto;
+    GoToPoint auto;
 
     //TODO auto cycling position = new Pose2d(47, 10, -1)
 
@@ -121,7 +121,7 @@ public class cyclestuff extends LinearOpMode {
 
         //Create objects for the classes we use
         SwerveDrive drive = new SwerveDrive(telemetry, null, hardwareMap, true);
-        auto = new goToPoint(drive,telemetry,dashboard);
+        auto = new GoToPoint(drive,telemetry,dashboard);
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);

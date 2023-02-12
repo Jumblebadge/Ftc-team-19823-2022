@@ -7,16 +7,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 
-public class swerveModule {
+public class SwerveModule {
 
     private final AnalogInput ma3;
-    private final motorGroup motors;
+    private final MotorGroup motors;
     private double moduleHeadingAdjustment;
     PIDcontroller PID = new PIDcontroller(0.2,0.003,0.01,0.75);
 
-    public swerveModule(AnalogInput ma3, DcMotorEx motor1, DcMotorEx motor2, double adjust){
+    public SwerveModule(AnalogInput ma3, DcMotorEx motor1, DcMotorEx motor2, double adjust){
         this.ma3 = ma3;
-        motors = new motorGroup(motor1, motor2);
+        motors = new MotorGroup(motor1, motor2);
         this.moduleHeadingAdjustment = adjust;
     }
 

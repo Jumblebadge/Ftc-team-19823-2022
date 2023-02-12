@@ -4,18 +4,12 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
-import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
-import org.firstinspires.ftc.teamcode.utility.Toggler;
+import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
 
 import java.util.List;
 
@@ -54,7 +48,7 @@ public class please extends LinearOpMode {
         depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
         depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
         aligner.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
+        TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
 
         //5 linkage, 4 turret, 3 intake right, 2 intake left, 1 aligner, 0 claw
 

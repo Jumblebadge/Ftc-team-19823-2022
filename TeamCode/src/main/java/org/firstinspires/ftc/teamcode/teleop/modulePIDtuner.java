@@ -5,20 +5,14 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.*;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
-import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
-import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
-import org.firstinspires.ftc.teamcode.subsystems.Turret;
-import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
-import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
+import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
 
 import java.util.List;
 
@@ -81,7 +75,7 @@ public class modulePIDtuner extends LinearOpMode {
         SwerveDrive swerve = new SwerveDrive(telemetry, imu, hardwareMap, true);
 
         //class that runs our linear slide
-        linearSlide slide = new linearSlide(hardwareMap);
+        LinearSlide slide = new LinearSlide(hardwareMap);
         slide.resetEncoders();
 
         //twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);

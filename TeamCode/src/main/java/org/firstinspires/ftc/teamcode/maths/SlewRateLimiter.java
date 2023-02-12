@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.maths;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
-public class slewRateLimiter {
+public class SlewRateLimiter {
 
     ElapsedTime timer = new ElapsedTime();
     private double output = 0;

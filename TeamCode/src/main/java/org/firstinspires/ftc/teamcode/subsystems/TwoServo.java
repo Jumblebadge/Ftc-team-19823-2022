@@ -2,15 +2,15 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.utility.runMotionProfile;
+import org.firstinspires.ftc.teamcode.utility.RunMotionProfile;
 
-public class twoServoBucket{
+public class TwoServo {
 
     private final Servo servo1, servo2;
-    private final runMotionProfile profile = new runMotionProfile(0.1,0.1,0.1,0,0,0,0);
+    private final RunMotionProfile profile = new RunMotionProfile(0.1,0.1,0.1,0,0,0,0);
     private double lastTarget;
 
-    public twoServoBucket(Servo servo2, Servo servo1){
+    public TwoServo(Servo servo2, Servo servo1){
         this.servo1 = servo1;
         this.servo2 = servo2;
     }

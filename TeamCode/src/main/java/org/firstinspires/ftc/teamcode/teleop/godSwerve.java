@@ -5,20 +5,17 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.*;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
-import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
-import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
-import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
+import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
-import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
+import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
 
 import java.util.List;
 
@@ -83,11 +80,11 @@ public class godSwerve extends LinearOpMode {
         SwerveDrive swerve = new SwerveDrive(telemetry, imu, hardwareMap, true);
 
         //class that runs our linear slide
-        linearSlide slide = new linearSlide(hardwareMap);
+        LinearSlide slide = new LinearSlide(hardwareMap);
         slide.resetEncoders();
 
-        twoServoBucket deposit = new twoServoBucket(depositRotationServoLeft,depositRotationServoRight);
-        twoServoBucket intake = new twoServoBucket(inRotL,inRotR);
+        TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
+        TwoServo intake = new TwoServo(inRotL,inRotR);
         Turret turret = new Turret(turretServo, turretPosition);
 
         Toggler right_trigger = new Toggler();
@@ -124,20 +121,16 @@ public class godSwerve extends LinearOpMode {
             swerve.drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y,gamepad1.right_stick_x * gamepad1.right_stick_x * gamepad1.right_stick_x);
 
             if (gamepad2.a) {
-                slideTarget = 0;
-                alignerTarget = 1;
+                slide.zero();
             }
             else if (gamepad2.b) {
-                slideTarget = 250;
-                alignerTarget = 0.75;
+                slide.transfer();
             }
             else if (gamepad2.x) {
-                slideTarget = 500;
-                alignerTarget = 1;
+                slide.mediumPole();
             }
             else if (gamepad2.y) {
-                slideTarget = 1025;
-                alignerTarget = 1;
+                slide.highPole();
             }
 
             //rising edge detector for linkage out/in
@@ -171,8 +164,7 @@ public class godSwerve extends LinearOpMode {
             claw.setPosition(clawTarget);
             deposit.moveTo(depositTarget);
             intake.moveTo(intakeTarget);
-            slide.moveTo(slideTarget);
-            aligner.setPosition(alignerTarget);
+            slide.update();
 
             telemetry.addData("turrettarget",turretTarget);
             telemetry.addData("slidetarget",slideTarget);

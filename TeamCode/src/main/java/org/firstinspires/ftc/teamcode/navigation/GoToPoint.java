@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.firstinspires.ftc.teamcode.utility.myElapsedTime;
 import org.opencv.core.Point;
 
-public class goToPoint {
+public class GoToPoint {
     private final SwerveDrive driver;
     private final Telemetry telemetry;
     private final FtcDashboard dashboard;
@@ -29,7 +29,7 @@ public class goToPoint {
     private final PIDcontroller yPID = new PIDcontroller(2.1,0,0,0);
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(1, 0, 0), 2, 3,4);
 
-    public goToPoint(SwerveDrive driver, Telemetry telemetry, FtcDashboard dashboard){
+    public GoToPoint(SwerveDrive driver, Telemetry telemetry, FtcDashboard dashboard){
         this.driver=driver;
         this.telemetry = telemetry;
         this.dashboard = dashboard;

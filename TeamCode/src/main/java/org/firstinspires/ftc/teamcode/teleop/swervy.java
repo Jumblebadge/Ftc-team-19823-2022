@@ -11,15 +11,13 @@ import com.acmerobotics.roadrunner.localization.Localizer;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.*;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.*;
-import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
-import org.firstinspires.ftc.teamcode.navigation.goToPoint;
+import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
 import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 
 import java.util.List;
@@ -72,7 +70,7 @@ public class swervy extends LinearOpMode {
         localizer = new TwoWheelTrackingLocalizer(hardwareMap,imu);
 
         SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
-        goToPoint auto = new goToPoint(drive,telemetry,dashboard);
+        GoToPoint auto = new GoToPoint(drive,telemetry,dashboard);
 
         drive.setModuleAdjustments(-20,-105,-40);
 

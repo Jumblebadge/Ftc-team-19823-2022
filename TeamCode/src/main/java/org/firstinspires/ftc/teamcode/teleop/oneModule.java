@@ -8,11 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
-import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.teamcode.maths.mathsOperations;
-import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
-import org.firstinspires.ftc.teamcode.utility.Toggler;
 
 import java.util.List;
 

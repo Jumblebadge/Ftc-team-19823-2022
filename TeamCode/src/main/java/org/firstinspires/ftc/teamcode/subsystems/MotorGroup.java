@@ -4,12 +4,12 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 
-public class motorGroup {
+public class MotorGroup {
 
     public final DcMotorEx[] motors;
     private final PIDcontroller controller = new PIDcontroller(0,0,0,0);
 
-    public motorGroup(DcMotorEx... motors){
+    public MotorGroup(DcMotorEx... motors){
         this.motors = motors;
     }
 

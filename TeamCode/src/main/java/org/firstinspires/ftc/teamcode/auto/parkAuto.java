@@ -11,27 +11,16 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.subsystems.Turret;
-import org.firstinspires.ftc.teamcode.subsystems.linearSlide;
-import org.firstinspires.ftc.teamcode.subsystems.twoServoBucket;
 import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
-import org.firstinspires.ftc.teamcode.navigation.goToPoint;
+import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.PwmControl;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.openftc.apriltag.AprilTagDetection;
-import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.List;
 
@@ -42,7 +31,7 @@ import java.util.List;
 
         Pose2d pose;
         Pose2d desiredPose;
-        goToPoint auto;
+        GoToPoint auto;
         Localizer localizer;
         List<LynxModule> allHubs;
 
@@ -75,7 +64,7 @@ import java.util.List;
 
             //Create objects for the classes we use
             SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
-            auto = new goToPoint(drive,telemetry,dashboard);
+            auto = new GoToPoint(drive,telemetry,dashboard);
             //Bulk sensor reads
             for (LynxModule module : allHubs) {
                 module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);

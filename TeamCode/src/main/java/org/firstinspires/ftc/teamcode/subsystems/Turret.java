@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
-import org.firstinspires.ftc.teamcode.maths.slewRateLimiter;
+import org.firstinspires.ftc.teamcode.maths.SlewRateLimiter;
 
 public class Turret {
 
@@ -14,7 +14,7 @@ public class Turret {
     private final AnalogInput ma3;
     private double adjust = 240, r = 5;
     private final PIDcontroller pid = new PIDcontroller(0.1,0,0,0);
-    private final slewRateLimiter limiter = new slewRateLimiter();
+    private final SlewRateLimiter limiter = new SlewRateLimiter();
 
     public Turret(CRServoImplEx servo, AnalogInput ma3){
         this.servo = servo;
