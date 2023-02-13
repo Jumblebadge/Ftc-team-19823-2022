@@ -45,8 +45,10 @@ public class testing extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
 
-    double distance = 0;
-    double lastX, lastY;
+    double lastX = 0.0001, lastY = 0.0001;
+
+    Pose2d pose = new Pose2d(0,0,0);
+    Pose2d temp = new Pose2d(0,0,0);
     double cyclesCompleted = 0;
 
     enum apexStates {
@@ -66,10 +68,6 @@ public class testing extends LinearOpMode {
 
     apexStates apexstate = apexStates.DRIVE_TO_CYCLE;
     cycleStates cyclestate = cycleStates.WAIT;
-
-    Pose2d pose;
-    Pose2d desiredPose;
-    Pose2d temp;
 
     GoToPoint auto;
 
@@ -129,6 +127,8 @@ public class testing extends LinearOpMode {
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
+        localizer = new TwoWheelTrackingLocalizer(hardwareMap,imu);
+
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -146,7 +146,6 @@ public class testing extends LinearOpMode {
 
         //Fast loop go brrr
         PhotonCore.enable();
-        localizer = new TwoWheelTrackingLocalizer(hardwareMap, imu);
 
         while (!isStarted() && !isStopRequested()) {
             webcamStuff.detectTags();
@@ -164,12 +163,14 @@ public class testing extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            //runPoint(0,0,0);
+            localizer.update();
+            pose = localizer.getPoseEstimate();
+
+            runPoint(new Pose2d(0,0,0));
 
             switch (apexstate){
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
-                    desiredPose = new Pose2d(0,0,0);
                     //telemetry.addData("state","DRIVETOCYCLE");
                     apexstate = apexStates.CYCLING;
                     cyclestate = cycleStates.DEPOSIT_EXTEND;
@@ -186,18 +187,18 @@ public class testing extends LinearOpMode {
                     //drive to park position
                     //telemetry.addData("state","PARK");
                     if(detectedTag == null || detectedTag.id == 2) {
-                        desiredPose = new Pose2d(39,0,0);
-                        desiredPose = new Pose2d(39,6,0);
+                        //desiredPose = new Pose2d(39,0,0);
+                        //desiredPose = new Pose2d(39,6,0);
                     }
                     else if(detectedTag.id == 1){
-                        desiredPose = new Pose2d(26,0,0);
-                        desiredPose = new Pose2d(26,-26,0);
-                        desiredPose = new Pose2d(39,-30,0);
+                        //desiredPose = new Pose2d(26,0,0);
+                        //desiredPose = new Pose2d(26,-26,0);
+                        //desiredPose = new Pose2d(39,-30,0);
                     }
                     else if(detectedTag.id == 3){
-                        desiredPose = new Pose2d(26,0,0);
-                        desiredPose = new Pose2d(26,26,0);
-                        desiredPose = new Pose2d(39,30,0);
+                        //desiredPose = new Pose2d(26,0,0);
+                        //desiredPose = new Pose2d(26,26,0);
+                        //desiredPose = new Pose2d(39,30,0);
                     }
                     break;
             }
@@ -266,18 +267,12 @@ public class testing extends LinearOpMode {
             slide.update();
             turret.moveTo(0);
             linkage.setPosition(0.25);
-            localizer.update();
-            pose = localizer.getPoseEstimate();
-            distance = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
-            Pose2d startPose = temp;
             telemetry.addData("apexstate",apexstate.toString());
             telemetry.addData("cyclestate",cyclestate.toString());
-            telemetry.addData("cyclescomlete",cyclesCompleted);
-            telemetry.addData("slidetarget",slide.getTarget());
-            telemetry.addData("slideerror",slide.getError());
-            telemetry.addData("slidtime",slide.getMotionTime());
-            telemetry.addData("isdone?",slide.isPositionDone());
-            telemetry.addData("goofy",goofytimer.seconds());
+            telemetry.addData("slide", slide.getTarget());
+            telemetry.addData("X",pose.getX());
+            telemetry.addData("Y",pose.getY());
+            telemetry.addData("heading",pose.getHeading());
             telemetry.update();
 
 
@@ -296,18 +291,17 @@ public class testing extends LinearOpMode {
 
     }
 
-    public void runPoint(double x, double y, double heading){
-        Pose2d startPose = temp;
-        desiredPose = new Pose2d(x,y,heading);
-        if (lastX != x || lastY != y) {
-            lastX = x;
-            lastY = y;
+    public void runPoint(Pose2d desiredPose){
+        if (lastX != desiredPose.getX() || lastY != desiredPose.getY()) {
+            lastX = desiredPose.getX();
+            lastY = desiredPose.getY();
             temp = new Pose2d(pose.getX(), pose.getY(),pose.getHeading());
             auto.driveToPoint(pose,desiredPose,temp,true);
-            startPose = temp;
         }
-        else{ lastX = x; lastY = y; }
-        auto.driveToPoint(pose,desiredPose,startPose,false);
+        else{ lastX = desiredPose.getX(); lastY = desiredPose.getY(); }
+        auto.driveToPoint(pose,desiredPose,temp,false);
     }
+
+
 }
 

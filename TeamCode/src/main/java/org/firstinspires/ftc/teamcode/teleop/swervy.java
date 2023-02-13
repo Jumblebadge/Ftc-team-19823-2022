@@ -148,4 +148,3 @@ public class swervy extends LinearOpMode {
         canvas.strokeLine(x1, y1, x2, y2);
     }
 }
-
