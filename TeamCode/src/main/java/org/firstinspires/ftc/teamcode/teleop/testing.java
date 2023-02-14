@@ -45,12 +45,12 @@ public class testing extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
 
-    double lastX = 0.0001, lastY = 0.0001;
+    double lastX = 0.0001, lastY = 0.0001, turretTarget = 0;
 
     Pose2d pose = new Pose2d(0,0,0);
     Pose2d temp = new Pose2d(0,0,0);
     Pose2d targetPose = new Pose2d(0,0,0);
-    double cyclesCompleted = 0;
+    double cyclesCompleted = 0, pathNumber = 0;
 
     enum apexStates {
         DRIVE_TO_CYCLE,
@@ -151,6 +151,7 @@ public class testing extends LinearOpMode {
             webcamStuff.detectTags();
             intake.moveTo(0.45);
             claw.setPosition(0.5);
+            turret.moveTo(0);
             sleep(20);
         }
         webcamStuff.closeCamera();
@@ -172,15 +173,17 @@ public class testing extends LinearOpMode {
             switch (apexstate){
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
-                    //TODO auto cycling position = new Pose2d(47, 10, -1)
+                    //TODO fix this second path
                     targetPose = new Pose2d(50,0,-1);
-                    if (auto.isDone()) {
-                        targetPose = new Pose2d(50, 10, -1);
-                        if (goofytimer.seconds() > 0.5) {
-                            goofytimer.reset();
-                            apexstate = apexStates.CYCLING;
-                            cyclestate = cycleStates.DEPOSIT_EXTEND;
-                        }
+                    if (auto.isDone() && pathNumber == 0) {
+                        targetPose = new Pose2d(50, 12, -1);
+                        pathNumber += 1;
+                    }
+                    else if (auto.isDone() && pathNumber == 1) {
+                        goofytimer.reset();
+                        pathNumber = 0;
+                        apexstate = apexStates.CYCLING;
+                        cyclestate = cycleStates.DEPOSIT_EXTEND;
                     }
                     break;
 
@@ -215,10 +218,11 @@ public class testing extends LinearOpMode {
                 case WAIT:
                     slide.zero();
                     deposit.moveTo(0.3);
+                    linkage.setPosition(0.25);
+                    turretTarget = 0;
                     break;
 
                 case INTAKE_GRAB:
-                    //intake extends and then retracts with cone, then drops into deposit box
                     slide.transfer();
                     deposit.moveTo(0.3);
                     intake.moveTo(1);
@@ -232,7 +236,8 @@ public class testing extends LinearOpMode {
                         claw.setPosition(0.2);
                     }
                     if (goofytimer.seconds() > 1) {
-
+                        turretTarget = 0;
+                        linkage.setPosition(0.25);
                         intake.moveTo(0.3);
                         cyclestate = cycleStates.TRANSFER;
                         goofytimer.reset();
@@ -245,7 +250,6 @@ public class testing extends LinearOpMode {
                         claw.setPosition(0.5);
                     }
                     if (goofytimer.seconds() > 1) {
-
                         intake.moveTo(0.45);
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
                     }
@@ -253,6 +257,8 @@ public class testing extends LinearOpMode {
 
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
+                    turretTarget = 70;
+                    linkage.setPosition(0.5);
                     if (goofytimer.seconds() > 0.5) {
                         slide.highPole();
                         if (slide.isPositionDone()) {
@@ -274,8 +280,7 @@ public class testing extends LinearOpMode {
 
             runPoint(targetPose);
 
-            turret.moveTo(0);
-            linkage.setPosition(0.25);
+            turret.moveTo(turretTarget);
             telemetry.addData("apexstate",apexstate.toString());
             telemetry.addData("cyclestate",cyclestate.toString());
             telemetry.addData("slide", slide.getTarget());
