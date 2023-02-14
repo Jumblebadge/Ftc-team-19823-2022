@@ -26,11 +26,11 @@ public class SwerveDrive {
     final private AnalogInput mod1E,mod2E,mod3E;
     final private Telemetry telemetry;
     final private boolean eff;
-    private double Kp,Kd,Ki,Kf;
+    private double Kp,Kd,Ki,Kf,limit;
     private double module1Adjust = -20, module2Adjust = -105, module3Adjust = -40;
-    PIDcontroller mod1PID = new PIDcontroller(0.2,0.0025,0,0.75);
-    PIDcontroller mod2PID = new PIDcontroller(0.175,0.0025,0,0.75);
-    PIDcontroller mod3PID = new PIDcontroller(0.125,0.0025,0,0.5);
+    PIDcontroller mod1PID = new PIDcontroller(0.1,0.002,3,1, 0.5);
+    PIDcontroller mod2PID = new PIDcontroller(0.1,0.002,2,0.5, 0.5);
+    PIDcontroller mod3PID = new PIDcontroller(0.1,0.002,1,0.5, 0.75);
     swerveKinematics swavemath = new swerveKinematics();
 
     public SwerveDrive(Telemetry telemetry, BNO055IMU imu, HardwareMap hardwareMap, boolean eff){
@@ -63,6 +63,8 @@ public class SwerveDrive {
     double mod3reference = 0;
 
     public void drive(double x, double y, double rot){
+
+        //mod1PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
 
         //Turn our MA3 absolute encoder signals from volts to degrees
         double mod1P = mod1E.getVoltage() * 74.16;
@@ -147,11 +149,12 @@ public class SwerveDrive {
     }
 
     //tune module PIDs
-    public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf){
+    public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
         this.Kp = Kp;
         this.Kd = Kd;
         this.Ki = Ki;
         this.Kf = Kf;
+        this.limit = limit;
     }
 
     //tunable module zeroing

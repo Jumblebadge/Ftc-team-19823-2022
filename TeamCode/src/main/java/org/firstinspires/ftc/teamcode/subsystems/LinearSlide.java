@@ -14,7 +14,7 @@ public class LinearSlide {
     private final MotorGroup motors;
     private double target;
     private final ServoImplEx aligner;
-    private final RunMotionProfile profile = new RunMotionProfile(25000,20000,50000,0.3,0,0,0);
+    private final RunMotionProfile profile = new RunMotionProfile(25000,20000,50000,0.1,0,1,0.2, 1);
 
     final double highPole = 1025, mediumPole = 500, transfer = 250, zero = 0;
     final double alignerDown = 0.75, alignerUp = 1;
@@ -43,6 +43,8 @@ public class LinearSlide {
         return target - motors.getPosition(0);
     }
 
+    public double getPosition() { return motors.getPosition(0); }
+
     public boolean isTimeDone() { return profile.getProfileDuration() < profile.getCurrentTime(); }
     public boolean isPositionDone() { return Math.abs(getError()) < 10; }
 
@@ -50,15 +52,15 @@ public class LinearSlide {
         profile.setMotionConstraints(maxVel, maxAccel, maxJerk);
     }
 
-    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf){
-        profile.setPIDcoeffs(Kp,Kd,Ki,Kf);
+    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
+        profile.setPIDcoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
     public double getMotionTarget(){
-        return profile.getMotionTarget();
+        return -profile.getMotionTarget();
     }
 
-    public double getTarget() { return target; }
+    public double getTarget() { return -target; }
 
     public double getMotionTime() { return profile.getCurrentTime(); }
 

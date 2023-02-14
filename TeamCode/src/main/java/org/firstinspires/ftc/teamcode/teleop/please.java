@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
+import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
 import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class please extends LinearOpMode {
     //Initialize FTCDashboard
     FtcDashboard dashboard;
     public static double pos = 0.5;
-    public static double depositTarget = 0.5;
+    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0, limit = 1000;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -42,13 +43,8 @@ public class please extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
-        ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
-        ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
-        ServoImplEx aligner = hardwareMap.get(ServoImplEx.class, "linkage");
-        depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        aligner.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
+        LinearSlide slide = new LinearSlide(hardwareMap);
+        slide.resetEncoders();
 
         //5 linkage, 4 turret, 3 intake right, 2 intake left, 1 aligner, 0 claw
 
@@ -58,9 +54,12 @@ public class please extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            aligner.setPosition(pos);
-
+            slide.moveTo(pos);
+            slide.update();
+            slide.setPIDcoeffs(Kp, Kd, Ki, Kf, limit);
             telemetry.addData("pos",pos);
+            telemetry.addData("slidepos",slide.getMotionTarget());
+            telemetry.addData("slide",-slide.getPosition());
             telemetry.update();
 
 

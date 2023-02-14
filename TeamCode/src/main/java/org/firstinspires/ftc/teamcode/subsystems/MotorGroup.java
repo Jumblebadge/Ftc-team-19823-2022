@@ -7,14 +7,14 @@ import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 public class MotorGroup {
 
     public final DcMotorEx[] motors;
-    private final PIDcontroller controller = new PIDcontroller(0,0,0,0);
+    private final PIDcontroller controller = new PIDcontroller(0,0,0,0,100);
 
     public MotorGroup(DcMotorEx... motors){
         this.motors = motors;
     }
 
-    public void setPIDgains(double Kp, double Kd, double Ki, double Kf){
-        controller.setPIDCoeffs(Kp,Kd,Ki,Kf);
+    public void setPIDgains(double Kp, double Kd, double Ki, double Kf, double limit){
+        controller.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setPowers(double... powers){

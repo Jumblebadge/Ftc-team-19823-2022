@@ -24,9 +24,9 @@ public class GoToPoint {
     private final FtcDashboard dashboard;
     private boolean isDone;
     private final myElapsedTime profileTime = new myElapsedTime();
-    private final PIDcontroller headingPID = new PIDcontroller(6,0,0,0);
-    private final PIDcontroller xPID = new PIDcontroller(2.1,0,0,0);
-    private final PIDcontroller yPID = new PIDcontroller(2.1,0,0,0);
+    private final PIDcontroller headingPID = new PIDcontroller(6,0,0,0, 100);
+    private final PIDcontroller xPID = new PIDcontroller(2,0,5,0, 0.1);
+    private final PIDcontroller yPID = new PIDcontroller(2,0,5,0, 0.1);
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(1, 0, 0), 2, 3,4);
 
     public GoToPoint(SwerveDrive driver, Telemetry telemetry, FtcDashboard dashboard){
@@ -50,7 +50,7 @@ public class GoToPoint {
         MotionState state = profile.get(profileTime.seconds());
         double stateOut = state.getX();
         //create a point from the motion profile output, which is normally just a distance value
-        Point statePoint = new Point(startPose.getX()+(stateOut * Math.cos(angleToEndPoint)),startPose.getY()+(stateOut *Math.sin(angleToEndPoint)));
+        Point statePoint = new Point(startPose.getX()+(stateOut * Math.cos(angleToEndPoint)),startPose.getY()+(stateOut * Math.sin(angleToEndPoint)));
         //distance from current position to the target point, determined by the motion profile
         double distanceToState = Math.abs(Math.hypot(statePoint.x-startPose.getX(),statePoint.y-startPose.getY()));
         //use pid on x and y position to move towards the target point determined by the state
@@ -83,13 +83,13 @@ public class GoToPoint {
         return isDone;
     }
 
-    public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf){
-        xPID.setPIDCoeffs(Kp, Kd, Ki, Kf);
-        yPID.setPIDCoeffs(Kp, Kd, Ki, Kf);
+    public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
+        xPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        yPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
-    public void setHeadingPIDcoeffs(double Kp,double Kd, double Ki){
-        headingPID.setPIDCoeffs(Kp, Kd, Ki, 0);
+    public void setHeadingPIDcoeffs(double Kp,double Kd, double Ki, double Kf, double limit){
+        headingPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setProfileConstraints(double maxVel, double maxAccel, double maxJerk){

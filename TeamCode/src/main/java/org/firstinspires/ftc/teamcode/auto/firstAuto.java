@@ -135,9 +135,9 @@ public class firstAuto extends LinearOpMode {
         //Create objects for the classes we use for swerve and PIDS
         swerveKinematics swavemath = new swerveKinematics();
 
-        PIDcontroller mod1PID = new PIDcontroller(0.1,0.0001,0.0007,0);
-        PIDcontroller mod2PID = new PIDcontroller(0.1,0.0001,0.0007,0);
-        PIDcontroller mod3PID = new PIDcontroller(0.1,0.0001,0.0007,0);
+        PIDcontroller mod1PID = new PIDcontroller(0.1,0.0001,0.0007,0, 100);
+        PIDcontroller mod2PID = new PIDcontroller(0.1,0.0001,0.0007,0, 100);
+        PIDcontroller mod3PID = new PIDcontroller(0.1,0.0001,0.0007,0, 100);
 
         SwerveDrive drivein = new SwerveDrive(telemetry, null, hardwareMap, true);
 

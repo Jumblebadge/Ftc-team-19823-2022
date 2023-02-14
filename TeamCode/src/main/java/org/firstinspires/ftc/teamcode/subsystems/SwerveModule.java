@@ -12,7 +12,7 @@ public class SwerveModule {
     private final AnalogInput ma3;
     private final MotorGroup motors;
     private double moduleHeadingAdjustment;
-    PIDcontroller PID = new PIDcontroller(0.2,0.003,0.01,0.75);
+    PIDcontroller PID = new PIDcontroller(0.2,0.003,0.01,0.75, 100);
 
     public SwerveModule(AnalogInput ma3, DcMotorEx motor1, DcMotorEx motor2, double adjust){
         this.ma3 = ma3;
@@ -37,8 +37,8 @@ public class SwerveModule {
         motors.setPower(mathsOperations.diffyConvert(PID.pidOut(AngleUnit.normalizeDegrees(heading - getModuleHeading())), power)[1], 1);
     }
 
-    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf){
-        PID.setPIDCoeffs(Kp, Kd, Ki, Kf);
+    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
+        PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
 }

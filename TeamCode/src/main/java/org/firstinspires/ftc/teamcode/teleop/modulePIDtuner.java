@@ -21,9 +21,9 @@ import java.util.List;
 @TeleOp(name="modPIDtune", group="Linear Opmode")
 public class modulePIDtuner extends LinearOpMode {
 
-    //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
+    //Tuning values so that wheels are always facing straight (accounts for encod   er drift - tuned manually)
     public static double mod3PC = -20, mod1PC = -20, mod2PC = -105;
-    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0;
+    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0, limit;
 
     double depositTarget = 0.5, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0;
 
@@ -115,7 +115,7 @@ public class modulePIDtuner extends LinearOpMode {
             double headingg = angeles.firstAngle*-1;
 
             swerve.setModuleAdjustments(mod1PC,mod2PC,mod3PC);
-            swerve.setPIDCoeffs(Kp, Kd, Ki, Kf);
+            swerve.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
 
             swerve.drive(gamepad1.left_stick_x, gamepad1.left_stick_y,gamepad1.right_stick_x * gamepad1.right_stick_x * gamepad1.right_stick_x);
 

@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.utility.RunMotionProfile;
 public class TwoServo {
 
     private final Servo servo1, servo2;
-    private final RunMotionProfile profile = new RunMotionProfile(0.1,0.1,0.1,0,0,0,0);
+    private final RunMotionProfile profile = new RunMotionProfile(0.1,0.1,0.1,0,0,0,0, 100);
     private double lastTarget;
 
     public TwoServo(Servo servo2, Servo servo1){
@@ -33,8 +33,8 @@ public class TwoServo {
         profile.setMotionConstraints(maxVel, maxAccel, maxJerk);
     }
 
-    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf){
-        profile.setPIDcoeffs(Kp,Kd,Ki,Kf);
+    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
+        profile.setPIDcoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
     public double getMotionTarget(){

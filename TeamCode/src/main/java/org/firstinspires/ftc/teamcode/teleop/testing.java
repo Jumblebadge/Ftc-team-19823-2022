@@ -49,6 +49,7 @@ public class testing extends LinearOpMode {
 
     Pose2d pose = new Pose2d(0,0,0);
     Pose2d temp = new Pose2d(0,0,0);
+    Pose2d targetPose = new Pose2d(0,0,0);
     double cyclesCompleted = 0;
 
     enum apexStates {
@@ -73,8 +74,7 @@ public class testing extends LinearOpMode {
 
     ElapsedTime goofytimer = new ElapsedTime();
     ElapsedTime autogoofytimer = new ElapsedTime();
-
-    //TODO auto cycling position = new Pose2d(47, 10, -1)
+    ElapsedTime hztimer = new ElapsedTime();
 
     //IMU
     BNO055IMU imu;
@@ -156,6 +156,7 @@ public class testing extends LinearOpMode {
         webcamStuff.closeCamera();
         AprilTagDetection detectedTag = webcamStuff.sideDetected();
         apexstate = apexStates.DRIVE_TO_CYCLE;
+        goofytimer.reset();
 
         while (opModeIsActive()) {
             //Clear the cache for better loop times (bulk sensor reads)
@@ -166,14 +167,21 @@ public class testing extends LinearOpMode {
             localizer.update();
             pose = localizer.getPoseEstimate();
 
-            runPoint(new Pose2d(0,0,0));
+            slide.update();
 
             switch (apexstate){
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
-                    //telemetry.addData("state","DRIVETOCYCLE");
-                    apexstate = apexStates.CYCLING;
-                    cyclestate = cycleStates.DEPOSIT_EXTEND;
+                    //TODO auto cycling position = new Pose2d(47, 10, -1)
+                    targetPose = new Pose2d(50,0,-1);
+                    if (auto.isDone()) {
+                        targetPose = new Pose2d(50, 10, -1);
+                        if (goofytimer.seconds() > 0.5) {
+                            goofytimer.reset();
+                            apexstate = apexStates.CYCLING;
+                            cyclestate = cycleStates.DEPOSIT_EXTEND;
+                        }
+                    }
                     break;
 
                 case CYCLING:
@@ -245,12 +253,13 @@ public class testing extends LinearOpMode {
 
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
-
-                    slide.highPole();
-                    if (slide.isPositionDone()) {
-                        cyclestate = cycleStates.DEPOSIT_DUMP;
-                        goofytimer.reset();
-                        deposit.moveTo(0.8);
+                    if (goofytimer.seconds() > 0.5) {
+                        slide.highPole();
+                        if (slide.isPositionDone()) {
+                            cyclestate = cycleStates.DEPOSIT_DUMP;
+                            goofytimer.reset();
+                            deposit.moveTo(0.8);
+                        }
                     }
                     break;
 
@@ -263,8 +272,8 @@ public class testing extends LinearOpMode {
                     break;
             }
 
+            runPoint(targetPose);
 
-            slide.update();
             turret.moveTo(0);
             linkage.setPosition(0.25);
             telemetry.addData("apexstate",apexstate.toString());
@@ -273,6 +282,8 @@ public class testing extends LinearOpMode {
             telemetry.addData("X",pose.getX());
             telemetry.addData("Y",pose.getY());
             telemetry.addData("heading",pose.getHeading());
+            telemetry.addData("hz",1/hztimer.seconds());
+            hztimer.reset();
             telemetry.update();
 
 
@@ -295,7 +306,7 @@ public class testing extends LinearOpMode {
         if (lastX != desiredPose.getX() || lastY != desiredPose.getY()) {
             lastX = desiredPose.getX();
             lastY = desiredPose.getY();
-            temp = new Pose2d(pose.getX(), pose.getY(),pose.getHeading());
+            temp  = new Pose2d(pose.getX(), pose.getY(),pose.getHeading());
             auto.driveToPoint(pose,desiredPose,temp,true);
         }
         else{ lastX = desiredPose.getX(); lastY = desiredPose.getY(); }
@@ -304,4 +315,3 @@ public class testing extends LinearOpMode {
 
 
 }
-

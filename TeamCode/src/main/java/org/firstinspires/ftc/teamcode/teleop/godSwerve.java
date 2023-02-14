@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
@@ -26,7 +27,7 @@ public class godSwerve extends LinearOpMode {
 
     //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
     public static double mod3PC = -20, mod1PC = -20, mod2PC = -105;
-    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0;
+    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0, limit = 1000;
 
     double depositTarget = 0.3, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0, alignerTarget = 0.75;
 
@@ -78,6 +79,8 @@ public class godSwerve extends LinearOpMode {
 
         //class to swerve the swerve
         SwerveDrive swerve = new SwerveDrive(telemetry, imu, hardwareMap, true);
+
+        ElapsedTime hztimer = new ElapsedTime();
 
         //class that runs our linear slide
         LinearSlide slide = new LinearSlide(hardwareMap);
@@ -165,10 +168,13 @@ public class godSwerve extends LinearOpMode {
             deposit.moveTo(depositTarget);
             intake.moveTo(intakeTarget);
             slide.update();
+            swerve.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
 
             telemetry.addData("turrettarget",turretTarget);
             telemetry.addData("slidetarget",slideTarget);
             telemetry.addData("heading2", headingg);
+            telemetry.addData("hz",1/hztimer.seconds());
+            hztimer.reset();
             telemetry.update();
         }
     }

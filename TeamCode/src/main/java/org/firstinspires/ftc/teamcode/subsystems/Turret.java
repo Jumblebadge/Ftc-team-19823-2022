@@ -13,7 +13,7 @@ public class Turret {
     private final CRServoImplEx servo;
     private final AnalogInput ma3;
     private double adjust = 240, r = 5;
-    private final PIDcontroller pid = new PIDcontroller(0.1,0,0,0);
+    private final PIDcontroller pid = new PIDcontroller(0.1,0,0,0, 100);
     private final SlewRateLimiter limiter = new SlewRateLimiter();
 
     public Turret(CRServoImplEx servo, AnalogInput ma3){
@@ -30,8 +30,8 @@ public class Turret {
         servo.setPower(limiter.rateLimit(pid.pidOut(AngleUnit.normalizeDegrees(target - getHeading())), r));
     }
 
-    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf){
-        pid.setPIDCoeffs(Kp, Kd, Ki, Kf);
+    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
+        pid.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setR(double r){

@@ -16,12 +16,12 @@ public class RunMotionProfile {
     private final ElapsedTime timer = new ElapsedTime();
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0,0,0),new MotionState(1,0,0),1,1,1);
 
-    public RunMotionProfile(double maxVel, double maxAccel, double maxJerk, double Kp, double Kd, double Ki, double Kf){
+    public RunMotionProfile(double maxVel, double maxAccel, double maxJerk, double Kp, double Kd, double Ki, double Kf, double limit){
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
         this.maxJerk = maxJerk;
 
-        PID = new PIDcontroller(Kp,Kd,Ki,Kf);
+        PID = new PIDcontroller(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setMotionConstraints(double maxVel, double maxAccel, double maxJerk){
@@ -30,7 +30,7 @@ public class RunMotionProfile {
         this.maxJerk=maxJerk;
     }
 
-    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf){ PID.setPIDCoeffs(Kp,Kd,Ki,Kf); }
+    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){ PID.setPIDCoeffs(Kp,Kd,Ki,Kf, limit); }
 
     public double profiledMovement(double target, double state){
         if (lastTarget != target) {
