@@ -28,6 +28,13 @@ public class please extends LinearOpMode {
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+        ServoImplEx inL = hardwareMap.get(ServoImplEx.class, "inL");
+        ServoImplEx inR = hardwareMap.get(ServoImplEx.class, "inR");
+
+        TwoServo intake = new TwoServo(inL, inR);
+
+        //good to go: ALIGNER, INTAKE L AND R, CLAW
+        //to check: DEPOSIT L AND R, LINKAGE, TURRET
 
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -43,8 +50,6 @@ public class please extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
 
-        LinearSlide slide = new LinearSlide(hardwareMap);
-        slide.resetEncoders();
 
         //5 linkage, 4 turret, 3 intake right, 2 intake left, 1 aligner, 0 claw
 
@@ -54,12 +59,9 @@ public class please extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            slide.moveTo(pos);
-            slide.update();
-            slide.setPIDcoeffs(Kp, Kd, Ki, Kf, limit);
+            intake.moveTo(pos);
+
             telemetry.addData("pos",pos);
-            telemetry.addData("slidepos",slide.getMotionTarget());
-            telemetry.addData("slide",-slide.getPosition());
             telemetry.update();
 
 

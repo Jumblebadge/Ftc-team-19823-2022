@@ -62,7 +62,7 @@ public class GoToPoint {
         driver.drive(yOut,xOut,-headingOut);
         drawField(pose,desiredPose,startPose,dashboard);
 
-        isDone = profile.duration() + 3 < profileTime.seconds();
+        isDone = profile.duration()  < profileTime.seconds();
 
         telemetry.addData("distance: ",distance);
         telemetry.addData("timer,",profileTime.seconds());

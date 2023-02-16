@@ -81,10 +81,10 @@ public class testing extends LinearOpMode {
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
-        cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
+        //cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        webcamStuff.initCamera();
+        //webcamStuff.initCamera();
         telemetry.addLine("Waiting for start");
 
         //Calibrate the IMU
@@ -148,15 +148,16 @@ public class testing extends LinearOpMode {
         PhotonCore.enable();
 
         while (!isStarted() && !isStopRequested()) {
-            webcamStuff.detectTags();
+            //webcamStuff.detectTags();
             intake.moveTo(0.45);
             claw.setPosition(0.5);
             turret.moveTo(0);
             sleep(20);
         }
-        webcamStuff.closeCamera();
-        AprilTagDetection detectedTag = webcamStuff.sideDetected();
+        //webcamStuff.closeCamera();
+        //AprilTagDetection detectedTag = webcamStuff.sideDetected();
         apexstate = apexStates.DRIVE_TO_CYCLE;
+        targetPose = new Pose2d(52,0,-1);
         goofytimer.reset();
 
         while (opModeIsActive()) {
@@ -174,16 +175,15 @@ public class testing extends LinearOpMode {
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     //TODO fix this second path
-                    targetPose = new Pose2d(50,0,-1);
                     if (auto.isDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(50, 12, -1);
+                        targetPose = new Pose2d(52, 6, -1);
                         pathNumber += 1;
                     }
                     else if (auto.isDone() && pathNumber == 1) {
                         goofytimer.reset();
-                        pathNumber = 0;
                         apexstate = apexStates.CYCLING;
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
+                        pathNumber = 0;
                     }
                     break;
 
@@ -197,20 +197,20 @@ public class testing extends LinearOpMode {
                 case PARK:
                     //drive to park position
                     //telemetry.addData("state","PARK");
-                    if(detectedTag == null || detectedTag.id == 2) {
+                    //if(detectedTag == null || detectedTag.id == 2) {
                         //desiredPose = new Pose2d(39,0,0);
                         //desiredPose = new Pose2d(39,6,0);
-                    }
-                    else if(detectedTag.id == 1){
+                    //}
+                    //else if(detectedTag.id == 1){
                         //desiredPose = new Pose2d(26,0,0);
                         //desiredPose = new Pose2d(26,-26,0);
                         //desiredPose = new Pose2d(39,-30,0);
-                    }
-                    else if(detectedTag.id == 3){
+                    //}
+                    //else if(detectedTag.id == 3){
                         //desiredPose = new Pose2d(26,0,0);
                         //desiredPose = new Pose2d(26,26,0);
                         //desiredPose = new Pose2d(39,30,0);
-                    }
+                    //}
                     break;
             }
 
@@ -232,10 +232,10 @@ public class testing extends LinearOpMode {
                     break;
 
                 case INTAKE_UP:
-                    if (autogoofytimer.seconds() > 0.5){
+                    if (autogoofytimer.seconds() > 0.75){
                         claw.setPosition(0.2);
                     }
-                    if (goofytimer.seconds() > 1) {
+                    if (goofytimer.seconds() > 1.25) {
                         turretTarget = 0;
                         linkage.setPosition(0.25);
                         intake.moveTo(0.3);
@@ -246,10 +246,10 @@ public class testing extends LinearOpMode {
                     break;
 
                 case TRANSFER:
-                    if (autogoofytimer.seconds() > 0.5) {
+                    if (autogoofytimer.seconds() > 0.75) {
                         claw.setPosition(0.5);
                     }
-                    if (goofytimer.seconds() > 1) {
+                    if (goofytimer.seconds() > 1.25) {
                         intake.moveTo(0.45);
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
                     }
@@ -259,9 +259,9 @@ public class testing extends LinearOpMode {
                     //lift slides, drop cone, come back down
                     turretTarget = 70;
                     linkage.setPosition(0.5);
-                    if (goofytimer.seconds() > 0.5) {
+                    if (goofytimer.seconds() > 0.75) {
                         slide.highPole();
-                        if (slide.isPositionDone()) {
+                        if (slide.isTimeDone()) {
                             cyclestate = cycleStates.DEPOSIT_DUMP;
                             goofytimer.reset();
                             deposit.moveTo(0.8);
@@ -270,7 +270,7 @@ public class testing extends LinearOpMode {
                     break;
 
                 case DEPOSIT_DUMP:
-                    if (goofytimer.seconds() > 0.75){
+                    if (goofytimer.seconds() > 1){
                         deposit.moveTo(0.3);
                         cyclesCompleted += 1;
                         cyclestate = cycleStates.INTAKE_GRAB;
@@ -288,6 +288,9 @@ public class testing extends LinearOpMode {
             telemetry.addData("Y",pose.getY());
             telemetry.addData("heading",pose.getHeading());
             telemetry.addData("hz",1/hztimer.seconds());
+            telemetry.addData("pathcount",pathNumber);
+            telemetry.addData("isautodone",auto.isDone());
+            telemetry.addData("desiredposeY",targetPose.getY());
             hztimer.reset();
             telemetry.update();
 
@@ -295,12 +298,12 @@ public class testing extends LinearOpMode {
         }
 
 
-        if(detectedTag != null)
+        //if(detectedTag != null)
         {
             telemetry.addLine("tag:\n");
-            webcamStuff.tagToTelemetry(detectedTag);
+            //webcamStuff.tagToTelemetry(detectedTag);
         }
-        else
+        //else
         {
             telemetry.addLine("never seen tag");
         }

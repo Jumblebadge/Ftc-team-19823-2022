@@ -148,6 +148,10 @@ public class SwerveDrive {
         telemetry.addData("head",heading);
     }
 
+    public void rotateKids(double angle) {
+
+    }
+
     //tune module PIDs
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
         this.Kp = Kp;
