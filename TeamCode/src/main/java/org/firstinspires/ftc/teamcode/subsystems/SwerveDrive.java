@@ -26,12 +26,17 @@ public class SwerveDrive {
     final private AnalogInput mod1E,mod2E,mod3E;
     final private Telemetry telemetry;
     final private boolean eff;
-    private double Kp,Kd,Ki,Kf,limit;
     private double module1Adjust = -20, module2Adjust = -105, module3Adjust = -40;
     PIDcontroller mod1PID = new PIDcontroller(0.1,0.002,3,1, 0.5);
     PIDcontroller mod2PID = new PIDcontroller(0.1,0.002,2,0.5, 0.5);
     PIDcontroller mod3PID = new PIDcontroller(0.1,0.002,1,0.5, 0.75);
     swerveKinematics swavemath = new swerveKinematics();
+
+    double mod1reference = 0;
+    double mod2reference = 0;
+    double mod3reference = 0;
+    double heading;
+    double imuOffset = 0;
 
     public SwerveDrive(Telemetry telemetry, BNO055IMU imu, HardwareMap hardwareMap, boolean eff){
         mod1m1 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class,"mod1m1"));
@@ -58,13 +63,7 @@ public class SwerveDrive {
         this.eff = eff;
     }
 
-    double mod1reference = 0;
-    double mod2reference = 0;
-    double mod3reference = 0;
-
     public void drive(double x, double y, double rot){
-
-        //mod1PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
 
         //Turn our MA3 absolute encoder signals from volts to degrees
         double mod1P = mod1E.getVoltage() * 74.16;
@@ -73,7 +72,7 @@ public class SwerveDrive {
 
         //Update heading of robot
         Orientation angeles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double heading = angeles.firstAngle*-1;
+        heading = angeles.firstAngle * -1 + imuOffset;
 
         //Retrieve the angle and power for each module
         double[] output = swavemath.calculate(y,-x,-rot,heading,true);
@@ -149,16 +148,12 @@ public class SwerveDrive {
     }
 
     public void rotateKids(double angle) {
-
+        this.imuOffset = angle;
     }
 
     //tune module PIDs
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
-        this.Kp = Kp;
-        this.Kd = Kd;
-        this.Ki = Ki;
-        this.Kf = Kf;
-        this.limit = limit;
+        //mod1PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
     //tunable module zeroing

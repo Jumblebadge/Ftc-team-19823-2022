@@ -47,6 +47,8 @@ public class testing extends LinearOpMode {
 
     double lastX = 0.0001, lastY = 0.0001, turretTarget = 0;
 
+    public static double heading;
+
     Pose2d pose = new Pose2d(0,0,0);
     Pose2d temp = new Pose2d(0,0,0);
     Pose2d targetPose = new Pose2d(0,0,0);
@@ -122,7 +124,7 @@ public class testing extends LinearOpMode {
 
         TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
         TwoServo intake = new TwoServo(inRotL,inRotR);
-        Turret turret = new Turret(turretServo, turretPosition);
+        Turret turret = new Turret(hardwareMap);
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -155,9 +157,9 @@ public class testing extends LinearOpMode {
             sleep(20);
         }
         //webcamStuff.closeCamera();
-        //AprilTagDetection detectedTag = webcamStuff.sideDetected();
+        AprilTagDetection detectedTag = null;//webcamStuff.sideDetected();
         apexstate = apexStates.DRIVE_TO_CYCLE;
-        targetPose = new Pose2d(52,0,-1);
+        targetPose = new Pose2d(50,0,-0.9);
         goofytimer.reset();
 
         while (opModeIsActive()) {
@@ -176,10 +178,11 @@ public class testing extends LinearOpMode {
                     //drive to cycling position
                     //TODO fix this second path
                     if (auto.isDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52, 6, -1);
+                        targetPose = new Pose2d(50.5, 6.5, -0.9);
                         pathNumber += 1;
+                        goofytimer.reset();
                     }
-                    else if (auto.isDone() && pathNumber == 1) {
+                    else if (auto.isDone() && pathNumber == 1 && goofytimer.seconds() > 4) {
                         goofytimer.reset();
                         apexstate = apexStates.CYCLING;
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
@@ -189,34 +192,41 @@ public class testing extends LinearOpMode {
 
                 case CYCLING:
                     if (cyclesCompleted == 6){
-                        cyclestate = cycleStates.WAIT;
-                        apexstate = apexStates.PARK;
+                        targetPose = new Pose2d(44, 0, 0);
+                        if (auto.isDone()) {
+                            cyclestate = cycleStates.WAIT;
+                            apexstate = apexStates.PARK;
+                        }
                     }
                     break;
 
                 case PARK:
                     //drive to park position
-                    //telemetry.addData("state","PARK");
-                    //if(detectedTag == null || detectedTag.id == 2) {
-                        //desiredPose = new Pose2d(39,0,0);
-                        //desiredPose = new Pose2d(39,6,0);
-                    //}
-                    //else if(detectedTag.id == 1){
-                        //desiredPose = new Pose2d(26,0,0);
-                        //desiredPose = new Pose2d(26,-26,0);
-                        //desiredPose = new Pose2d(39,-30,0);
-                    //}
-                    //else if(detectedTag.id == 3){
-                        //desiredPose = new Pose2d(26,0,0);
-                        //desiredPose = new Pose2d(26,26,0);
-                        //desiredPose = new Pose2d(39,30,0);
-                    //}
+
+                    if (detectedTag == null || detectedTag.id == 2) {
+                        if (pathNumber == 0) {
+                            pathNumber = 1;
+                            targetPose = new Pose2d(50, 24, 0);
+                        }
+                    }
+                    else if(detectedTag.id == 1 && pathNumber == 0){
+                        targetPose = new Pose2d(36, 0, 0);
+                        pathNumber = 0;
+                    }
+                    else if(detectedTag.id == 3 && pathNumber == 0){
+                        targetPose = new Pose2d(50, -24, 0);
+                        pathNumber = 3;
+                    }
+
+                    if (auto.isDone() && pathNumber != 0) {
+                        targetPose = new Pose2d(36, (pathNumber == 1 ? 24 : -24), 0);
+                    }
                     break;
             }
 
             switch (cyclestate){
                 case WAIT:
-                    slide.zero();
+                    slide.zero(true);
                     deposit.moveTo(0.3);
                     linkage.setPosition(0.25);
                     turretTarget = 0;
@@ -225,7 +235,7 @@ public class testing extends LinearOpMode {
                 case INTAKE_GRAB:
                     slide.transfer();
                     deposit.moveTo(0.3);
-                    intake.moveTo(1);
+                    intake.moveTo(0.975-((5-cyclesCompleted)*0.026));
                     goofytimer.reset();
                     autogoofytimer.reset();
                     cyclestate = cycleStates.INTAKE_UP;
@@ -257,8 +267,8 @@ public class testing extends LinearOpMode {
 
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
-                    turretTarget = 70;
-                    linkage.setPosition(0.5);
+                    turretTarget = 67.5;
+                    linkage.setPosition(0.7);
                     if (goofytimer.seconds() > 0.75) {
                         slide.highPole();
                         if (slide.isTimeDone()) {
@@ -279,7 +289,7 @@ public class testing extends LinearOpMode {
             }
 
             runPoint(targetPose);
-
+            heading = Math.toDegrees(pose.getHeading());
             turret.moveTo(turretTarget);
             telemetry.addData("apexstate",apexstate.toString());
             telemetry.addData("cyclestate",cyclestate.toString());

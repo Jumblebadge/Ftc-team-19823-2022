@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 //Import EVERYTHING we need
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.roadrunner.util.Angle;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
 import com.qualcomm.hardware.bosch.*;
 import com.qualcomm.robotcore.eventloop.opmode.*;
@@ -49,16 +50,12 @@ public class godSwerve extends LinearOpMode {
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-
-        AnalogInput turretPosition = hardwareMap.get(AnalogInput.class, "turretMa3");
-
         ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
         ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
         ServoImplEx aligner = hardwareMap.get(ServoImplEx.class, "aligner");
         ServoImplEx inRotL = hardwareMap.get(ServoImplEx.class,"inL");
         ServoImplEx inRotR = hardwareMap.get(ServoImplEx.class,"inR");
         ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
-        CRServoImplEx turretServo = hardwareMap.get(CRServoImplEx.class, "turret");
         ServoImplEx claw = hardwareMap.get(ServoImplEx.class, "claw");
 
         depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
@@ -67,7 +64,6 @@ public class godSwerve extends LinearOpMode {
         inRotL.setPwmRange(new PwmControl.PwmRange(500,2500));
         inRotR.setPwmRange(new PwmControl.PwmRange(500,2500));
         linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        turretServo.setPwmRange(new PwmControl.PwmRange(500, 2500));
         claw.setPwmRange(new PwmControl.PwmRange(500,2500));
 
 
@@ -88,12 +84,11 @@ public class godSwerve extends LinearOpMode {
 
         TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
         TwoServo intake = new TwoServo(inRotL,inRotR);
-        Turret turret = new Turret(turretServo, turretPosition);
+        Turret turret = new Turret(hardwareMap);
 
         Toggler right_trigger = new Toggler();
         Toggler right_bumper = new Toggler();
         Toggler left_bumper = new Toggler();
-        Toggler left_trigger = new Toggler();
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {
@@ -124,7 +119,7 @@ public class godSwerve extends LinearOpMode {
             swerve.drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y,gamepad1.right_stick_x * gamepad1.right_stick_x * gamepad1.right_stick_x);
 
             if (gamepad2.a) {
-                slide.zero();
+                slide.zero(gamepad2.left_trigger > 0.1);
             }
             else if (gamepad2.b) {
                 slide.transfer();
@@ -153,11 +148,11 @@ public class godSwerve extends LinearOpMode {
             }
             else if (gamepad2.dpad_down){
                 intakeTarget = 0.3;
-                //down
+                //transfer
             }
             else if (gamepad2.dpad_up){
                 intakeTarget = 1;
-                //up
+                //down
             }
 
             turretTarget = 0;
@@ -168,6 +163,7 @@ public class godSwerve extends LinearOpMode {
             deposit.moveTo(depositTarget);
             intake.moveTo(intakeTarget);
             slide.update();
+            swerve.rotateKids(AngleUnit.normalizeDegrees(testing.heading + 0));
             swerve.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
 
             telemetry.addData("turrettarget",turretTarget);

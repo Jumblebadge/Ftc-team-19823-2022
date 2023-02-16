@@ -23,10 +23,11 @@ public class GoToPoint {
     private final Telemetry telemetry;
     private final FtcDashboard dashboard;
     private boolean isDone;
+    private double distanceNow;
     private final myElapsedTime profileTime = new myElapsedTime();
-    private final PIDcontroller headingPID = new PIDcontroller(6,0,0,0, 100);
-    private final PIDcontroller xPID = new PIDcontroller(2,0,5,0, 0.1);
-    private final PIDcontroller yPID = new PIDcontroller(2,0,5,0, 0.1);
+    private final PIDcontroller headingPID = new PIDcontroller(6,0,5,0, 0.1);
+    private final PIDcontroller xPID = new PIDcontroller(1,0,6.5,0, 0.1);
+    private final PIDcontroller yPID = new PIDcontroller(1,0,6.5,0, 0.1);
     private MotionProfile profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(1, 0, 0), 2, 3,4);
 
     public GoToPoint(SwerveDrive driver, Telemetry telemetry, FtcDashboard dashboard){
@@ -36,7 +37,7 @@ public class GoToPoint {
     }
 
     public void driveToPoint(Pose2d pose,Pose2d desiredPose,Pose2d startPose,boolean update){
-        double distanceNow = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
+        distanceNow = Math.abs(Math.hypot(desiredPose.getX()-pose.getX(),desiredPose.getY()-pose.getY()));
         double distanceAtStart = Math.abs(Math.hypot(desiredPose.getX()-startPose.getX(),desiredPose.getY()-startPose.getY()));
         //distance starts at 0 and goes to the distance from start as the robot gets closer
         double distance = distanceAtStart-distanceNow;
@@ -62,7 +63,7 @@ public class GoToPoint {
         driver.drive(yOut,xOut,-headingOut);
         drawField(pose,desiredPose,startPose,dashboard);
 
-        isDone = profile.duration()  < profileTime.seconds();
+        isDone = profile.duration() < profileTime.seconds();
 
         telemetry.addData("distance: ",distance);
         telemetry.addData("timer,",profileTime.seconds());
@@ -82,6 +83,7 @@ public class GoToPoint {
     public boolean isDone(){
         return isDone;
     }
+    public boolean isPosDone() { return distanceNow < 0.5; }
 
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
         xPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);

@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -16,9 +18,10 @@ public class Turret {
     private final PIDcontroller pid = new PIDcontroller(0.1,0,0,0, 100);
     private final SlewRateLimiter limiter = new SlewRateLimiter();
 
-    public Turret(CRServoImplEx servo, AnalogInput ma3){
-        this.servo = servo;
-        this.ma3 = ma3;
+    public Turret(HardwareMap hardwareMap){
+        servo = hardwareMap.get(CRServoImplEx.class, "turret");
+        ma3 = hardwareMap.get(AnalogInput.class, "turretMa3");
+        servo.setPwmRange(new PwmControl.PwmRange(500, 2500));
     }
 
     public double getHeading(){

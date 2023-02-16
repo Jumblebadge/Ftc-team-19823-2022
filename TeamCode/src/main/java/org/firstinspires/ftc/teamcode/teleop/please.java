@@ -10,6 +10,7 @@ import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
 import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
+import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
 
 import java.util.List;
@@ -20,8 +21,7 @@ public class please extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-    public static double pos = 0.5;
-    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0, limit = 1000;
+    public static double pos = 0, linkagePos = 0.5, cycle = 0;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -30,8 +30,15 @@ public class please extends LinearOpMode {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         ServoImplEx inL = hardwareMap.get(ServoImplEx.class, "inL");
         ServoImplEx inR = hardwareMap.get(ServoImplEx.class, "inR");
+        ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
+        inL.setPwmRange(new PwmControl.PwmRange(500,2500));
+        inR.setPwmRange(new PwmControl.PwmRange(500,2500));
+        linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
         TwoServo intake = new TwoServo(inL, inR);
+        Turret turret = new Turret(hardwareMap);
+        LinearSlide slide = new LinearSlide(hardwareMap);
+        slide.resetEncoders();
 
         //good to go: ALIGNER, INTAKE L AND R, CLAW
         //to check: DEPOSIT L AND R, LINKAGE, TURRET
@@ -60,6 +67,10 @@ public class please extends LinearOpMode {
             }
 
             intake.moveTo(pos);
+            //turret.moveTo(pos);
+            //slide.highPole();
+            //linkage.setPosition(linkagePos);
+            //slide.update();
 
             telemetry.addData("pos",pos);
             telemetry.update();

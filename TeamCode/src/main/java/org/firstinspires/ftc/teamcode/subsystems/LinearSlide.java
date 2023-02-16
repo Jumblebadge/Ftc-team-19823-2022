@@ -83,9 +83,9 @@ public class LinearSlide {
         moveTo(transfer);
         aligner.setPosition(alignerDown);
     }
-    public void zero(){
+    public void zero(boolean override){
         moveTo(zero);
-        aligner.setPosition(alignerUp);
+        aligner.setPosition((override) ? alignerDown : alignerUp);
     }
 
 }
