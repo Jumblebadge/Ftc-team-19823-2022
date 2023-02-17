@@ -21,7 +21,7 @@ public class please extends LinearOpMode {
 
     //Initialize FTCDashboard
     FtcDashboard dashboard;
-    public static double pos = 0, linkagePos = 0.5, cycle = 0;
+    public static double linkagePos = 0.5, intakePos = 0, turretPos = 0;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -66,13 +66,11 @@ public class please extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            intake.moveTo(pos);
-            //turret.moveTo(pos);
-            //slide.highPole();
-            //linkage.setPosition(linkagePos);
-            //slide.update();
+            turret.moveTo(turretPos);
+            linkage.setPosition(linkagePos);
+            intake.moveTo(intakePos);
 
-            telemetry.addData("pos",pos);
+            telemetry.addData("turret",turret.getHeading());
             telemetry.update();
 
 

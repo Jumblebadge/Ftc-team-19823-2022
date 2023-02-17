@@ -45,7 +45,7 @@ public class GoToPoint {
         double angleToEndPoint = Math.atan2(desiredPose.getY()-startPose.getY(),desiredPose.getX()-startPose.getX());
         //if the target position has changed, then create a new motion profile and reset the profile timer
         if(update){
-            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(distanceAtStart, 0, 0), 20, 20, 20);
+            profile = MotionProfileGenerator.generateSimpleMotionProfile(new MotionState(0, 0, 0), new MotionState(distanceAtStart, 0, 0), 30, 30, 30);
             profileTime.reset();
         }
         MotionState state = profile.get(profileTime.seconds());
@@ -83,7 +83,7 @@ public class GoToPoint {
     public boolean isDone(){
         return isDone;
     }
-    public boolean isPosDone() { return distanceNow < 0.5; }
+    public boolean isPosDone() { return distanceNow < 0.5 || isDone; }
 
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
         xPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);

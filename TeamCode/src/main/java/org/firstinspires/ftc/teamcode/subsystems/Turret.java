@@ -15,7 +15,7 @@ public class Turret {
     private final CRServoImplEx servo;
     private final AnalogInput ma3;
     private double adjust = 240, r = 5;
-    private final PIDcontroller pid = new PIDcontroller(0.1,0,0,0, 100);
+    private final PIDcontroller pid = new PIDcontroller(0.1,0.001,0.1,0, 0.25);
     private final SlewRateLimiter limiter = new SlewRateLimiter();
 
     public Turret(HardwareMap hardwareMap){

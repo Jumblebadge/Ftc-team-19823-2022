@@ -178,7 +178,7 @@ public class testing extends LinearOpMode {
                     //drive to cycling position
                     //TODO fix this second path
                     if (auto.isDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(50.5, 6.5, -0.9);
+                        targetPose = new Pose2d(50.5, 5.5, -0.85);
                         pathNumber += 1;
                         goofytimer.reset();
                     }
@@ -235,7 +235,7 @@ public class testing extends LinearOpMode {
                 case INTAKE_GRAB:
                     slide.transfer();
                     deposit.moveTo(0.3);
-                    intake.moveTo(0.975-((5-cyclesCompleted)*0.026));
+                    intake.moveTo(0.98-((5-cyclesCompleted)*0.0255));
                     goofytimer.reset();
                     autogoofytimer.reset();
                     cyclestate = cycleStates.INTAKE_UP;
@@ -245,7 +245,7 @@ public class testing extends LinearOpMode {
                     if (autogoofytimer.seconds() > 0.75){
                         claw.setPosition(0.2);
                     }
-                    if (goofytimer.seconds() > 1.25) {
+                    if (goofytimer.seconds() > 1.3) {
                         turretTarget = 0;
                         linkage.setPosition(0.25);
                         intake.moveTo(0.3);
@@ -256,10 +256,10 @@ public class testing extends LinearOpMode {
                     break;
 
                 case TRANSFER:
-                    if (autogoofytimer.seconds() > 0.75) {
+                    if (autogoofytimer.seconds() > 0.7) {
                         claw.setPosition(0.5);
                     }
-                    if (goofytimer.seconds() > 1.25) {
+                    if (goofytimer.seconds() > 1.5) {
                         intake.moveTo(0.45);
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
                     }
@@ -267,7 +267,7 @@ public class testing extends LinearOpMode {
 
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
-                    turretTarget = 67.5;
+                    turretTarget = 68;
                     linkage.setPosition(0.7);
                     if (goofytimer.seconds() > 0.75) {
                         slide.highPole();
@@ -280,7 +280,7 @@ public class testing extends LinearOpMode {
                     break;
 
                 case DEPOSIT_DUMP:
-                    if (goofytimer.seconds() > 1){
+                    if (goofytimer.seconds() > 1.1){
                         deposit.moveTo(0.3);
                         cyclesCompleted += 1;
                         cyclestate = cycleStates.INTAKE_GRAB;

@@ -151,7 +151,7 @@ public class godSwerve extends LinearOpMode {
                 //transfer
             }
             else if (gamepad2.dpad_up){
-                intakeTarget = 1;
+                intakeTarget = 0.975;
                 //down
             }
 
