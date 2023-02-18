@@ -87,7 +87,7 @@ public class cyclestuff extends LinearOpMode {
         cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        //webcamStuff.initCamera();
+        webcamStuff.initCamera();
         telemetry.addLine("Waiting for start");
 
         //Calibrate the IMU
@@ -153,10 +153,11 @@ public class cyclestuff extends LinearOpMode {
             turret.moveTo(0);
             sleep(20);
         }
-        //webcamStuff.closeCamera();
+
+        webcamStuff.closeCamera();
         AprilTagDetection detectedTag = webcamStuff.sideDetected();
         apexstate = apexStates.DRIVE_TO_CYCLE;
-        targetPose = new Pose2d(50,0,-0.9);
+        targetPose = new Pose2d(50,0,0);
         goofytimer.reset();
 
         while (opModeIsActive()) {
@@ -175,11 +176,11 @@ public class cyclestuff extends LinearOpMode {
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     if (auto.isPosDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(50, 5, -0.95);
+                        targetPose = new Pose2d(52.75, 7, -0.95);
                         pathNumber += 1;
                         goofytimer.reset();
                     }
-                    else if (auto.isPosDone() && pathNumber == 1 && goofytimer.seconds() > 4) {
+                    else if (auto.isPosDone() && pathNumber == 1) {
                         goofytimer.reset();
                         apexstate = apexStates.CYCLING;
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
@@ -201,20 +202,20 @@ public class cyclestuff extends LinearOpMode {
                     //drive to park position
 
                     if (detectedTag == null || detectedTag.id == 2) {
-                        targetPose = new Pose2d(36, 0, 0);
+                        targetPose = new Pose2d(39, 0, 0);
                         pathNumber = 0;
                     }
                     else if(detectedTag.id == 1 && pathNumber == 0){
                         pathNumber = 1;
-                        targetPose = new Pose2d(44, 24, 0);
+                        targetPose = new Pose2d(50, 24, 0);
                     }
                     else if(detectedTag.id == 3 && pathNumber == 0){
-                        targetPose = new Pose2d(44, -24, 0);
+                        targetPose = new Pose2d(50, -24, 0);
                         pathNumber = 3;
                     }
-
+                    runPoint(targetPose);
                     if (auto.isPosDone() && pathNumber != 0) {
-                        targetPose = new Pose2d(36, (pathNumber == 1 ? 24 : -24), 0);
+                        targetPose = new Pose2d(39, (pathNumber == 1 ? 24 : -24), 0);
                     }
                     break;
             }
@@ -231,7 +232,6 @@ public class cyclestuff extends LinearOpMode {
                     slide.transfer();
                     deposit.moveTo(0.3);
                     intake.moveTo(0.985-((5-cyclesCompleted)*0.0255));
-                    linkage.setPosition(0.51);
                     goofytimer.reset();
                     autogoofytimer.reset();
                     cyclestate = cycleStates.INTAKE_UP;
@@ -257,7 +257,7 @@ public class cyclestuff extends LinearOpMode {
                     if (autogoofytimer.seconds() > 0.7) {
                         claw.setPosition(0.5);
                     }
-                    if (goofytimer.seconds() > 1.5) {
+                    if (goofytimer.seconds() > 1.25) {
                         intake.moveTo(0.45);
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
                     }
@@ -265,7 +265,8 @@ public class cyclestuff extends LinearOpMode {
 
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
-                    turretTarget = 53.25;
+                    turretTarget = 54.5;
+                    linkage.setPosition(0.51);
                     slide.highPole();
                     if (slide.isTimeDone()) {
                         cyclestate = cycleStates.DEPOSIT_DUMP;
@@ -278,7 +279,7 @@ public class cyclestuff extends LinearOpMode {
                     if (goofytimer.seconds() > 0.5) {
                         deposit.moveTo(0.8);
                     }
-                    if (goofytimer.seconds() > 1.1){
+                    if (goofytimer.seconds() > 1.325){
                         deposit.moveTo(0.3);
                         cyclesCompleted += 1;
                         cyclestate = cycleStates.INTAKE_GRAB;

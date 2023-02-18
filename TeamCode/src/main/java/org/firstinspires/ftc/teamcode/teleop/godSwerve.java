@@ -13,6 +13,7 @@ import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
+import org.firstinspires.ftc.teamcode.auto.cyclestuff;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
@@ -154,6 +155,9 @@ public class godSwerve extends LinearOpMode {
                 intakeTarget = 0.975;
                 //down
             }
+            else if (gamepad2.dpad_left) {
+                intakeTarget = 1;
+            }
 
             turretTarget = 0;
 
@@ -163,7 +167,7 @@ public class godSwerve extends LinearOpMode {
             deposit.moveTo(depositTarget);
             intake.moveTo(intakeTarget);
             slide.update();
-            swerve.rotateKids(AngleUnit.normalizeDegrees(testing.heading + 0));
+            swerve.rotateKids(AngleUnit.normalizeDegrees(cyclestuff.heading));
             swerve.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
 
             telemetry.addData("turrettarget",turretTarget);

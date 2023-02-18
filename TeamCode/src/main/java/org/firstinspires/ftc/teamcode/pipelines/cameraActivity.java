@@ -17,7 +17,6 @@ import java.util.ArrayList;
 public class cameraActivity {
 
     protected OpenCvWebcam webcam;
-    HardwareMap hardwareMap;
     Telemetry telemetry;
     private final double fx = 578.272;
     private final double fy = 578.272;
@@ -29,13 +28,13 @@ public class cameraActivity {
     aprilTagDetectPipe pipeline = new aprilTagDetectPipe(tagsize,fx,fy,cx,cy);
 
     public cameraActivity(HardwareMap hardwareMap, Telemetry telemetry){
-        this.hardwareMap=hardwareMap;
         this.telemetry=telemetry;
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
+
     }
 
     public void initCamera(){
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"), cameraMonitorViewId);
         webcam.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
 
         webcam.setPipeline(pipeline);
