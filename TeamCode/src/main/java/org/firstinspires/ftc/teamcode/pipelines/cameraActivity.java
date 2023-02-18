@@ -45,7 +45,7 @@ public class cameraActivity {
 
             @Override
             public void onOpened() {
-                webcam.startStreaming(864, 480, OpenCvCameraRotation.SIDEWAYS_LEFT);
+                webcam.startStreaming(800, 600, OpenCvCameraRotation.SIDEWAYS_LEFT);
             }
 
             @Override

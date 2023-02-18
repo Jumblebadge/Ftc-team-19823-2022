@@ -66,8 +66,6 @@ public class please extends LinearOpMode {
                 hub.clearBulkCache();
             }
 
-            turret.moveTo(turretPos);
-            linkage.setPosition(linkagePos);
             intake.moveTo(intakePos);
 
             telemetry.addData("turret",turret.getHeading());

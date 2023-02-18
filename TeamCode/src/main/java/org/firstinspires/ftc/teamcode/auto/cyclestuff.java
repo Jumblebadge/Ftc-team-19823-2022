@@ -84,7 +84,7 @@ public class cyclestuff extends LinearOpMode {
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
-        //cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
+        cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         //webcamStuff.initCamera();
@@ -147,14 +147,14 @@ public class cyclestuff extends LinearOpMode {
         PhotonCore.enable();
 
         while (!isStarted() && !isStopRequested()) {
-            //webcamStuff.detectTags();
+            webcamStuff.detectTags();
             intake.moveTo(0.45);
             claw.setPosition(0.5);
             turret.moveTo(0);
             sleep(20);
         }
         //webcamStuff.closeCamera();
-        AprilTagDetection detectedTag = null;//webcamStuff.sideDetected();
+        AprilTagDetection detectedTag = webcamStuff.sideDetected();
         apexstate = apexStates.DRIVE_TO_CYCLE;
         targetPose = new Pose2d(50,0,-0.9);
         goofytimer.reset();
@@ -169,12 +169,13 @@ public class cyclestuff extends LinearOpMode {
             pose = localizer.getPoseEstimate();
 
             slide.update();
-
+            runPoint(targetPose);
             switch (apexstate){
+
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     if (auto.isPosDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52, 6.5, -0.95);
+                        targetPose = new Pose2d(50, 5, -0.95);
                         pathNumber += 1;
                         goofytimer.reset();
                     }
@@ -200,14 +201,12 @@ public class cyclestuff extends LinearOpMode {
                     //drive to park position
 
                     if (detectedTag == null || detectedTag.id == 2) {
-                        if (pathNumber == 0) {
-                            pathNumber = 1;
-                            targetPose = new Pose2d(44, 24, 0);
-                        }
-                    }
-                    else if(detectedTag.id == 1 && pathNumber == 0){
                         targetPose = new Pose2d(36, 0, 0);
                         pathNumber = 0;
+                    }
+                    else if(detectedTag.id == 1 && pathNumber == 0){
+                        pathNumber = 1;
+                        targetPose = new Pose2d(44, 24, 0);
                     }
                     else if(detectedTag.id == 3 && pathNumber == 0){
                         targetPose = new Pose2d(44, -24, 0);
@@ -231,7 +230,7 @@ public class cyclestuff extends LinearOpMode {
                 case INTAKE_GRAB:
                     slide.transfer();
                     deposit.moveTo(0.3);
-                    intake.moveTo(0.98-((5-cyclesCompleted)*0.0255));
+                    intake.moveTo(0.985-((5-cyclesCompleted)*0.0255));
                     linkage.setPosition(0.51);
                     goofytimer.reset();
                     autogoofytimer.reset();
@@ -243,9 +242,11 @@ public class cyclestuff extends LinearOpMode {
                         claw.setPosition(0.2);
                     }
                     if (goofytimer.seconds() > 1.3) {
-                        turretTarget = 0;
                         linkage.setPosition(0.25);
                         intake.moveTo(0.3);
+                    }
+                    if (goofytimer.seconds() > 1.4) {
+                        turretTarget = 0;
                         cyclestate = cycleStates.TRANSFER;
                         goofytimer.reset();
                         autogoofytimer.reset();
@@ -264,7 +265,7 @@ public class cyclestuff extends LinearOpMode {
 
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
-                    turretTarget = 53;
+                    turretTarget = 53.25;
                     slide.highPole();
                     if (slide.isTimeDone()) {
                         cyclestate = cycleStates.DEPOSIT_DUMP;
@@ -285,7 +286,6 @@ public class cyclestuff extends LinearOpMode {
                     break;
             }
 
-            runPoint(targetPose);
             heading = Math.toDegrees(pose.getHeading());
             turret.moveTo(turretTarget);
             telemetry.addData("apexstate",apexstate.toString());
