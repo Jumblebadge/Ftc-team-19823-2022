@@ -148,8 +148,6 @@ public class cyclestuff extends LinearOpMode {
 
         while (!isStarted() && !isStopRequested()) {
             webcamStuff.detectTags();
-            intake.moveTo(0.45);
-            claw.setPosition(0.5);
             turret.moveTo(0);
             sleep(20);
         }
@@ -176,7 +174,9 @@ public class cyclestuff extends LinearOpMode {
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     if (auto.isPosDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52.75, 7, -0.95);
+                        targetPose = new Pose2d(52.75, 5.5, -0.95);
+                        intake.moveTo(0.45);
+                        claw.setPosition(0.5);
                         pathNumber += 1;
                         goofytimer.reset();
                     }
@@ -230,8 +230,8 @@ public class cyclestuff extends LinearOpMode {
 
                 case INTAKE_GRAB:
                     slide.transfer();
-                    deposit.moveTo(0.3);
-                    intake.moveTo(0.985-((5-cyclesCompleted)*0.0255));
+                    deposit.moveTo(0.175);
+                    intake.moveTo(0.995-((5-cyclesCompleted)*0.0255));
                     goofytimer.reset();
                     autogoofytimer.reset();
                     cyclestate = cycleStates.INTAKE_UP;

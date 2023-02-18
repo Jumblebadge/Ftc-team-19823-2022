@@ -141,7 +141,7 @@ public class godSwerve extends LinearOpMode {
             clawTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.2 : 0.5);
 
             //rising edge detector for outtake positions
-            depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.8 : 0.3);
+            depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? 0.8 : 0.175);
 
             if(gamepad2.dpad_right){
                 intakeTarget = 0.45;
@@ -157,6 +157,9 @@ public class godSwerve extends LinearOpMode {
             }
             else if (gamepad2.dpad_left) {
                 intakeTarget = 1;
+            }
+            else if (gamepad2.left_trigger > 0.1) {
+                intakeTarget = 0.7;
             }
 
             turretTarget = 0;

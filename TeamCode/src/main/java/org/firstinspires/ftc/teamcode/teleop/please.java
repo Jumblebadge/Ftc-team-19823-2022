@@ -28,12 +28,12 @@ public class please extends LinearOpMode {
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        ServoImplEx inL = hardwareMap.get(ServoImplEx.class, "inL");
-        ServoImplEx inR = hardwareMap.get(ServoImplEx.class, "inR");
-        ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
+        ServoImplEx inL = hardwareMap.get(ServoImplEx.class, "outL");
+        ServoImplEx inR = hardwareMap.get(ServoImplEx.class, "outR");
+        ServoImplEx aligner = hardwareMap.get(ServoImplEx.class, "aligner");
         inL.setPwmRange(new PwmControl.PwmRange(500,2500));
         inR.setPwmRange(new PwmControl.PwmRange(500,2500));
-        linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
+        aligner.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
         TwoServo intake = new TwoServo(inL, inR);
         Turret turret = new Turret(hardwareMap);
