@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
 import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
@@ -26,6 +27,7 @@ import java.util.List;
 
 
     @Config
+    @Disabled
     @Autonomous(name="parkAuto", group="Linear Opmode")
     public class parkAuto extends LinearOpMode {
 

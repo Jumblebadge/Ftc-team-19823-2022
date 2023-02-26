@@ -225,7 +225,7 @@ public class cyclestuff extends LinearOpMode {
                     slide.zero(true);
                     deposit.moveTo(0.3);
                     linkage.setPosition(0.25);
-                    turretTarget = 0;
+                    turretTarget = Turret.zero;
                     break;
 
                 case INTAKE_GRAB:
@@ -265,7 +265,7 @@ public class cyclestuff extends LinearOpMode {
 
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
-                    turretTarget = 54.5;
+                    turretTarget = Turret.stackPickup;
                     linkage.setPosition(0.51);
                     slide.highPole();
                     if (slide.isTimeDone()) {

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -13,6 +14,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
@@ -38,7 +41,7 @@ public class SwerveDrive {
     double heading;
     double imuOffset = 0;
 
-    public SwerveDrive(Telemetry telemetry, BNO055IMU imu, HardwareMap hardwareMap, boolean eff){
+    public SwerveDrive(Telemetry telemetry, HardwareMap hardwareMap, boolean eff){
         mod1m1 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class,"mod1m1"));
         mod1m2 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class,"mod1m2"));
         mod2m1 = new myDcMotorEx(hardwareMap.get(DcMotorEx.class,"mod2m1"));
@@ -58,7 +61,17 @@ public class SwerveDrive {
 
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
-        this.imu = imu;
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+
         this.telemetry = telemetry;
         this.eff = eff;
     }
@@ -153,7 +166,7 @@ public class SwerveDrive {
 
     //tune module PIDs
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
-        //mod1PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        mod1PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
     }
 
     //tunable module zeroing

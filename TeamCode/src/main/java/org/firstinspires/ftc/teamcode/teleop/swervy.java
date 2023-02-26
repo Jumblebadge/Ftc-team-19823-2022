@@ -24,6 +24,7 @@ import java.util.List;
 
 
 @Config
+@Disabled
 @TeleOp(name="swervy", group="Linear Opmode")
 public class swervy extends LinearOpMode {
 

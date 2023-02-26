@@ -45,26 +45,6 @@ public class modulePIDtuner extends LinearOpMode {
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        /*
-        AnalogInput turretPosition = hardwareMap.get(AnalogInput.class, "turretMa3");
-
-        ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
-        ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
-        ServoImplEx inRotL = hardwareMap.get(ServoImplEx.class,"inL");
-        ServoImplEx inRotR = hardwareMap.get(ServoImplEx.class,"inR");
-        ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
-        CRServoImplEx turretServo = hardwareMap.get(CRServoImplEx.class, "turret");
-        ServoImplEx claw = hardwareMap.get(ServoImplEx.class, "claw");
-
-        depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        inRotL.setPwmRange(new PwmControl.PwmRange(500,2500));
-        inRotR.setPwmRange(new PwmControl.PwmRange(500,2500));
-        linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        turretServo.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        claw.setPwmRange(new PwmControl.PwmRange(500,2500));
-        */
-
         //Bulk sensor reads
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
