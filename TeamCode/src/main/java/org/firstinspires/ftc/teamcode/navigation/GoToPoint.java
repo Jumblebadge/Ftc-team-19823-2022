@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.navigation;
 
-import static org.firstinspires.ftc.teamcode.teleop.swervy.maxAccel;
-import static org.firstinspires.ftc.teamcode.teleop.swervy.maxJerk;
-import static org.firstinspires.ftc.teamcode.teleop.swervy.maxVel;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -86,12 +82,12 @@ public class GoToPoint {
     public boolean isPosDone() { return distanceNow < 1 || isDone; }
 
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
-        xPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
-        yPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        xPID.setPIDgains(Kp, Kd, Ki, Kf, limit);
+        yPID.setPIDgains(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setHeadingPIDcoeffs(double Kp,double Kd, double Ki, double Kf, double limit){
-        headingPID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        headingPID.setPIDgains(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setProfileConstraints(double maxVel, double maxAccel, double maxJerk){

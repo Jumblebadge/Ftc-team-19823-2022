@@ -30,7 +30,7 @@ public class RunMotionProfile {
         this.maxJerk=maxJerk;
     }
 
-    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){ PID.setPIDCoeffs(Kp,Kd,Ki,Kf, limit); }
+    public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){ PID.setPIDgains(Kp,Kd,Ki,Kf, limit); }
 
     public double profiledMovement(double target, double state){
         if (lastTarget != target) {

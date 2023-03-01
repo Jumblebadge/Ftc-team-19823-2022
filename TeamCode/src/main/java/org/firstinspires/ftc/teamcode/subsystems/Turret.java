@@ -35,7 +35,7 @@ public class Turret {
     }
 
     public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
-        pid.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        pid.setPIDgains(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setR(double r){

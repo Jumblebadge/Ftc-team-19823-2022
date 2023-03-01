@@ -14,7 +14,7 @@ public class MotorGroup {
     }
 
     public void setPIDgains(double Kp, double Kd, double Ki, double Kf, double limit){
-        controller.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        controller.setPIDgains(Kp, Kd, Ki, Kf, limit);
     }
 
     public void setPowers(double... powers){

@@ -38,7 +38,7 @@ public class SwerveModule {
     }
 
     public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
-        PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        PID.setPIDgains(Kp, Kd, Ki, Kf, limit);
     }
 
 }

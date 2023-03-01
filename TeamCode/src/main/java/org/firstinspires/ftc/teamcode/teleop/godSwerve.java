@@ -31,23 +31,11 @@ import java.util.List;
 @TeleOp(name="godSwerve", group="Linear Opmode")
 public class godSwerve extends LinearOpMode {
 
-    //Tuning values so that wheels are always facing straight (accounts for encoder drift - tuned manually)
-    public static double mod3PC = -20, mod1PC = -20, mod2PC = -105;
-    public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0, limit = 1000;
-
-    double depositTarget = 0.3, clawTarget = 0.5, linkageTarget = 0.5, intakeTarget = 0.5, slideTarget = 0, turretTarget = 0, alignerTarget = 0.75;
-
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        //Initialize FTCDashboard telemetry
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
         //Bulk sensor reads
         LynxModule controlHub = hardwareMap.get(LynxModule.class, "Control Hub");
-
-        //Initialize FTCDashboard
-        FtcDashboard dashboard = FtcDashboard.getInstance();
 
         //class to swerve the swerve
         SwerveDrive swerve = new SwerveDrive(telemetry, hardwareMap, true);
@@ -59,14 +47,14 @@ public class godSwerve extends LinearOpMode {
         slide.resetEncoders();
 
         Deposit deposit = new Deposit(hardwareMap);
-        Intake intake = new Intake(hardwareMap);
-        Turret turret = new Turret(hardwareMap);
+        Intake intake   = new Intake(hardwareMap);
+        Turret turret   = new Turret(hardwareMap);
         Linkage linkage = new Linkage(hardwareMap);
-        Claw claw = new Claw(hardwareMap);
+        Claw claw       = new Claw(hardwareMap);
 
         Toggler right_trigger = new Toggler();
-        Toggler right_bumper = new Toggler();
-        Toggler left_bumper = new Toggler();
+        Toggler right_bumper  = new Toggler();
+        Toggler left_bumper   = new Toggler();
 
         //Bulk sensor reads
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -138,14 +126,12 @@ public class godSwerve extends LinearOpMode {
                 intake.lowJunction();
             }
 
-            turretTarget = Turret.zero;
+            double turretTarget = Turret.zero;
 
             turret.moveTo(turretTarget);
             slide.update();
             swerve.rotateKids(AngleUnit.normalizeDegrees(cyclestuff.heading));
 
-            telemetry.addData("turrettarget",turretTarget);
-            telemetry.addData("slidetarget",slideTarget);;
             telemetry.addData("hz",1/hztimer.seconds());
             hztimer.reset();
             telemetry.update();

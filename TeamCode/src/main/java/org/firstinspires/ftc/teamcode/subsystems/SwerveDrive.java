@@ -6,8 +6,6 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -16,7 +14,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
@@ -30,10 +27,10 @@ public class SwerveDrive {
     final private Telemetry telemetry;
     final private boolean eff;
     private double module1Adjust = -20, module2Adjust = -105, module3Adjust = -40;
-    PIDcontroller mod1PID = new PIDcontroller(0.1,0.002,3,1, 0.5);
-    PIDcontroller mod2PID = new PIDcontroller(0.1,0.002,2,0.5, 0.5);
-    PIDcontroller mod3PID = new PIDcontroller(0.1,0.002,1,0.5, 0.75);
-    swerveKinematics swavemath = new swerveKinematics();
+    private final PIDcontroller mod1PID = new PIDcontroller(0.1,0.002,3,1, 0.5);
+    private final PIDcontroller mod2PID = new PIDcontroller(0.1,0.002,2,0.5, 0.5);
+    private final PIDcontroller mod3PID = new PIDcontroller(0.1,0.002,1,0.5, 0.75);
+    private final swerveKinematics swavemath = new swerveKinematics();
 
     double mod1reference = 0;
     double mod2reference = 0;
@@ -148,16 +145,6 @@ public class SwerveDrive {
         telemetry.addData("mod1P",mod1P);
         telemetry.addData("mod2P",mod2P);
         telemetry.addData("mod3P",mod3P);
-
-        telemetry.addData("mod3power",mod3power);
-        telemetry.addData("mod2power",mod2power);
-        telemetry.addData("mod1power",mod1power);
-
-        telemetry.addData("pid1out",mod1PID.pidOut(AngleUnit.normalizeDegrees(mod1reference-mod1P)));
-        telemetry.addData("pid2out",mod2PID.pidOut(AngleUnit.normalizeDegrees(mod2reference-mod2P)));
-        telemetry.addData("pid3out",mod3PID.pidOut(AngleUnit.normalizeDegrees(mod3reference-mod3P)));
-
-        telemetry.addData("head",heading);
     }
 
     public void rotateKids(double angle) {
@@ -166,7 +153,7 @@ public class SwerveDrive {
 
     //tune module PIDs
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
-        mod1PID.setPIDCoeffs(Kp, Kd, Ki, Kf, limit);
+        mod1PID.setPIDgains(Kp, Kd, Ki, Kf, limit);
     }
 
     //tunable module zeroing
