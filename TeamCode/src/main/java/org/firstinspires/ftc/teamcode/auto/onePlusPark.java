@@ -75,7 +75,7 @@ public class onePlusPark extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //Create objects for the classes we use for swerve and PIDS
-        SwerveDrive drivein = new SwerveDrive(telemetry, null, hardwareMap, true);
+        SwerveDrive drivein = new SwerveDrive(telemetry, hardwareMap, true);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {

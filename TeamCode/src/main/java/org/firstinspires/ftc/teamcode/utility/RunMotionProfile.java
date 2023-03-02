@@ -56,6 +56,9 @@ public class RunMotionProfile {
     }
 
     public double getMotionTarget(){
+        if (motionState == null) {
+            return 0;
+        }
         return motionState.getX();
     }
 

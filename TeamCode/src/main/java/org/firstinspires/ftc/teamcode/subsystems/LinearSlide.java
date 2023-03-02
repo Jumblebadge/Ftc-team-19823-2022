@@ -14,9 +14,9 @@ public class LinearSlide {
     private final MotorGroup motors;
     private double target;
     private final ServoImplEx aligner;
-    private final RunMotionProfile profile = new RunMotionProfile(25000,20000,50000,0.1,0,1,0.2, 1);
+    private final RunMotionProfile profile = new RunMotionProfile(60000,70000,80000,0.1,0,1,0.2, 1);
 
-    final double highPole = 1030, mediumPole = 500, transfer = 250, zero = 0;
+    final double highPole = 800, mediumPole = 400, transfer = 200, zero = 0;
     final double alignerDown = 0.75, alignerUp = 1;
 
     public LinearSlide(HardwareMap hardwareMap){

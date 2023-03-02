@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class Deposit {
 
-    public static final double score = 0.8, init = 0.175, transfer = 0.175;
+    public static final double score = 0.3, init = 0.175, transfer = 0.8;
     TwoServo deposit;
 
     public Deposit(HardwareMap hardwareMap) {
@@ -17,6 +17,10 @@ public class Deposit {
         depositFlipR.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
         deposit = new TwoServo(depositFlipL, depositFlipR);
+    }
+
+    public void moveTo(double target) {
+        deposit.moveTo(target);
     }
 
     public void score() {

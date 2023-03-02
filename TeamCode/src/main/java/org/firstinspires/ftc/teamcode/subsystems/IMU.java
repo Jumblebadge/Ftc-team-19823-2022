@@ -36,4 +36,8 @@ public class IMU {
     public void setImuOffset(double offset) {
         imuOffset += offset;
     }
+
+    public void resetIMU() {
+
+    }
 }

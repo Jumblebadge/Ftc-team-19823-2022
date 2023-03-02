@@ -14,7 +14,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.auto.cyclestuff;
+import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.Deposit;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Linkage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
 import org.firstinspires.ftc.teamcode.utility.Toggler;
@@ -49,49 +52,46 @@ public class debugger extends LinearOpMode {
     public static boolean activateAligner = false;
     public static double alignerTarget = 0.7;
 
+    public static double maxVel = 0, maxAccel = 0, maxJerk = 0;
+
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
 
-        //Initialize FTCDashboard telemetry
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-        ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
-        ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
-        ServoImplEx aligner = hardwareMap.get(ServoImplEx.class, "aligner");
-        ServoImplEx inRotL = hardwareMap.get(ServoImplEx.class,"inL");
-        ServoImplEx inRotR = hardwareMap.get(ServoImplEx.class,"inR");
-        ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
-        ServoImplEx claw = hardwareMap.get(ServoImplEx.class, "claw");
-
-        depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        aligner.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        inRotL.setPwmRange(new PwmControl.PwmRange(500,2500));
-        inRotR.setPwmRange(new PwmControl.PwmRange(500,2500));
-        linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        claw.setPwmRange(new PwmControl.PwmRange(500,2500));
-
-        //Initialize FTCDashboard
-        FtcDashboard dashboard = FtcDashboard.getInstance();
+        //Bulk sensor reads
+        LynxModule controlHub = hardwareMap.get(LynxModule.class, "Control Hub");
 
         //class that runs our linear slide
         LinearSlide slide = new LinearSlide(hardwareMap);
         slide.resetEncoders();
 
-        TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
-        TwoServo intake = new TwoServo(inRotL,inRotR);
-        Turret turret = new Turret(hardwareMap);
+        Deposit deposit = new Deposit(hardwareMap);
+        Intake intake   = new Intake(hardwareMap);
+        Turret turret   = new Turret(hardwareMap);
+        Linkage linkage = new Linkage(hardwareMap);
+        Claw claw       = new Claw(hardwareMap);
 
-        Toggler right_trigger = new Toggler();
-        Toggler right_bumper = new Toggler();
-        Toggler left_bumper = new Toggler();
+        //Bulk sensor reads
+        controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
         //Fast loop go brrr
         PhotonCore.enable();
 
+        Toggler right_trigger = new Toggler();
+
+        //Initialize FTCDashboard telemetry
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         waitForStart();
         while (opModeIsActive()) {
+
+            controlHub.clearBulkCache();
+
+            if (right_trigger.update(gamepad2.right_trigger > 0.1)) {
+                deposit.score();
+            } else {
+                deposit.transfer();
+            }
 
             if (gamepad2.a) {
                 slide.zero(gamepad2.left_trigger > 0.1);
@@ -106,44 +106,28 @@ public class debugger extends LinearOpMode {
                 slide.highPole();
             }
 
-            //rising edge detector for linkage out/in
-            //alignerTarget = (left_trigger.update(gamepad2.left_trigger > 0.1) ? 1 : 0.75);
-
-            linkageTarget = (right_bumper.update(gamepad2.right_bumper) ? 0.7 : 0.25);
-
-            //rising edge detector for claw open/close
-            clawTarget = (left_bumper.update(gamepad2.left_bumper) ? 0.2 : 0.5);
-
-            //rising edge detector for outtake positions
-            depositTarget = (right_trigger.update(gamepad2.right_trigger > 0.1) ? Deposit.score : Deposit.transfer);
-
-            if(gamepad2.dpad_right){
-                intakeTarget = 0.45;
-                //straight up
+            if (activateTurret) {
+                turret.moveTo(turretTarget);
             }
-            else if (gamepad2.dpad_down){
-                intakeTarget = 0.3;
-                //transfer
+            if (activateLinkage) {
+                linkage.moveTo(linkageTarget);
             }
-            else if (gamepad2.dpad_up){
-                intakeTarget = 0.975;
-                //down
+            if (activateClaw) {
+                claw.moveTo(clawTarget);
             }
-            else if (gamepad2.dpad_left) {
-                intakeTarget = 1;
+            if (activateDeposit) {
+                deposit.moveTo(depositTarget);
             }
-            else if (gamepad2.left_trigger > 0.1) {
-                intakeTarget = 0.7;
+            if (activateIntake) {
+                intake.moveTo(intakeTarget);
+            }
+            if (activateSlides) {
+                slide.update();
             }
 
-            turretTarget = Turret.zero;
-
-            turret.moveTo(turretTarget);
-            linkage.setPosition(linkageTarget);
-            claw.setPosition(clawTarget);
-            deposit.moveTo(depositTarget);
-            intake.moveTo(intakeTarget);
-            slide.update();
+            //slide.moveTo(slideTarget);
+            telemetry.addData("slide",-slide.getPosition());
+            telemetry.addData("slidetar",slide.getMotionTarget());
             telemetry.update();
         }
     }

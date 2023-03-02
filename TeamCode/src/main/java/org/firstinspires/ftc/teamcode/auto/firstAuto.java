@@ -139,7 +139,7 @@ public class firstAuto extends LinearOpMode {
         PIDcontroller mod2PID = new PIDcontroller(0.1,0.0001,0.0007,0, 100);
         PIDcontroller mod3PID = new PIDcontroller(0.1,0.0001,0.0007,0, 100);
 
-        SwerveDrive drivein = new SwerveDrive(telemetry, null, hardwareMap, true);
+        SwerveDrive drivein = new SwerveDrive(telemetry, hardwareMap, true);
 
         //Bulk sensor reads
         for (LynxModule module : allHubs) {

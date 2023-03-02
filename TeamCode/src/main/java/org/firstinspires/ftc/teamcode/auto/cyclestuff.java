@@ -135,7 +135,7 @@ public class cyclestuff extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //Create objects for the classes we use
-        SwerveDrive drive = new SwerveDrive(telemetry, imu, hardwareMap, true);
+        SwerveDrive drive = new SwerveDrive(telemetry, hardwareMap, true);
         auto = new GoToPoint(drive,telemetry,dashboard);
 
         //Bulk sensor reads

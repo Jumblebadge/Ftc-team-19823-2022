@@ -14,6 +14,10 @@ public class Linkage {
         linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
     }
 
+    public void moveTo(double target) {
+        linkage.setPosition(target);
+    }
+
     public void out() {
         linkage.setPosition(out);
     }

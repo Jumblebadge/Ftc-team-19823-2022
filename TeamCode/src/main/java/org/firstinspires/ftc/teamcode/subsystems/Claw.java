@@ -14,6 +14,10 @@ public class Claw {
         claw.setPwmRange(new PwmControl.PwmRange(500, 2500));
     }
 
+    public void moveTo(double target) {
+        claw.setPosition(target);
+    }
+
     public void close() {
         claw.setPosition(close);
     }

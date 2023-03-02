@@ -19,6 +19,10 @@ public class Intake {
         intake = new TwoServo(intakeFlipL, intakeFlipR);
     }
 
+    public void moveTo(double target) {
+        intake.moveTo(target);
+    }
+
     public void cone() {
         intake.moveTo(cone);
     }

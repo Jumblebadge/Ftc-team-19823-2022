@@ -28,7 +28,7 @@ import java.util.List;
 
 
 @Config
-@TeleOp(name="godSwerve", group="Linear Opmode")
+@TeleOp(name="swerveTuner", group="Linear Opmode")
 public class swerveTuner extends LinearOpMode {
 
     public static double Kp = 0, Kd = 0, Ki = 0, Kf = 0, Kl = 10;
