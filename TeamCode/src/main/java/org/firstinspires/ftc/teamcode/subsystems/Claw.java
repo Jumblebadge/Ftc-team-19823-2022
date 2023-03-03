@@ -10,7 +10,7 @@ public class Claw {
     ServoImplEx claw;
 
     public Claw(HardwareMap hardwareMap) {
-        claw = hardwareMap.get(ServoImplEx.class, "inL");
+        claw = hardwareMap.get(ServoImplEx.class, "claw");
         claw.setPwmRange(new PwmControl.PwmRange(500, 2500));
     }
 

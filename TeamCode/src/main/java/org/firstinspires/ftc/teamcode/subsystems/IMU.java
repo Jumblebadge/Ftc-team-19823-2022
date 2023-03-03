@@ -29,8 +29,8 @@ public class IMU {
     }
 
     public double getHeading() {
-        Orientation angeles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        return angeles.firstAngle * -1 + imuOffset;
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        return AngleUnit.normalizeDegrees(angles.firstAngle * -1 - imuOffset);
     }
 
     public void setImuOffset(double offset) {
@@ -38,6 +38,6 @@ public class IMU {
     }
 
     public void resetIMU() {
-
+        setImuOffset(getHeading());
     }
 }
