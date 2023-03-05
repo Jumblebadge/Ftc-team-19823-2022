@@ -6,8 +6,8 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class Deposit {
 
-    public static final double score = 0.3, init = 0.175, transfer = 0.8;
-    TwoServo deposit;
+    public static final double score = 0.3, init = 0.175, transfer = 0.84;
+    private final TwoServo deposit;
 
     public Deposit(HardwareMap hardwareMap) {
         ServoImplEx depositFlipL = hardwareMap.get(ServoImplEx.class, "outL");
@@ -33,6 +33,11 @@ public class Deposit {
 
     public void init() {
         deposit.moveTo(init);
+    }
+
+    public void toggle(boolean active) {
+        if (active) { score(); }
+        else { transfer(); }
     }
 
 }

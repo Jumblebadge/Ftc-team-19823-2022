@@ -26,4 +26,9 @@ public class Claw {
         claw.setPosition(open);
     }
 
+    public void toggle(boolean active) {
+        if (active) { close(); }
+        else { open(); }
+    }
+
 }

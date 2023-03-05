@@ -2,14 +2,9 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 //Import EVERYTHING we need
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.util.Angle;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
-import com.qualcomm.hardware.bosch.*;
 import com.qualcomm.robotcore.eventloop.opmode.*;
-import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.hardware.lynx.*;
-import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
@@ -19,12 +14,9 @@ import org.firstinspires.ftc.teamcode.subsystems.Deposit;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Linkage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
-import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
-import org.firstinspires.ftc.teamcode.utility.Toggler;
+import org.firstinspires.ftc.teamcode.utility.ButtonDetector;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
-
-import java.util.List;
 
 
 @Config
@@ -52,9 +44,9 @@ public class godSwerve extends LinearOpMode {
         Linkage linkage = new Linkage(hardwareMap);
         Claw claw       = new Claw(hardwareMap);
 
-        Toggler right_trigger = new Toggler();
-        Toggler right_bumper  = new Toggler();
-        Toggler left_bumper   = new Toggler();
+        ButtonDetector right_trigger = new ButtonDetector();
+        ButtonDetector right_bumper  = new ButtonDetector();
+        ButtonDetector left_bumper   = new ButtonDetector();
 
         //Bulk sensor reads
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -90,25 +82,11 @@ public class godSwerve extends LinearOpMode {
                 slide.highPole();
             }
 
-            if (right_bumper.update(gamepad2.right_bumper)) {
-                linkage.out();
-            } else {
-                linkage.in();
-            }
+            linkage.toggle(right_bumper.constantUpdate(gamepad2.right_bumper));
 
-            //rising edge detector for claw open/close
-            if (left_bumper.update(gamepad2.left_bumper)) {
-                claw.close();
-            } else {
-                claw.open();
-            }
+            claw.toggle(right_bumper.constantUpdate(gamepad2.right_bumper));
 
-            //rising edge detector for outtake positions
-            if (right_trigger.update(gamepad2.right_trigger > 0.1)) {
-                deposit.score();
-            } else {
-                deposit.transfer();
-            }
+            deposit.toggle(right_trigger.constantUpdate(gamepad2.right_trigger > 0.1));
 
             if(gamepad2.dpad_right){
                 intake.vertical();
