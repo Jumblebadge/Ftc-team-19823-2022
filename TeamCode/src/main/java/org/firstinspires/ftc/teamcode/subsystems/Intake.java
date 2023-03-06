@@ -23,6 +23,10 @@ public class Intake {
         intake.moveTo(target);
     }
 
+    public void PWMrelease() {
+        intake.PWMrelease();
+    }
+
     public void cone() {
         intake.moveTo(cone);
     }

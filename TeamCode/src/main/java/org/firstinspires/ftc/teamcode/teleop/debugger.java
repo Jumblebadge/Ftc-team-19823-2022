@@ -93,6 +93,9 @@ public class debugger extends LinearOpMode {
             if (activateIntake) {
                 intake.moveTo(intakeTarget);
             }
+            if (activateAligner) {
+                slide.setAlignerPosition(alignerTarget);
+            }
             if (activateSlides) {
                 slide.update();
             }

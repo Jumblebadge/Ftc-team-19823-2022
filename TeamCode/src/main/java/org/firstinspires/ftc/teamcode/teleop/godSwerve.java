@@ -53,6 +53,7 @@ public class godSwerve extends LinearOpMode {
 
         //Fast loop go brrr
         PhotonCore.enable();
+        PhotonCore.experimental.setMaximumParallelCommands(8);
 
         //linkage.setPosition(init);
         //claw.setPosition(0.6);

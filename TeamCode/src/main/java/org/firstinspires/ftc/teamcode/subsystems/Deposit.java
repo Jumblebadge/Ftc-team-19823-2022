@@ -23,6 +23,10 @@ public class Deposit {
         deposit.moveTo(target);
     }
 
+    public void PWMrelease() {
+        deposit.PWMrelease();
+    }
+
     public void score() {
         deposit.moveTo(score);
     }

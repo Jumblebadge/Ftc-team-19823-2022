@@ -34,6 +34,10 @@ public class Turret {
         servo.setPower(limiter.rateLimit(pid.pidOut(AngleUnit.normalizeDegrees(target - getHeading())), r));
     }
 
+    public void PWMrelease() {
+        servo.setPwmDisable();
+    }
+
     public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
         pid.setPIDgains(Kp, Kd, Ki, Kf, limit);
     }

@@ -1,16 +1,17 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.teamcode.utility.RunMotionProfile;
 
 public class TwoServo {
 
-    private final Servo servo1, servo2;
+    private final ServoImplEx servo1, servo2;
     private final RunMotionProfile profile = new RunMotionProfile(0.1,0.1,0.1,0,0,0,0, 100);
     private double lastTarget;
 
-    public TwoServo(Servo servo2, Servo servo1){
+    public TwoServo(ServoImplEx servo2, ServoImplEx servo1){
         this.servo1 = servo1;
         this.servo2 = servo2;
     }
@@ -43,6 +44,11 @@ public class TwoServo {
 
     public double getBucketPosition(){
         return servo2.getPosition();
+    }
+
+    public void PWMrelease() {
+        servo1.setPwmDisable();
+        servo2.setPwmDisable();
     }
 
 }

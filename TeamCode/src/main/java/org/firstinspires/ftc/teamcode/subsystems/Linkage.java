@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class Linkage {
 
-    public static final double out = 0.45, in = 0.15, auto = 0.51;
+    public static final double out = 0.425, in = 0.1, auto = 0.425;
     private final ServoImplEx linkage;
 
     public Linkage(HardwareMap hardwareMap) {
@@ -16,6 +16,10 @@ public class Linkage {
 
     public void moveTo(double target) {
         linkage.setPosition(target);
+    }
+
+    public void PWMrelease() {
+        linkage.setPwmDisable();
     }
 
     public void out() {

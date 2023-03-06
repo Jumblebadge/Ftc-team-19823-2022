@@ -31,4 +31,8 @@ public class Claw {
         else { open(); }
     }
 
+    public void PWMrelease() {
+        claw.setPwmDisable();
+    }
+
 }

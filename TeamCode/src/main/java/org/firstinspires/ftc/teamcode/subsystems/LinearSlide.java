@@ -71,6 +71,14 @@ public class LinearSlide {
         motors.motors[1].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+    public void setAlignerPosition(double position) {
+        aligner.setPosition(position);
+    }
+
+    public void PWMrelease() {
+        aligner.setPwmDisable();
+    }
+
     public void highPole(){
         moveTo(highPole);
         aligner.setPosition(alignerUp);
