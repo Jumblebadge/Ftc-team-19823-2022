@@ -21,12 +21,12 @@ import org.firstinspires.ftc.teamcode.utility.myDcMotorEx;
 
 public class SwerveDrive {
 
-    final private BNO055IMU imu;
+    final private IMU imu;
     final private myDcMotorEx mod1m1,mod1m2,mod2m1,mod2m2,mod3m1,mod3m2;
     final private AnalogInput mod1E,mod2E,mod3E;
     final private Telemetry telemetry;
     final private boolean eff;
-    private double module1Adjust = -20, module2Adjust = -105, module3Adjust = -40;
+    private double module1Adjust = -20, module2Adjust = -10, module3Adjust = -40;
     private final PIDcontroller mod1PID = new PIDcontroller(0.1,0.002,3,1, 0.5);
     private final PIDcontroller mod2PID = new PIDcontroller(0.1,0.002,2,0.5, 0.5);
     private final PIDcontroller mod3PID = new PIDcontroller(0.1,0.002,1,0.5, 0.75);
@@ -59,15 +59,7 @@ public class SwerveDrive {
         mod2m2.setDirection(DcMotorSimple.Direction.REVERSE);
         mod3m2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+        imu = new IMU(hardwareMap);
 
         this.telemetry = telemetry;
         this.eff = eff;
@@ -81,8 +73,7 @@ public class SwerveDrive {
         double mod3P = mod3E.getVoltage() * 74.16;
 
         //Update heading of robot
-        Orientation angeles   = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        heading = angeles.firstAngle * -1 + imuOffset;
+        heading = imu.getHeading();
 
         //Retrieve the angle and power for each module
         double[] output = swavemath.calculate(y,-x,-rot,heading,true);
@@ -128,10 +119,10 @@ public class SwerveDrive {
         }
 
         //change coax values into diffy values from pid and power
-        double[] mod1values = mathsOperations.diffyConvert(mod1PID.pidOut(AngleUnit.normalizeDegrees(mod1reference-mod1P)),mod1power);
+        double[] mod1values = mathsOperations.diffyConvert(mod1PID.pidOut(AngleUnit.normalizeDegrees(mod1reference-mod1P)),-mod1power);
         mod1m1.setPower(mod1values[0]);
         mod1m2.setPower(mod1values[1]);
-        double[] mod2values = mathsOperations.diffyConvert(mod2PID.pidOut(AngleUnit.normalizeDegrees(mod2reference-mod2P)),-mod2power);
+        double[] mod2values = mathsOperations.diffyConvert(-mod2PID.pidOut(AngleUnit.normalizeDegrees(mod2reference-mod2P)),mod2power);
         mod2m1.setPower(mod2values[0]);
         mod2m2.setPower(mod2values[1]);
         double[] mod3values = mathsOperations.diffyConvert(-mod3PID.pidOut(AngleUnit.normalizeDegrees(mod3reference-mod3P)),mod3power);
@@ -151,6 +142,10 @@ public class SwerveDrive {
         this.imuOffset = angle;
     }
 
+    public void resetIMU() {
+        imu.resetIMU();
+    }
+
     //tune module PIDs
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
         mod1PID.setPIDgains(Kp, Kd, Ki, Kf, limit);
@@ -161,5 +156,9 @@ public class SwerveDrive {
         this.module1Adjust=module1Adjust;
         this.module2Adjust=module2Adjust;
         this.module3Adjust=module3Adjust;
+    }
+
+    public double getHeading() {
+        return imu.getHeading();
     }
 }

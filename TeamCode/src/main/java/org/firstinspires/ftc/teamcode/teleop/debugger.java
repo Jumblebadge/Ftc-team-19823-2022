@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-//Import EVERYTHING we need
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
@@ -8,14 +7,8 @@ import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 
-import org.firstinspires.ftc.teamcode.subsystems.Claw;
-import org.firstinspires.ftc.teamcode.subsystems.Deposit;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Linkage;
-import org.firstinspires.ftc.teamcode.subsystems.Turret;
+import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.utility.ButtonDetector;
-import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
-
 
 @Config
 @TeleOp(name="debugger", group="Linear Opmode")
@@ -81,20 +74,38 @@ public class debugger extends LinearOpMode {
             if (activateTurret) {
                 turret.moveTo(turretTarget);
             }
+            else {
+                turret.PWMrelease();
+            }
             if (activateLinkage) {
                 linkage.moveTo(linkageTarget);
+            }
+            else {
+                linkage.PWMrelease();
             }
             if (activateClaw) {
                 claw.moveTo(clawTarget);
             }
+            else {
+                claw.PWMrelease();
+            }
             if (activateDeposit) {
                 deposit.moveTo(depositTarget);
+            }
+            else {
+                deposit.PWMrelease();
             }
             if (activateIntake) {
                 intake.moveTo(intakeTarget);
             }
+            else {
+                intake.PWMrelease();
+            }
             if (activateAligner) {
                 slide.setAlignerPosition(alignerTarget);
+            }
+            else {
+                slide.PWMrelease();
             }
             if (activateSlides) {
                 slide.update();
