@@ -70,6 +70,7 @@ public class godSwerve extends LinearOpMode {
         ButtonDetector button_b      = new ButtonDetector();
 
         PIDcontroller headingPID = new PIDcontroller(6,0,5,0, 0.1);
+        double headingOut = 0, headingTarget = 0;
 
         //Bulk sensor reads
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -90,10 +91,12 @@ public class godSwerve extends LinearOpMode {
 
             //Clear the cache for better loop times (bulk sensor reads)
             controlHub.clearBulkCache();
-            double headingOut = 0;
-            double headingTarget = 0;
+
             if (button_b.constantUpdate(gamepad1.b)) {
-                //headingOut = headingPID.pidOut(AngleUnit.normalizeRadians(headingTarget-swerve.getHeading()));
+                headingOut = headingPID.pidOut(AngleUnit.normalizeRadians(headingTarget - swerve.getHeading() * (Math.PI / 180)));
+            }
+            else {
+                headingOut = 0;
             }
 
             swerve.drive(-gamepad1.left_stick_x, -gamepad1.left_stick_y,headingOut + gamepad1.right_stick_x * gamepad1.right_stick_x * gamepad1.right_stick_x);
