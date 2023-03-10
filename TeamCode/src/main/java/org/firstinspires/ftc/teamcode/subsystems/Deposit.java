@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class Deposit {
 
-    public static final double score = 0.3, init = 0.175, transfer = 0.84;
+    public static final double score = 0.25, init = 0.175, transfer = 0.78;
     private final TwoServo deposit;
 
     public Deposit(HardwareMap hardwareMap) {

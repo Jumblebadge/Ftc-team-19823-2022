@@ -68,6 +68,7 @@ public class godSwerve extends LinearOpMode {
         ButtonDetector left_bumper   = new ButtonDetector();
         ButtonDetector dpad_left     = new ButtonDetector();
         ButtonDetector button_b      = new ButtonDetector();
+        ButtonDetector button_a      = new ButtonDetector();
 
         PIDcontroller headingPID = new PIDcontroller(6,0,5,0, 0.1);
         double headingOut = 0, headingTarget = 0;
@@ -201,7 +202,7 @@ public class godSwerve extends LinearOpMode {
 
 
             if (gamepad2.a) {
-                slide.zero(gamepad2.left_trigger > 0.1);
+                slide.zero(gamepad2.a);
             }
             else if (gamepad2.b) {
                 slide.transfer();
@@ -212,6 +213,8 @@ public class godSwerve extends LinearOpMode {
             else if (gamepad2.y) {
                 slide.highPole();
             }
+
+            slide.toggleAligner(!gamepad2.a && slide.returnPole() != LinearSlide.transfer);
 
 
             if (gamepad1.a) {

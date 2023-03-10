@@ -16,7 +16,8 @@ public class LinearSlide {
     private final ServoImplEx aligner;
     private final RunMotionProfile profile = new RunMotionProfile(60000,70000,80000,0.1,0,1,0.2, 1);
 
-    final double highPole = 800, mediumPole = 400, transfer = 275, zero = 0;
+    public static final double highPole = 800, mediumPole = 400, transfer = 275, zero = 0;
+    double currentPole = zero;
     final double alignerDown = 0.75, alignerUp = 1;
 
     public LinearSlide(HardwareMap hardwareMap){
@@ -82,18 +83,30 @@ public class LinearSlide {
     public void highPole(){
         moveTo(highPole);
         aligner.setPosition(alignerUp);
+        currentPole = highPole;
     }
     public void mediumPole(){
         moveTo(mediumPole);
         aligner.setPosition(alignerUp);
+        currentPole = mediumPole;
     }
     public void transfer(){
         moveTo(transfer);
         aligner.setPosition(alignerDown);
+        currentPole = transfer;
     }
     public void zero(boolean override){
         moveTo(zero);
         aligner.setPosition((override) ? alignerDown : alignerUp);
+        currentPole = zero;
+    }
+
+    public void toggleAligner(boolean bool) {
+        aligner.setPosition((bool) ? alignerUp : alignerDown);
+    }
+
+    public double returnPole() {
+        return currentPole;
     }
 
 }

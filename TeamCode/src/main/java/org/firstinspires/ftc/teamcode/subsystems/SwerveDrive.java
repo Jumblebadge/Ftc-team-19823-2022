@@ -26,7 +26,7 @@ public class SwerveDrive {
     final private AnalogInput mod1E,mod2E,mod3E;
     final private Telemetry telemetry;
     final private boolean eff;
-    private double module1Adjust = -20, module2Adjust = -10, module3Adjust = -40;
+    private double module1Adjust = -10, module2Adjust = -10, module3Adjust = -45;
     private final PIDcontroller mod1PID = new PIDcontroller(0.1,0.002,3,1, 0.5);
     private final PIDcontroller mod2PID = new PIDcontroller(0.1,0.002,2,0.5, 0.5);
     private final PIDcontroller mod3PID = new PIDcontroller(0.1,0.002,1,0.5, 0.75);
