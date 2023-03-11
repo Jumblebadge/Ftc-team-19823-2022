@@ -10,6 +10,11 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 
+import org.firstinspires.ftc.teamcode.subsystems.Claw;
+import org.firstinspires.ftc.teamcode.subsystems.Deposit;
+import org.firstinspires.ftc.teamcode.subsystems.IMU;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.Linkage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
 import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
@@ -79,8 +84,7 @@ public class cyclestuff extends LinearOpMode {
     ElapsedTime autogoofytimer = new ElapsedTime();
     ElapsedTime hztimer = new ElapsedTime();
 
-    //IMU
-    BNO055IMU imu;
+    IMU imu;
 
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
@@ -90,46 +94,22 @@ public class cyclestuff extends LinearOpMode {
         webcamStuff.initCamera();
         telemetry.addLine("Waiting for start");
 
-        //Calibrate the IMU
-        //CHANGE TO ODO HEADING!
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
-
-        ServoImplEx depositRotationServoLeft = hardwareMap.get(ServoImplEx.class, "outL");
-        ServoImplEx depositRotationServoRight = hardwareMap.get(ServoImplEx.class, "outR");
-        ServoImplEx inRotL = hardwareMap.get(ServoImplEx.class,"inL");
-        ServoImplEx inRotR = hardwareMap.get(ServoImplEx.class,"inR");
-        ServoImplEx linkage = hardwareMap.get(ServoImplEx.class, "linkage");
-        ServoImplEx claw = hardwareMap.get(ServoImplEx.class, "claw");
-
-        depositRotationServoLeft.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        depositRotationServoRight.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        inRotL.setPwmRange(new PwmControl.PwmRange(500,2500));
-        inRotR.setPwmRange(new PwmControl.PwmRange(500,2500));
-        linkage.setPwmRange(new PwmControl.PwmRange(500, 2500));
-        claw.setPwmRange(new PwmControl.PwmRange(500,2500));
-
         LinearSlide slide = new LinearSlide(hardwareMap);
         slide.resetEncoders();
 
-        TwoServo deposit = new TwoServo(depositRotationServoLeft,depositRotationServoRight);
-        TwoServo intake = new TwoServo(inRotL,inRotR);
-        Turret turret = new Turret(hardwareMap);
+        Deposit deposit = new Deposit(hardwareMap);
+        Intake intake   = new Intake(hardwareMap);
+        Turret turret   = new Turret(hardwareMap);
+        Claw claw       = new Claw(hardwareMap);
+        Linkage linkage = new Linkage(hardwareMap);
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
-        localizer = new TwoWheelTrackingLocalizer(hardwareMap,imu);
+        localizer = new TwoWheelTrackingLocalizer(hardwareMap);
 
         //Bulk sensor reads
-        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+        LynxModule controlHub = hardwareMap.get(LynxModule.class, "Control Hub");
 
         //Initialize FTCDashboard
         dashboard = FtcDashboard.getInstance();
@@ -139,17 +119,17 @@ public class cyclestuff extends LinearOpMode {
         auto = new GoToPoint(drive,telemetry,dashboard);
 
         //Bulk sensor reads
-        for (LynxModule module : allHubs) {
-            module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
+        controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
 
         //Fast loop go brrr
         PhotonCore.enable();
+        PhotonCore.experimental.setMaximumParallelCommands(8);
 
         while (!isStarted() && !isStopRequested()) {
             webcamStuff.detectTags();
             turret.moveTo(0);
             sleep(20);
+            linkage.in();
         }
 
         webcamStuff.closeCamera();
@@ -160,9 +140,7 @@ public class cyclestuff extends LinearOpMode {
 
         while (opModeIsActive()) {
             //Clear the cache for better loop times (bulk sensor reads)
-            for (LynxModule hub : allHubs) {
-                hub.clearBulkCache();
-            }
+            controlHub.clearBulkCache();
 
             localizer.update();
             pose = localizer.getPoseEstimate();
@@ -175,8 +153,8 @@ public class cyclestuff extends LinearOpMode {
                     //drive to cycling position
                     if (auto.isPosDone() && pathNumber == 0) {
                         targetPose = new Pose2d(52.75, 5.5, -0.95);
-                        intake.moveTo(0.45);
-                        claw.setPosition(0.5);
+                        intake.vertical();
+                        claw.open();
                         pathNumber += 1;
                         goofytimer.reset();
                     }
@@ -223,14 +201,14 @@ public class cyclestuff extends LinearOpMode {
             switch (cyclestate){
                 case WAIT:
                     slide.zero(true);
-                    deposit.moveTo(0.3);
-                    linkage.setPosition(0.25);
+                    deposit.transfer();
+                    linkage.in();
                     turretTarget = Turret.zero;
                     break;
 
                 case INTAKE_GRAB:
                     slide.transfer();
-                    deposit.moveTo(0.175);
+                    deposit.transfer();
                     intake.moveTo(0.995-((5-cyclesCompleted)*0.0255));
                     goofytimer.reset();
                     autogoofytimer.reset();
@@ -239,11 +217,11 @@ public class cyclestuff extends LinearOpMode {
 
                 case INTAKE_UP:
                     if (autogoofytimer.seconds() > 0.75){
-                        claw.setPosition(0.2);
+                        claw.close();
                     }
                     if (goofytimer.seconds() > 1.3) {
-                        linkage.setPosition(0.25);
-                        intake.moveTo(0.3);
+                        linkage.in();
+                        intake.transfer();
                     }
                     if (goofytimer.seconds() > 1.4) {
                         turretTarget = 0;
@@ -255,10 +233,10 @@ public class cyclestuff extends LinearOpMode {
 
                 case TRANSFER:
                     if (autogoofytimer.seconds() > 0.7) {
-                        claw.setPosition(0.5);
+                        claw.open();
                     }
                     if (goofytimer.seconds() > 1.25) {
-                        intake.moveTo(0.45);
+                        intake.vertical();
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
                     }
                     break;
@@ -266,7 +244,6 @@ public class cyclestuff extends LinearOpMode {
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
                     turretTarget = Turret.stackPickup;
-                    linkage.setPosition(0.51);
                     slide.highPole();
                     if (slide.isTimeDone()) {
                         cyclestate = cycleStates.DEPOSIT_DUMP;
@@ -277,10 +254,11 @@ public class cyclestuff extends LinearOpMode {
 
                 case DEPOSIT_DUMP:
                     if (goofytimer.seconds() > 0.5) {
-                        deposit.moveTo(0.8);
+                        deposit.score();
+                        linkage.out();
                     }
                     if (goofytimer.seconds() > 1.325){
-                        deposit.moveTo(0.3);
+                        deposit.transfer();
                         cyclesCompleted += 1;
                         cyclestate = cycleStates.INTAKE_GRAB;
                     }

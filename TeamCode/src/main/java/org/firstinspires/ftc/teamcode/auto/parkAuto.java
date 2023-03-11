@@ -11,6 +11,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.subsystems.IMU;
 import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
 import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
@@ -27,7 +28,6 @@ import java.util.List;
 
 
     @Config
-    @Disabled
     @Autonomous(name="parkAuto", group="Linear Opmode")
     public class parkAuto extends LinearOpMode {
 
@@ -36,6 +36,7 @@ import java.util.List;
         GoToPoint auto;
         Localizer localizer;
         List<LynxModule> allHubs;
+        IMU imu;
 
         public void runOpMode() {
             telemetry.addData("Status", "Initialized");
@@ -47,16 +48,6 @@ import java.util.List;
 
             //Initialize FTCDashboard telemetry
             telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-            parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-            parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-            parameters.loggingEnabled = true;
-            parameters.loggingTag = "IMU";
-            parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-            BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
-            imu.initialize(parameters);
-            imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
             //Bulk sensor reads
             allHubs = hardwareMap.getAll(LynxModule.class);
@@ -74,7 +65,7 @@ import java.util.List;
 
             //Fast loop go brrr
             PhotonCore.enable();
-            localizer = new TwoWheelTrackingLocalizer(hardwareMap,imu);
+            localizer = new TwoWheelTrackingLocalizer(hardwareMap);
 
             while (!isStarted() && !isStopRequested()) {
                 webcamStuff.detectTags();

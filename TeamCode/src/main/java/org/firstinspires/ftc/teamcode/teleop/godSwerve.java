@@ -71,7 +71,7 @@ public class godSwerve extends LinearOpMode {
         ButtonDetector button_a      = new ButtonDetector();
 
         PIDcontroller headingPID = new PIDcontroller(6,0,5,0, 0.1);
-        double headingOut = 0, headingTarget = 0;
+        double headingOut, headingTarget = 0;
 
         //Bulk sensor reads
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
@@ -105,8 +105,7 @@ public class godSwerve extends LinearOpMode {
             switch (cyclestate){
                 case MANUAL:
 
-                    //TODO rigt bumber?
-                    ///linkage.toggle(right_bumper.constantUpdate(gamepad2.right_bumper));
+                    linkage.toggle(right_bumper.constantUpdate(gamepad2.right_bumper));
 
                     claw.toggle(left_bumper.constantUpdate(gamepad2.left_bumper));
 
@@ -214,7 +213,10 @@ public class godSwerve extends LinearOpMode {
                 slide.highPole();
             }
 
-            slide.toggleAligner(!gamepad2.a && slide.returnPole() != LinearSlide.transfer);
+            if (slide.returnPole() == LinearSlide.zero) {
+                slide.toggleAligner(gamepad2.a);
+            }
+
 
 
             if (gamepad1.a) {

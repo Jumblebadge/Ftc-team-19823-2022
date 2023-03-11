@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -9,11 +7,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.mathsOperations;
 import org.firstinspires.ftc.teamcode.maths.swerveKinematics;
@@ -73,7 +66,7 @@ public class SwerveDrive {
         double mod3P = mod3E.getVoltage() * 74.16;
 
         //Update heading of robot
-        heading = imu.getHeading();
+        heading = imu.getHeadingInDegrees();
 
         //Retrieve the angle and power for each module
         double[] output = swavemath.calculate(y,-x,-rot,heading,true);
@@ -159,6 +152,6 @@ public class SwerveDrive {
     }
 
     public double getHeading() {
-        return imu.getHeading();
+        return imu.getHeadingInDegrees();
     }
 }

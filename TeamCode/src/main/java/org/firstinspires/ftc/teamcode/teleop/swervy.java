@@ -16,6 +16,7 @@ import com.qualcomm.hardware.lynx.*;
 import com.acmerobotics.dashboard.*;
 import com.qualcomm.robotcore.util.*;
 import org.firstinspires.ftc.robotcore.external.navigation.*;
+import org.firstinspires.ftc.teamcode.subsystems.IMU;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
 import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
@@ -39,22 +40,12 @@ public class swervy extends LinearOpMode {
 
     //IMU
     Localizer localizer;
+    IMU imu;
     public static double x=0,y=0, heading = 0,Kp=0,Kd=0,Ki=0, Kf = 0,hKp = 0,hKd = 0,hKi = 0, hKf = 0, maxVel=1,maxAccel=1,maxJerk=1, limit = 1000, hLimit = 1000;
     double lastX=0,lastY=0;
     Pose2d temp = new Pose2d(0,0,0);
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
-
-
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(parameters);
-        imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
 
         //Initialize FTCDashboard telemetry
@@ -68,7 +59,7 @@ public class swervy extends LinearOpMode {
         dashboard = FtcDashboard.getInstance();
 
         //set odometry localizer and make object for driving
-        localizer = new TwoWheelTrackingLocalizer(hardwareMap,imu);
+        localizer = new TwoWheelTrackingLocalizer(hardwareMap);
 
         SwerveDrive drive = new SwerveDrive(telemetry, hardwareMap, true);
         GoToPoint auto = new GoToPoint(drive,telemetry,dashboard);

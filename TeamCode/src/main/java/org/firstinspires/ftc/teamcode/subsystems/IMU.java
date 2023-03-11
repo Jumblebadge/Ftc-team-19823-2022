@@ -28,9 +28,14 @@ public class IMU {
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
     }
 
-    public double getHeading() {
+    public double getHeadingInDegrees() {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         return AngleUnit.normalizeDegrees(angles.firstAngle * -1 - imuOffset);
+    }
+
+    public double getHeadingInRadians() {
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+        return AngleUnit.normalizeRadians(angles.firstAngle);
     }
 
     public void setImuOffset(double offset) {
@@ -38,6 +43,6 @@ public class IMU {
     }
 
     public void resetIMU() {
-        setImuOffset(getHeading());
+        setImuOffset(getHeadingInDegrees());
     }
 }

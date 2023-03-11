@@ -4,14 +4,10 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.TwoTrackingWheelLocalizer;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.subsystems.IMU;
 
 import java.util.Arrays;
 import java.util.List;
@@ -53,21 +49,19 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
     private Encoder parallelEncoder;
     private Encoder perpendicularEncoder;
 
-    private BNO055IMU imu;
+    private IMU imu;
 
-    public TwoWheelTrackingLocalizer(HardwareMap hardwareMap, BNO055IMU imu) {
+    public TwoWheelTrackingLocalizer(HardwareMap hardwareMap) {
         super(Arrays.asList(
                 new Pose2d(PARALLEL_X, PARALLEL_Y, Math.toRadians(180)),
                 new Pose2d(PERPENDICULAR_X, PERPENDICULAR_Y, Math.toRadians(90))
         ));
-        this.imu = imu;
+        imu = new IMU(hardwareMap);
         parallelEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "mod2m2"));
         perpendicularEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "mod2m1"));
         //parallelEncoder.setDirection(Encoder.Direction.REVERSE);
         perpendicularEncoder.setDirection(Encoder.Direction.REVERSE);
         parallelEncoder.setDirection(Encoder.Direction.REVERSE);
-
-        // TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
     }
 
     public static double encoderTicksToInches(double ticks) {
@@ -76,8 +70,7 @@ public class TwoWheelTrackingLocalizer extends TwoTrackingWheelLocalizer {
 
     @Override
     public double getHeading() {
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
-        return angles.firstAngle;
+        return imu.getHeadingInRadians();
     }
 
     @NonNull
