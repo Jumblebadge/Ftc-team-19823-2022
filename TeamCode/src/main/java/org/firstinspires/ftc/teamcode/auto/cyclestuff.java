@@ -6,38 +6,26 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.Localizer;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.Deposit;
-import org.firstinspires.ftc.teamcode.subsystems.IMU;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.Linkage;
 import org.firstinspires.ftc.teamcode.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.subsystems.LinearSlide;
-import org.firstinspires.ftc.teamcode.subsystems.TwoServo;
 import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
 import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
-import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.openftc.apriltag.AprilTagDetection;
 import org.openftc.easyopencv.OpenCvWebcam;
-
-import java.util.List;
 
 
 @Config
@@ -52,6 +40,7 @@ public class cyclestuff extends LinearOpMode {
     FtcDashboard dashboard;
 
     double lastX = 0.0001, lastY = 0.0001, turretTarget = 0;
+    double linkageTarget;
 
     public static double heading;
 
@@ -84,8 +73,6 @@ public class cyclestuff extends LinearOpMode {
     ElapsedTime autogoofytimer = new ElapsedTime();
     ElapsedTime hztimer = new ElapsedTime();
 
-    IMU imu;
-
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         cameraActivity webcamStuff = new cameraActivity(hardwareMap,telemetry);
@@ -102,6 +89,7 @@ public class cyclestuff extends LinearOpMode {
         Turret turret   = new Turret(hardwareMap);
         Claw claw       = new Claw(hardwareMap);
         Linkage linkage = new Linkage(hardwareMap);
+        ServoImplEx servo = hardwareMap.get(ServoImplEx.class, "linkage");
 
         //Initialize FTCDashboard telemetry
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -151,14 +139,16 @@ public class cyclestuff extends LinearOpMode {
 
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
-                    if (auto.isPosDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52.75, 5.5, -0.95);
+                    if (auto.isDone() && pathNumber == 0) {
+                        targetPose = new Pose2d(52.75, 7.25, -0.95);
                         intake.vertical();
                         claw.open();
                         pathNumber += 1;
-                        goofytimer.reset();
                     }
-                    else if (auto.isPosDone() && pathNumber == 1) {
+                    if (goofytimer.seconds() > 0.001) {
+                        servo.setPosition(Linkage.auto);
+                    }
+                    if (auto.isPositionDone() && pathNumber == 1 && goofytimer.seconds() > 3 && auto.getHeadingError() < 10) {
                         goofytimer.reset();
                         apexstate = apexStates.CYCLING;
                         cyclestate = cycleStates.DEPOSIT_EXTEND;
@@ -169,7 +159,7 @@ public class cyclestuff extends LinearOpMode {
                 case CYCLING:
                     if (cyclesCompleted == 6){
                         targetPose = new Pose2d(44, 0, 0);
-                        if (auto.isDone()) {
+                        if (auto.isTimeDone()) {
                             cyclestate = cycleStates.WAIT;
                             apexstate = apexStates.PARK;
                         }
@@ -192,7 +182,7 @@ public class cyclestuff extends LinearOpMode {
                         pathNumber = 3;
                     }
                     runPoint(targetPose);
-                    if (auto.isPosDone() && pathNumber != 0) {
+                    if (auto.isDone() && pathNumber != 0) {
                         targetPose = new Pose2d(39, (pathNumber == 1 ? 24 : -24), 0);
                     }
                     break;
@@ -202,14 +192,14 @@ public class cyclestuff extends LinearOpMode {
                 case WAIT:
                     slide.zero(true);
                     deposit.transfer();
-                    linkage.in();
+                    linkageTarget = Linkage.in;
                     turretTarget = Turret.zero;
                     break;
 
                 case INTAKE_GRAB:
                     slide.transfer();
                     deposit.transfer();
-                    intake.moveTo(0.995-((5-cyclesCompleted)*0.0255));
+                    intake.moveTo(0.9865-((5-cyclesCompleted)*0.02365));
                     goofytimer.reset();
                     autogoofytimer.reset();
                     cyclestate = cycleStates.INTAKE_UP;
@@ -219,12 +209,15 @@ public class cyclestuff extends LinearOpMode {
                     if (autogoofytimer.seconds() > 0.75){
                         claw.close();
                     }
-                    if (goofytimer.seconds() > 1.3) {
-                        linkage.in();
-                        intake.transfer();
+                    if (goofytimer.seconds() > 1) {
+                        intake.vertical();
+                    }
+                    if (goofytimer.seconds() > 1.15) {
+                        linkageTarget = Linkage.in;
+                        turretTarget = 0;
                     }
                     if (goofytimer.seconds() > 1.4) {
-                        turretTarget = 0;
+                        intake.transfer();
                         cyclestate = cycleStates.TRANSFER;
                         goofytimer.reset();
                         autogoofytimer.reset();
@@ -244,6 +237,8 @@ public class cyclestuff extends LinearOpMode {
                 case DEPOSIT_EXTEND:
                     //lift slides, drop cone, come back down
                     turretTarget = Turret.stackPickup;
+                    linkageTarget = Linkage.auto;
+                    linkage.moveTo(linkageTarget);
                     slide.highPole();
                     if (slide.isTimeDone()) {
                         cyclestate = cycleStates.DEPOSIT_DUMP;
@@ -253,9 +248,8 @@ public class cyclestuff extends LinearOpMode {
                     break;
 
                 case DEPOSIT_DUMP:
-                    if (goofytimer.seconds() > 0.5) {
+                    if (goofytimer.seconds() > 0.35) {
                         deposit.score();
-                        linkage.out();
                     }
                     if (goofytimer.seconds() > 1.325){
                         deposit.transfer();
@@ -266,17 +260,12 @@ public class cyclestuff extends LinearOpMode {
             }
 
             heading = Math.toDegrees(pose.getHeading());
+            linkage.moveTo(linkageTarget);
             turret.moveTo(turretTarget);
             telemetry.addData("apexstate",apexstate.toString());
             telemetry.addData("cyclestate",cyclestate.toString());
-            telemetry.addData("slide", slide.getTarget());
-            telemetry.addData("X",pose.getX());
-            telemetry.addData("Y",pose.getY());
-            telemetry.addData("heading",pose.getHeading());
             telemetry.addData("hz",1/hztimer.seconds());
-            telemetry.addData("pathcount",pathNumber);
-            telemetry.addData("isautodone",auto.isDone());
-            telemetry.addData("desiredposeY",targetPose.getY());
+            telemetry.addData("target",linkageTarget);
             hztimer.reset();
             telemetry.update();
 

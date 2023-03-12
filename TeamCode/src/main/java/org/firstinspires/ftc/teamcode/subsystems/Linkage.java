@@ -6,8 +6,9 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class Linkage {
 
-    public static final double out = 0.425, in = 0.1, auto = 0.51;
+    public static final double out = 0.425, in = 0.1, auto = 0.425;
     private final ServoImplEx linkage;
+    private double conut = 0;
 
     public Linkage(HardwareMap hardwareMap) {
         linkage = hardwareMap.get(ServoImplEx.class, "linkage");
@@ -32,11 +33,16 @@ public class Linkage {
 
     public void auto() {
         linkage.setPosition(auto);
+        conut += 1;
     }
 
     public void toggle(boolean active) {
         if (active) { out(); }
         else { in(); }
+    }
+
+    public double returnCount() {
+        return conut;
     }
 
 }

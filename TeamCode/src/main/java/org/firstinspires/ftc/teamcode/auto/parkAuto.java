@@ -6,8 +6,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.localization.Localizer;
 import com.outoftheboxrobotics.photoncore.PhotonCore;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
@@ -16,11 +14,8 @@ import org.firstinspires.ftc.teamcode.utility.TwoWheelTrackingLocalizer;
 import org.firstinspires.ftc.teamcode.pipelines.cameraActivity;
 import org.firstinspires.ftc.teamcode.navigation.GoToPoint;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.teamcode.subsystems.SwerveDrive;
 import org.openftc.apriltag.AprilTagDetection;
 
@@ -108,7 +103,7 @@ import java.util.List;
             pose = localizer.getPoseEstimate();
             Pose2d startPose = pose;
             auto.driveToPoint(pose,desiredPose,startPose,true);
-            while(!auto.isDone() && opModeIsActive()){
+            while(!auto.isTimeDone() && opModeIsActive()){
                 for (LynxModule hub : allHubs) {
                     hub.clearBulkCache();
                 }

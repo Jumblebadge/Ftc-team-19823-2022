@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class Intake {
 
-    public static final double cone = 0.975, vertical = 0.45, transfer = 0.265, init = 0.3, lowJunction = 0.7, beacon = 1;
+    public static final double cone = 0.975, vertical = 0.45, transfer = 0.275, init = 0.3, lowJunction = 0.7, beacon = 1;
     private final TwoServo intake;
 
     public Intake(HardwareMap hardwareMap) {

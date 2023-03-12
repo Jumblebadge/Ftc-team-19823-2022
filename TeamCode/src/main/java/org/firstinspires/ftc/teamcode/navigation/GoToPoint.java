@@ -19,7 +19,7 @@ public class GoToPoint {
     private final Telemetry telemetry;
     private final FtcDashboard dashboard;
     private boolean isDone;
-    private double distanceNow;
+    private double distanceNow, headingError;
     private final myElapsedTime profileTime = new myElapsedTime();
     private final PIDcontroller headingPID = new PIDcontroller(6,0,5,0, 0.1);
     private final PIDcontroller xPID = new PIDcontroller(1,0,6.5,0, 0.1);
@@ -54,7 +54,8 @@ public class GoToPoint {
         //distanceToState * sin or cos of the angle to end point will give the x or y component of the distance vector, which ensures that x and y arrive at the same time. pose-startpos is the current state
         double xOut = xPID.pidOut(distanceToState * Math.cos(angleToEndPoint) - (pose.getX() - startPose.getX()));
         double yOut = yPID.pidOut(distanceToState * Math.sin(angleToEndPoint) - (pose.getY() - startPose.getY()));
-        double headingOut = headingPID.pidOut(AngleUnit.normalizeRadians(desiredPose.getHeading()-pose.getHeading()));
+        headingError = AngleUnit.normalizeRadians(desiredPose.getHeading()-pose.getHeading());
+        double headingOut = headingPID.pidOut(headingError);
         //feed the pid output into swerve kinematics and draw the robot on FTCdash field
         driver.drive(yOut,xOut,-headingOut);
         drawField(pose,desiredPose,startPose,dashboard);
@@ -76,14 +77,24 @@ public class GoToPoint {
         telemetry.addData("yerror",distanceToState*Math.sin(angleToEndPoint)-(pose.getY()-startPose.getY()));
     }
 
-    public boolean isDone(){
+    public boolean isTimeDone(){
         return isDone;
     }
-    public boolean isPosDone() { return distanceNow < 1 || isDone; }
+    public boolean isDone() { return distanceNow < 1 || isDone; }
+    public boolean isPositionDone() { return distanceNow < 1; }
+
+    public double getHeadingError() {
+        return headingError;
+    }
 
     public void setPIDCoeffs(double Kp, double Kd,double Ki, double Kf, double limit){
         xPID.setPIDgains(Kp, Kd, Ki, Kf, limit);
         yPID.setPIDgains(Kp, Kd, Ki, Kf, limit);
+    }
+
+    public void setVPIDCoeffs(double Kv, double Ka, double Ks) {
+        xPID.setFFgains(Kv, Ka, Ks);
+        yPID.setFFgains(Kv, Ka, Ks);
     }
 
     public void setHeadingPIDcoeffs(double Kp,double Kd, double Ki, double Kf, double limit){

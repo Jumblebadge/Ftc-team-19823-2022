@@ -25,7 +25,6 @@ import java.util.List;
 
 
 @Config
-@Disabled
 @TeleOp(name="swervy", group="Linear Opmode")
 public class swervy extends LinearOpMode {
 
@@ -41,7 +40,7 @@ public class swervy extends LinearOpMode {
     //IMU
     Localizer localizer;
     IMU imu;
-    public static double x=0,y=0, heading = 0,Kp=0,Kd=0,Ki=0, Kf = 0,hKp = 0,hKd = 0,hKi = 0, hKf = 0, maxVel=1,maxAccel=1,maxJerk=1, limit = 1000, hLimit = 1000;
+    public static double x=0,y=0, heading = 0,Kp=0,Kd=0,Ki=0, Ka = 0, Kv = 0, Ks = 0, Kf = 0,hKp = 0,hKd = 0,hKi = 0, hKf = 0, limit = 1000, hLimit = 1000;
     double lastX=0,lastY=0;
     Pose2d temp = new Pose2d(0,0,0);
     public void runOpMode() {
@@ -101,6 +100,7 @@ public class swervy extends LinearOpMode {
             dashboard.sendTelemetryPacket(packet);
 
             auto.setPIDCoeffs(Kp,Kd,Ki,Kf, limit);
+            auto.setVPIDCoeffs(Kv, Ka, Ks);
             auto.setHeadingPIDcoeffs(hKp,hKd,hKi, hKf, hLimit);
             //auto.setProfileConstraints(maxVel,maxAccel,maxJerk);
 

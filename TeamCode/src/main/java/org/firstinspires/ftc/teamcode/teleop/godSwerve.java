@@ -38,7 +38,7 @@ public class godSwerve extends LinearOpMode {
         DRIVE
     }
 
-    please.cycleStates cyclestate = please.cycleStates.MANUAL;
+    cycleStates cyclestate = cycleStates.MANUAL;
 
     ElapsedTime timer = new ElapsedTime();
 
@@ -128,13 +128,13 @@ public class godSwerve extends LinearOpMode {
                     }
 
                     if (gamepad2.right_bumper && gamepad2.left_bumper) {
-                        cyclestate = please.cycleStates.INTAKE_GRAB;
+                        cyclestate = cycleStates.INTAKE_GRAB;
                     }
                     break;
 
                 case DRIVE:
                     if (dpad_left.isolatedUpdate(gamepad2.dpad_left)) {
-                        cyclestate = please.cycleStates.INTAKE_GRAB;
+                        cyclestate = cycleStates.INTAKE_GRAB;
                     }
 
                     break;
@@ -146,7 +146,7 @@ public class godSwerve extends LinearOpMode {
                     claw.open();
 
                     if (dpad_left.isolatedUpdate(gamepad2.dpad_left)) {
-                        cyclestate = please.cycleStates.INTAKE_UP;
+                        cyclestate = cycleStates.INTAKE_UP;
                         timer.reset();
                     }
                     break;
@@ -159,7 +159,7 @@ public class godSwerve extends LinearOpMode {
                     }
 
                     if (dpad_left.isolatedUpdate(gamepad2.dpad_left) || timer.seconds() > 0.7) {
-                        cyclestate = please.cycleStates.TRANSFER;
+                        cyclestate = cycleStates.TRANSFER;
                         timer.reset();
                     }
                     break;
@@ -168,7 +168,7 @@ public class godSwerve extends LinearOpMode {
                     claw.open();
 
                     if (dpad_left.isolatedUpdate(gamepad2.dpad_left) || timer.seconds() > 0.2) {
-                        cyclestate = please.cycleStates.DEPOSIT_EXTEND;
+                        cyclestate = cycleStates.DEPOSIT_EXTEND;
                     }
                     break;
 
@@ -176,7 +176,7 @@ public class godSwerve extends LinearOpMode {
                     intake.vertical();
 
                     if (dpad_left.isolatedUpdate(gamepad2.dpad_left)) {
-                        cyclestate = please.cycleStates.DEPOSIT_DUMP;
+                        cyclestate = cycleStates.DEPOSIT_DUMP;
                     }
                     break;
 
@@ -184,19 +184,19 @@ public class godSwerve extends LinearOpMode {
                     deposit.score();
 
                     if (dpad_left.isolatedUpdate(gamepad2.dpad_left)) {
-                        cyclestate = please.cycleStates.DRIVE;
+                        cyclestate = cycleStates.DRIVE;
                         deposit.transfer();
                         slide.transfer();
                     }
                     break;
             }
 
-            if (gamepad2.dpad_up && cyclestate != please.cycleStates.MANUAL) {
-                cyclestate = please.cycleStates.MANUAL;
+            if (gamepad2.dpad_up && cyclestate != cycleStates.MANUAL) {
+                cyclestate = cycleStates.MANUAL;
             }
 
-            if (gamepad2.dpad_down && cyclestate != please.cycleStates.MANUAL) {
-                cyclestate = please.cycleStates.INTAKE_GRAB;
+            if (gamepad2.dpad_down && cyclestate != cycleStates.MANUAL) {
+                cyclestate = cycleStates.INTAKE_GRAB;
             }
 
 

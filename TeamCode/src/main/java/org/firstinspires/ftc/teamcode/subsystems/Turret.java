@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.maths.SlewRateLimiter;
+import org.firstinspires.ftc.teamcode.utility.RunMotionProfile;
 
 public class Turret {
 
@@ -16,8 +17,9 @@ public class Turret {
     private final AnalogInput ma3;
     private double adjust = 240, r = 5;
     private final PIDcontroller pid = new PIDcontroller(0.1,0.001,0.1,0, 0.25);
+    private final RunMotionProfile profile = new RunMotionProfile(1,2,3,0,0,0,0,1000);
     private final SlewRateLimiter limiter = new SlewRateLimiter();
-    public static final double zero = 0, stackPickup = 54.5;
+    public static final double zero = 0, stackPickup = 53;
 
     public Turret(HardwareMap hardwareMap){
         servo = hardwareMap.get(CRServoImplEx.class, "turret");
@@ -34,12 +36,25 @@ public class Turret {
         servo.setPower(limiter.rateLimit(pid.pidOut(AngleUnit.normalizeDegrees(target - getHeading())), r));
     }
 
+    public void moveToMP(double target) {
+        target = Range.clip(target, -90,90);
+        servo.setPower(profile.profiledMovement(target, getHeading()));
+    }
+
     public void PWMrelease() {
         servo.setPwmDisable();
     }
 
+    public void setMotionConstraints(double maxVel, double maxAccel, double maxJerk){
+        profile.setMotionConstraints(maxVel, maxAccel, maxJerk);
+    }
+
     public void setPIDcoeffs(double Kp, double Kd, double Ki, double Kf, double limit){
-        pid.setPIDgains(Kp, Kd, Ki, Kf, limit);
+        profile.setPIDcoeffs(Kp, Kd, Ki, Kf, limit);
+    }
+
+    public double getMotionTarget(){
+        return profile.getMotionTarget();
     }
 
     public void setR(double r){
