@@ -19,7 +19,7 @@ public class Turret {
     private final PIDcontroller pid = new PIDcontroller(0.1,0.001,0.1,0, 0.25);
     private final RunMotionProfile profile = new RunMotionProfile(1,2,3,0,0,0,0,1000);
     private final SlewRateLimiter limiter = new SlewRateLimiter();
-    public static final double zero = 0, stackPickup = 53;
+    public static final double zero = 0, stackPickup = 56;
 
     public Turret(HardwareMap hardwareMap){
         servo = hardwareMap.get(CRServoImplEx.class, "turret");

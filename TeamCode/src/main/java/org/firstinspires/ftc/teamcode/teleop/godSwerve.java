@@ -9,7 +9,7 @@ import com.qualcomm.hardware.lynx.*;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
-import org.firstinspires.ftc.teamcode.auto.cyclestuff;
+import org.firstinspires.ftc.teamcode.auto.left;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.Deposit;

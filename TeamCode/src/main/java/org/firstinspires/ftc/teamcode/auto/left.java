@@ -29,8 +29,8 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 
 @Config
-@Autonomous(name="testauto", group="Linear Opmode")
-public class cyclestuff extends LinearOpMode {
+@Autonomous(name="left", group="Linear Opmode")
+public class left extends LinearOpMode {
 
     OpenCvWebcam webcam;
 
@@ -140,7 +140,7 @@ public class cyclestuff extends LinearOpMode {
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     if (auto.isDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52.75, 7.25, -0.95);
+                        targetPose = new Pose2d(52.75, 5.3, -0.95);
                         intake.vertical();
                         claw.open();
                         pathNumber += 1;
