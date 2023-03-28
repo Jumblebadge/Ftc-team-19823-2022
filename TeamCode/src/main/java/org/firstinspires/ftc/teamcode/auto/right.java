@@ -140,7 +140,7 @@ public class right extends LinearOpMode {
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     if (auto.isDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52.5, 5.875, -0.95);
+                        targetPose = new Pose2d(52, 5.875, -0.95);
                         intake.vertical();
                         claw.open();
                         pathNumber += 1;
@@ -199,7 +199,7 @@ public class right extends LinearOpMode {
                 case INTAKE_GRAB:
                     slide.transfer();
                     deposit.transfer();
-                    intake.moveTo(0.97-((5-cyclesCompleted)*0.0235));
+                    intake.moveTo(0.9725-((5-cyclesCompleted)*0.023));
                     goofytimer.reset();
                     autogoofytimer.reset();
                     cyclestate = cycleStates.INTAKE_UP;

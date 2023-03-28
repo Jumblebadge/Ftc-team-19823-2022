@@ -16,7 +16,7 @@ public class LinearSlide {
     private final ServoImplEx aligner;
     private final RunMotionProfile profile = new RunMotionProfile(60000,70000,80000,0.1,0,1,0.2, 1);
 
-    public static final double highPole = 800, mediumPole = 400, transfer = 265, zero = 0;
+    public static final double highPole = 800, mediumPole = 400, transfer = 280, zero = 0;
     double currentPole = zero;
     final double alignerDown = 0.75, alignerUp = 1;
 
