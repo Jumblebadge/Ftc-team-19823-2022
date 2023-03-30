@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 import org.firstinspires.ftc.teamcode.auto.left;
+import org.firstinspires.ftc.teamcode.auto.right;
 import org.firstinspires.ftc.teamcode.maths.PIDcontroller;
 import org.firstinspires.ftc.teamcode.subsystems.Claw;
 import org.firstinspires.ftc.teamcode.subsystems.Deposit;
@@ -79,6 +80,8 @@ public class godSwerve extends LinearOpMode {
         //Fast loop go brrr
         PhotonCore.enable();
         PhotonCore.experimental.setMaximumParallelCommands(8);
+
+        slide.addOffset(right.slider);
 
         //linkage.setPosition(init);
         //claw.setPosition(0.6);

@@ -42,7 +42,7 @@ public class right extends LinearOpMode {
     double lastX = 0.0001, lastY = 0.0001, turretTarget = 0;
     double linkageTarget;
 
-    public static double heading;
+    public static double heading, slider;
 
     Pose2d pose = new Pose2d(0,0,0);
     Pose2d temp = new Pose2d(0,0,0);
@@ -127,6 +127,7 @@ public class right extends LinearOpMode {
         goofytimer.reset();
 
         while (opModeIsActive()) {
+            slider = slide.getPosition();
             //Clear the cache for better loop times (bulk sensor reads)
             controlHub.clearBulkCache();
 
@@ -140,12 +141,13 @@ public class right extends LinearOpMode {
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     if (auto.isDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52, 5.875, -0.95);
+                        targetPose = new Pose2d(52, 5.95, -0.95);
                         intake.vertical();
+                        slide.auto();
                         claw.open();
                         pathNumber += 1;
                     }
-                    if (goofytimer.seconds() > 0.001) {
+                    if (pathNumber == 1) {
                         servo.setPosition(Linkage.auto);
                     }
                     if (auto.isPositionDone() && pathNumber == 1 && goofytimer.seconds() > 3 && auto.getHeadingError() < 10) {
@@ -158,6 +160,7 @@ public class right extends LinearOpMode {
 
                 case CYCLING:
                     if (cyclesCompleted == 6){
+                        deposit.transfer();
                         targetPose = new Pose2d(44, 0, 0);
                         if (auto.isTimeDone()) {
                             cyclestate = cycleStates.WAIT;
@@ -192,12 +195,13 @@ public class right extends LinearOpMode {
                 case WAIT:
                     slide.zero(true);
                     deposit.transfer();
+                    intake.transfer();
                     linkageTarget = Linkage.in;
                     turretTarget = Turret.zero;
                     break;
 
                 case INTAKE_GRAB:
-                    slide.transfer();
+                    slide.auto();
                     deposit.transfer();
                     intake.moveTo(0.9725-((5-cyclesCompleted)*0.023));
                     goofytimer.reset();
@@ -214,7 +218,7 @@ public class right extends LinearOpMode {
                     }
                     if (goofytimer.seconds() > 1) {
                         linkageTarget = Linkage.in;
-                        turretTarget = 0;
+                        turretTarget = -9;
                     }
                     if (goofytimer.seconds() > 1.5) {
                         intake.transfer();
@@ -243,6 +247,7 @@ public class right extends LinearOpMode {
                     if (slide.isTimeDone()) {
                         cyclestate = cycleStates.DEPOSIT_DUMP;
                         goofytimer.reset();
+                        intake.moveTo(0.9725-((4-cyclesCompleted)*0.023));
                     }
 
                     break;

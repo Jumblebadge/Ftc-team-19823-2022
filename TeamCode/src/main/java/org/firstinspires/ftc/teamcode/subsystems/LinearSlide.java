@@ -16,8 +16,8 @@ public class LinearSlide {
     private final ServoImplEx aligner;
     private final RunMotionProfile profile = new RunMotionProfile(60000,70000,80000,0.1,0,1,0.2, 1);
 
-    public static final double highPole = 800, mediumPole = 400, transfer = 280, zero = 0;
-    double currentPole = zero;
+    public static final double highPole = 800, mediumPole = 400, transfer = 270, autotransfer = 300, zero = 0;
+    double currentPole = zero, offset = 0;
     final double alignerDown = 0.75, alignerUp = 1;
 
     public LinearSlide(HardwareMap hardwareMap){
@@ -36,15 +36,15 @@ public class LinearSlide {
     }
 
     public void update() {
-        motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),0);
-        motors.setPower(profile.profiledMovement(target, motors.getPosition(0)),1);
+        motors.setPower(profile.profiledMovement(target, motors.getPosition(0) + offset),0);
+        motors.setPower(profile.profiledMovement(target, motors.getPosition(0) + offset),1);
     }
 
     public double getError(){
-        return target - motors.getPosition(0);
+        return target - (motors.getPosition(0) + offset);
     }
 
-    public double getPosition() { return motors.getPosition(0); }
+    public double getPosition() { return motors.getPosition(0) + offset; }
 
     public boolean isTimeDone() { return profile.getProfileDuration() < profile.getCurrentTime(); }
     public boolean isPositionDone() { return Math.abs(getError()) < 10; }
@@ -80,6 +80,10 @@ public class LinearSlide {
         aligner.setPwmDisable();
     }
 
+    public void addOffset(double offset) {
+        this.offset = offset;
+    }
+
     public void highPole(){
         moveTo(highPole);
         aligner.setPosition(alignerUp);
@@ -92,6 +96,11 @@ public class LinearSlide {
     }
     public void transfer(){
         moveTo(transfer);
+        aligner.setPosition(alignerDown);
+        currentPole = transfer;
+    }
+    public void auto(){
+        moveTo(autotransfer);
         aligner.setPosition(alignerDown);
         currentPole = transfer;
     }

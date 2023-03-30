@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 public class Claw {
 
-    public static final double close = 0.7, open = 0.35;
+    public static final double close = 0.75, open = 0.35;
     ServoImplEx claw;
 
     public Claw(HardwareMap hardwareMap) {

@@ -16,12 +16,12 @@ public class swerveKinematics {
 
         //the joystick values (after rotated) converted into vectors (split in x and y) that are wheel specific, displacement vectors per wheel also
         double mod1strafe = strafe1-rotate*1;
-        double mod2strafe = strafe1-rotate*-0.7;
-        double mod3strafe = strafe1-rotate*-0.7;
+        double mod2strafe = strafe1-rotate*-0.5;
+        double mod3strafe = strafe1-rotate*-0.5;
 
         double mod1forward = forward1; //top wheel at x 0
-        double mod2forward = forward1+rotate*1;
-        double mod3forward = forward1+rotate*-1;
+        double mod2forward = forward1+rotate*0.866;
+        double mod3forward = forward1+rotate*-0.866;
 
         //extracting the length of our wheel specific vectors (speed)
         double mod1speed = Math.sqrt((mod1strafe * mod1strafe) + (mod1forward * mod1forward));
