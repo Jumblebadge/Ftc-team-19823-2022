@@ -70,6 +70,7 @@ public class LinearSlide {
         motors.motors[1].setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motors.motors[0].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motors.motors[1].setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        offset = 0;
     }
 
     public void setAlignerPosition(double position) {
