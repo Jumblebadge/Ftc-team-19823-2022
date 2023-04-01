@@ -56,7 +56,6 @@ public class godSwerve extends LinearOpMode {
 
         //class that runs our linear slide
         LinearSlide slide = new LinearSlide(hardwareMap);
-        slide.resetEncoders();
 
         Deposit deposit = new Deposit(hardwareMap);
         Intake intake   = new Intake(hardwareMap);

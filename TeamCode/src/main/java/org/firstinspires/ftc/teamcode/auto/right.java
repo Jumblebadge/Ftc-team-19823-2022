@@ -141,7 +141,7 @@ public class right extends LinearOpMode {
                 case DRIVE_TO_CYCLE:
                     //drive to cycling position
                     if (auto.isDone() && pathNumber == 0) {
-                        targetPose = new Pose2d(52, 5.95, -0.95);
+                        targetPose = new Pose2d(52, 5.65, -0.95);
                         intake.vertical();
                         slide.auto();
                         claw.open();
@@ -160,7 +160,7 @@ public class right extends LinearOpMode {
 
                 case CYCLING:
                     if (cyclesCompleted == 6){
-                        deposit.transfer();
+                        intake.vertical();
                         targetPose = new Pose2d(44, 0, 0);
                         if (auto.isTimeDone()) {
                             cyclestate = cycleStates.WAIT;
@@ -195,7 +195,7 @@ public class right extends LinearOpMode {
                 case WAIT:
                     slide.zero(true);
                     deposit.transfer();
-                    intake.transfer();
+                    intake.vertical();
                     linkageTarget = Linkage.in;
                     turretTarget = Turret.zero;
                     break;
@@ -203,6 +203,8 @@ public class right extends LinearOpMode {
                 case INTAKE_GRAB:
                     slide.auto();
                     deposit.transfer();
+                    linkageTarget = Linkage.auto;
+                    linkage.moveTo(linkageTarget);
                     intake.moveTo(0.9725-((5-cyclesCompleted)*0.023));
                     goofytimer.reset();
                     autogoofytimer.reset();
@@ -212,9 +214,13 @@ public class right extends LinearOpMode {
                 case INTAKE_UP:
                     if (autogoofytimer.seconds() > 0.75){
                         claw.close();
+                        linkageTarget = Linkage.auto;
+                        linkage.moveTo(linkageTarget);
                     }
                     if (goofytimer.seconds() > 0.95) {
                         intake.vertical();
+                        linkageTarget = Linkage.auto;
+                        linkage.moveTo(linkageTarget);
                     }
                     if (goofytimer.seconds() > 1) {
                         linkageTarget = Linkage.in;
@@ -255,10 +261,14 @@ public class right extends LinearOpMode {
                 case DEPOSIT_DUMP:
                     if (goofytimer.seconds() > 0.35) {
                         deposit.score();
+                        linkageTarget = Linkage.auto;
+                        linkage.moveTo(linkageTarget);
                     }
                     if (goofytimer.seconds() > 1.325){
                         deposit.transfer();
                         cyclesCompleted += 1;
+                        linkageTarget = Linkage.auto;
+                        linkage.moveTo(linkageTarget);
                         cyclestate = cycleStates.INTAKE_GRAB;
                     }
                     break;
